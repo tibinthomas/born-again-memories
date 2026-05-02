@@ -1,8 +1,12 @@
+# ============================================================================
 # Miscellaneous
+# ============================================================================
 *.class
 *.log
 *.pyc
 *.swp
+*.swo
+*~
 .DS_Store
 .atom/
 .build/
@@ -12,34 +16,159 @@
 .swiftpm/
 migrate_working_dir/
 
-# IntelliJ related
+# ============================================================================
+# IDE and Editor
+# ============================================================================
 *.iml
 *.ipr
 *.iws
 .idea/
+.vscode/
+*.swp
+*.swo
+*~
+.externalNativeBuild/
+.gradle
+*.sublime-project
+*.sublime-workspace
+*.code-workspace
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
+# ============================================================================
+# macOS
+# ============================================================================
+.DS_Store
+.AppleDouble
+.LSOverride
+*.swp
+.Spotlight-V100
+.Trashes
+._*
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
 
+# ============================================================================
 # Flutter/Dart/Pub related
+# ============================================================================
 **/doc/api/
 **/ios/Flutter/.last_build_id
 .dart_tool/
 .flutter-plugins-dependencies
+.flutter-plugins
 .pub-cache/
 .pub/
 /build/
 /coverage/
+.packages
+pubspec.lock
 
-# Symbolication related
+# ============================================================================
+# Android
+# ============================================================================
+**/android/app/debug
+**/android/app/profile
+**/android/app/release
+**/android/.gradle
+**/android/.gradle/
+**/android/local.properties
+**/android/GeneratedPluginRegistrant.java
+**/android/GeneratedPluginRegistrant.kotlin
+**/android/.idea/
+**/android/*.iml
+**/android/*.apk
+**/android/*.zip
+**/android/*.jks
+**/android/*.keystore
+**/android/key.properties
+
+# ============================================================================
+# iOS/macOS
+# ============================================================================
+**/ios/Flutter/Flutter.podspec
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.plugin.gn
+**/ios/Flutter/ephemeral/
+**/ios/Flutter/Flutter-Generated.xcconfig
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/Debug.xcconfig
+**/ios/Flutter/Release.xcconfig
+**/ios/Podfile
+**/ios/Podfile.lock
+**/ios/pods/
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/.generated.xcconfig
+**/ios/Flutter/flutter_assets/
+**/ios/Runner.xcodeproj/project.pbxproj
+**/ios/Runner.xcodeproj/project.xcworkspace/
+**/ios/Runner.xcworkspace/
+**/macos/Flutter/GeneratedPluginRegistrant.swift
+**/macos/Flutter/Flutter-Debug.xcconfig
+**/macos/Flutter/Flutter-Release.xcconfig
+**/macos/Flutter/ephemeral/
+**/macos/Podfile
+**/macos/Podfile.lock
+**/macos/Pods/
+**/macos/Runner.xcodeproj/project.pbxproj
+**/macos/Runner.xcodeproj/project.xcworkspace/
+**/macos/Runner.xcworkspace/
+
+# ============================================================================
+# Web
+# ============================================================================
+**/web/packages/
+**/web/plugins/
+
+# ============================================================================
+# Windows
+# ============================================================================
+**/windows/flutter/generated_plugins.cmake
+**/windows/flutter/GeneratedPluginRegistrant.*
+**/windows/.vs/
+**/windows/x64/
+
+# ============================================================================
+# Linux
+# ============================================================================
+**/linux/flutter/generated_plugins.cmake
+**/linux/flutter/GeneratedPluginRegistrant.*
+**/linux/build/
+
+# ============================================================================
+# Symbolication and Obfuscation
+# ============================================================================
 app.*.symbols
-
-# Obfuscation related
 app.*.map.json
 
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
+# ============================================================================
+# Environment and Configuration
+# ============================================================================
+.env
+.env.local
+.env.*.local
+.envrc
+.env.example
+
+# ============================================================================
+# Firebase
+# ============================================================================
+google-services.json
+GoogleService-Info.plist
+firebase.json
+.firebaserc
+
+# ============================================================================
+# Testing
+# ============================================================================
+/test_driver/
+/.dart_tool/
+test_driver/keys.json
+
+# ============================================================================
+# Local overrides
+# ============================================================================
+*.local
+*.override
+**/.flutter_plugins_dependencies
