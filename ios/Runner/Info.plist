@@ -49,6 +49,17 @@
 	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Used to capture photos and videos for milestones.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Used to pick photos and videos for milestones.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Used to record videos for milestones.</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>https</string>
+		<string>http</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

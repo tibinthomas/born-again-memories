@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/milestone.dart';
 import '../utils/date_formatter.dart';
 import 'attachment_preview.dart';
+import 'link_preview_card.dart';
 
 class MilestoneCard extends StatelessWidget {
   final Milestone milestone;
@@ -82,6 +83,31 @@ class MilestoneCard extends StatelessWidget {
                     children: milestone.attachments
                         .map((attachment) => AttachmentPreview(attachment: attachment))
                         .toList(),
+                  ),
+                ],
+                if (milestone.externalLinks.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Icon(Icons.link, size: 14, color: Colors.grey.shade500),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Links',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade500,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  ...milestone.externalLinks.map(
+                    (link) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: LinkPreviewCard(url: link.url, label: link.label),
+                    ),
                   ),
                 ],
               ],

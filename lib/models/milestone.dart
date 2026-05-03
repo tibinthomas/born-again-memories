@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'attachment.dart';
+import 'external_link.dart';
 
 class Milestone {
   final String title;
@@ -7,6 +8,7 @@ class Milestone {
   final DateTime date;
   final Color color;
   final List<Attachment> attachments;
+  final List<ExternalLink> externalLinks;
 
   Milestone({
     required this.title,
@@ -14,5 +16,6 @@ class Milestone {
     required this.date,
     required this.color,
     this.attachments = const [],
+    this.externalLinks = const [],
   });
 }
