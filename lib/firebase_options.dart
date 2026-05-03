@@ -65,7 +65,7 @@ class DefaultFirebaseOptions {
     projectId: 'born-again-memories',
     storageBucket: 'born-again-memories.firebasestorage.app',
     iosClientId: '535814593524-2ivnq4cakusq84cd3c65la319getapt1.apps.googleusercontent.com',
-    iosBundleId: 'com.example.myApp',
+    iosBundleId: 'com.tibinthomas.bornAgainMemories',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(

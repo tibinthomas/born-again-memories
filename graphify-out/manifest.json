@@ -15,6 +15,766 @@
     "mtime": 1777802914.2033844,
     "hash": "bfeb4c1a729dfdc6e0651e395cc373d1"
   },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCore/FirebaseCore/Extension/FIRComponentContainer.h": {
+    "mtime": 1777833460.3546557,
+    "hash": "82d607e70d03cb644241ef2397f94a61"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCore/FirebaseCore/Extension/FirebaseCoreInternal.h": {
+    "mtime": 1777833460.354986,
+    "hash": "abb9a3eaafc2d5f841ba3409b30e8b25"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCore/FirebaseCore/Extension/FIRLogger.h": {
+    "mtime": 1777833460.3551586,
+    "hash": "ad36f008d0fe1c6159d2913082f3a14c"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCore/FirebaseCore/Extension/FIRAppInternal.h": {
+    "mtime": 1777833460.3554242,
+    "hash": "0eaf83935d4951b8e853a004f44c13ad"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCore/FirebaseCore/Extension/FIRComponentType.h": {
+    "mtime": 1777833460.355579,
+    "hash": "6e9ce19af13bb2a4add6f5e333e9e6dd"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCore/FirebaseCore/Extension/FIRHeartbeatLogger.h": {
+    "mtime": 1777833460.3556912,
+    "hash": "f0ed90d50f07e366f8fff5c55e97a665"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCore/FirebaseCore/Extension/FIRComponent.h": {
+    "mtime": 1777833460.3558009,
+    "hash": "cd46fd37ac6f9ddba528dda9260943bc"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCore/FirebaseCore/Extension/FIRLibrary.h": {
+    "mtime": 1777833460.3559525,
+    "hash": "858bd4b7c8dcdc0a65e3c54323f11860"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCore/FirebaseCore/Sources/FIROptionsInternal.h": {
+    "mtime": 1777833460.3614705,
+    "hash": "3574c11655513ba6f3f90f3aa8659ca3"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCore/FirebaseCore/Sources/FIRFirebaseUserAgent.h": {
+    "mtime": 1777833460.3616126,
+    "hash": "4c766f61fdb929e741afaa67e42df1db"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCore/FirebaseCore/Sources/FIRConfiguration.m": {
+    "mtime": 1777833460.361756,
+    "hash": "715274218dcf268a8da025d6dbf789c2"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCore/FirebaseCore/Sources/FIRTimestamp.m": {
+    "mtime": 1777833460.3619862,
+    "hash": "43f0c1023705aee854e3d69ee895ca3b"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCore/FirebaseCore/Sources/FIRApp.m": {
+    "mtime": 1777833460.3622158,
+    "hash": "4060e2acba58dc2ea629d1fb5d37b7f3"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCore/FirebaseCore/Sources/FIROptions.m": {
+    "mtime": 1777833460.362418,
+    "hash": "d29a4daf3457909325a024e8068a46f8"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCore/FirebaseCore/Sources/FIRComponent.m": {
+    "mtime": 1777833460.3626258,
+    "hash": "807b5c84e38827d7473f9150a82aa7b3"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCore/FirebaseCore/Sources/FIRTimestampInternal.h": {
+    "mtime": 1777833460.36284,
+    "hash": "08c182209a2da2c9cefa0cf0c1e95a98"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCore/FirebaseCore/Sources/FIRBundleUtil.h": {
+    "mtime": 1777833460.3630624,
+    "hash": "729fa89db1b1a22db93be24d53c2a9ba"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCore/FirebaseCore/Sources/FIRAnalyticsConfiguration.m": {
+    "mtime": 1777833460.3633783,
+    "hash": "4b3dfa0f7fff9d3d190949c04d961a30"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCore/FirebaseCore/Sources/FIRVersion.m": {
+    "mtime": 1777833460.3635187,
+    "hash": "b365df994ae0350693a6ca7c1c285b3c"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCore/FirebaseCore/Sources/FIRConfigurationInternal.h": {
+    "mtime": 1777833460.363698,
+    "hash": "b09e657c7ece75542e2913047798bd3f"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCore/FirebaseCore/Sources/FIRFirebaseUserAgent.m": {
+    "mtime": 1777833460.3638427,
+    "hash": "9e27e4871fae18fa0c02cc7b59f438eb"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCore/FirebaseCore/Sources/FIRComponentContainer.m": {
+    "mtime": 1777833460.365424,
+    "hash": "c7dea1999a128c30cf762a4cab889ddd"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCore/FirebaseCore/Sources/FIRComponentType.m": {
+    "mtime": 1777833460.36555,
+    "hash": "7c1029b63e6f349c71edc4ff35743b22"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCore/FirebaseCore/Sources/FIRLogger.m": {
+    "mtime": 1777833460.3656921,
+    "hash": "865bdf6593c9a89930de5e8c394b2f28"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCore/FirebaseCore/Sources/FIRAnalyticsConfiguration.h": {
+    "mtime": 1777833460.365827,
+    "hash": "414e987a9ed1f1f63ebe36d6149eb3a5"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCore/FirebaseCore/Sources/FIRBundleUtil.m": {
+    "mtime": 1777833460.3659513,
+    "hash": "706cd95500cac1b310ee83fdceecb0ba"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCore/FirebaseCore/Sources/FIRComponentContainerInternal.h": {
+    "mtime": 1777833460.3660657,
+    "hash": "0e0c487911f00537246abfa325b6d36c"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCore/FirebaseCore/Sources/FIRHeartbeatLogger.m": {
+    "mtime": 1777833460.3661816,
+    "hash": "b81d127b1072fb1d4575e7e464bba115"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCore/FirebaseCore/Sources/Public/FirebaseCore/FIRTimestamp.h": {
+    "mtime": 1777833460.3643465,
+    "hash": "c374de61b4214dc42e8d8b9257aaa841"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCore/FirebaseCore/Sources/Public/FirebaseCore/FIRConfiguration.h": {
+    "mtime": 1777833460.3645623,
+    "hash": "3b4b2bfc0cd1c7087033c433d75e5975"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCore/FirebaseCore/Sources/Public/FirebaseCore/FIROptions.h": {
+    "mtime": 1777833460.3647108,
+    "hash": "0d62166b47088916255b79e289b5881e"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCore/FirebaseCore/Sources/Public/FirebaseCore/FIRApp.h": {
+    "mtime": 1777833460.3648398,
+    "hash": "84cce1e93da58170006e4ff4e60cd132"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCore/FirebaseCore/Sources/Public/FirebaseCore/FIRLoggerLevel.h": {
+    "mtime": 1777833460.3649545,
+    "hash": "e015541d3a9b88ad60d77544dbb8a7ff"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCore/FirebaseCore/Sources/Public/FirebaseCore/FirebaseCore.h": {
+    "mtime": 1777833460.365079,
+    "hash": "03ac82d35f8ed0eb5b126b6c436d80e1"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCore/FirebaseCore/Sources/Public/FirebaseCore/FIRVersion.h": {
+    "mtime": 1777833460.3651989,
+    "hash": "f1b5de7eee0286b6d54d6bd08e0c1188"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/FBLPromise+Await.m": {
+    "mtime": 1777833481.32708,
+    "hash": "045771ee9af2058711b8c19952dbc080"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/FBLPromise+Retry.m": {
+    "mtime": 1777833481.3273246,
+    "hash": "8385c11d11e23165b1bf3ae31e7c5b07"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/FBLPromise+Do.m": {
+    "mtime": 1777833481.3275473,
+    "hash": "f081a3bb2e4e1ab9e787f235276c24ff"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/FBLPromise+Delay.m": {
+    "mtime": 1777833481.327756,
+    "hash": "9174cb11962b326de02dad4c41860831"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/FBLPromise+Then.m": {
+    "mtime": 1777833481.3320196,
+    "hash": "f27edb6e481da65df519b152ede7cc04"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/FBLPromiseError.m": {
+    "mtime": 1777833481.3325026,
+    "hash": "f33b8aa9b1fef1cf731f74a36d6ad49d"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/FBLPromise+Timeout.m": {
+    "mtime": 1777833481.3326752,
+    "hash": "31d3f95e7b3daf1d837fce957cdd957e"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/FBLPromise+Any.m": {
+    "mtime": 1777833481.332879,
+    "hash": "fe8c77b65bc76126c80e2384c98162aa"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/FBLPromise+Async.m": {
+    "mtime": 1777833481.333076,
+    "hash": "77214754e1f64eca5ca0ce58535e6da6"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/FBLPromise+Always.m": {
+    "mtime": 1777833481.3332884,
+    "hash": "dc97940eba6f24d984e027efd348ae81"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/FBLPromise+Catch.m": {
+    "mtime": 1777833481.333492,
+    "hash": "a00529e5cddd9e133782da96ca8fb88d"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/FBLPromise+Reduce.m": {
+    "mtime": 1777833481.3336997,
+    "hash": "25cbd1b22b594c0a34d64af64adec265"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/FBLPromise+Testing.m": {
+    "mtime": 1777833481.333898,
+    "hash": "b385dde0b1b5c0102fd27549fa1de4e2"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/FBLPromise+Recover.m": {
+    "mtime": 1777833481.3340971,
+    "hash": "97f698b14d5d68a0b2df524137517d14"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/FBLPromise+Race.m": {
+    "mtime": 1777833481.334275,
+    "hash": "56befdfa41adef3f4ba405250de55794"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/FBLPromise+All.m": {
+    "mtime": 1777833481.3344724,
+    "hash": "5450dbd86b0cfe1991a5a21714a1203b"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/FBLPromise+Validate.m": {
+    "mtime": 1777833481.3346882,
+    "hash": "f8ae63b9c985a45c99ad8f31efe58aa2"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/FBLPromise.m": {
+    "mtime": 1777833481.334897,
+    "hash": "b84dbbdbc834007cd063383f3af9ec5c"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/FBLPromise+Wrap.m": {
+    "mtime": 1777833481.3351235,
+    "hash": "e9b05da5be7ddadfd93d03d021099207"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/include/FBLPromise+Testing.h": {
+    "mtime": 1777833481.3280795,
+    "hash": "657d01920085dd6e8266b94a409772ad"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/include/FBLPromise+Reduce.h": {
+    "mtime": 1777833481.3282962,
+    "hash": "ed3bde0d2dcff4ce325661f67ef0472d"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/include/FBLPromise+Catch.h": {
+    "mtime": 1777833481.328521,
+    "hash": "ffa2928366e223b9b784760a0a020ec1"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/include/FBLPromise+Recover.h": {
+    "mtime": 1777833481.328731,
+    "hash": "1f5dd07e12a7ef5173f37879f21f6944"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/include/FBLPromise+Validate.h": {
+    "mtime": 1777833481.328953,
+    "hash": "2433641592186f41da33963d10e40e31"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/include/FBLPromise+All.h": {
+    "mtime": 1777833481.3292472,
+    "hash": "85642ad09d48bdbcaee53b319ba80a26"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/include/FBLPromise+Race.h": {
+    "mtime": 1777833481.329422,
+    "hash": "47f2cf84c58f0599765875d5ddde9767"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/include/FBLPromise+Wrap.h": {
+    "mtime": 1777833481.3295689,
+    "hash": "c5bf1bf5b082555512cd7ccc5acc49c3"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/include/FBLPromise.h": {
+    "mtime": 1777833481.3296921,
+    "hash": "69e58d6e8429dc3ae0abaebc76349e6f"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/include/FBLPromises.h": {
+    "mtime": 1777833481.3298166,
+    "hash": "fc63997a6ffe91bfa73c0f7a95f433d3"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/include/FBLPromisePrivate.h": {
+    "mtime": 1777833481.3299463,
+    "hash": "0eb5cd8f503089545982200fae965281"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/include/FBLPromise+Retry.h": {
+    "mtime": 1777833481.3301325,
+    "hash": "f38c6096517d11b78c51008ff9640869"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/include/FBLPromise+Await.h": {
+    "mtime": 1777833481.3303318,
+    "hash": "e4115340cf3da47623f6491087759e7d"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/include/FBLPromise+Delay.h": {
+    "mtime": 1777833481.3304968,
+    "hash": "1665dbca33e4da7783342b15bfdfd8ff"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/include/FBLPromise+Do.h": {
+    "mtime": 1777833481.3306682,
+    "hash": "1b142934a83b0041d607399caa673790"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/include/FBLPromise+Timeout.h": {
+    "mtime": 1777833481.3308713,
+    "hash": "3c25d317742666c30af05f3e6bd384d3"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/include/FBLPromiseError.h": {
+    "mtime": 1777833481.330991,
+    "hash": "76ceda8875bf8118449efe17b694bfc4"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/include/FBLPromise+Then.h": {
+    "mtime": 1777833481.3311784,
+    "hash": "98e87ca99cb3a64ddbda9549f1123530"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/include/FBLPromise+Async.h": {
+    "mtime": 1777833481.3313737,
+    "hash": "af0063e25968f0e3be64fdf73479d963"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/include/FBLPromise+Always.h": {
+    "mtime": 1777833481.3315897,
+    "hash": "9d7cbb4fd9378eabcb2cf59465643005"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/Sources/FBLPromises/include/FBLPromise+Any.h": {
+    "mtime": 1777833481.331813,
+    "hash": "96aef2d55b5d819b02bf10dd715a640e"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/Core/GACAppCheckLogger.m": {
+    "mtime": 1777833428.0937574,
+    "hash": "f7c26a95e4edf7a1803cdda6210887f3"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/Core/GACAppCheck.m": {
+    "mtime": 1777833428.0950992,
+    "hash": "be3ced9c3eba71ea5b9cc8d35b53bb04"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/Core/GACAppCheckLogger+Internal.h": {
+    "mtime": 1777833428.0970378,
+    "hash": "c2d269a797ec0c8805aa6ac7d618849d"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/Core/GACAppCheckSettings.m": {
+    "mtime": 1777833428.0972855,
+    "hash": "8eef56f505ef5af4772614a6c6acb0bd"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/Core/Backoff/GACAppCheckBackoffWrapper.h": {
+    "mtime": 1777833428.0926323,
+    "hash": "796a420184a25e08545e20d63414b987"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/Core/Backoff/GACAppCheckBackoffWrapper.m": {
+    "mtime": 1777833428.0927858,
+    "hash": "44ade508a25e3dddf57a8b2d1c23ee0b"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/Core/TokenRefresh/GACAppCheckTimer.h": {
+    "mtime": 1777833428.0930026,
+    "hash": "765162fb43fd93133ddba00aa584724f"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/Core/TokenRefresh/GACAppCheckTimer.m": {
+    "mtime": 1777833428.093397,
+    "hash": "08a346d80aea5eb2c81336fc55cb15cc"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/Core/Utils/GACAppCheckCryptoUtils.h": {
+    "mtime": 1777833428.0939696,
+    "hash": "c518ec2c8871946833e5f33c24935329"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/Core/Utils/GACAppCheckCryptoUtils.m": {
+    "mtime": 1777833428.0941043,
+    "hash": "088bdc7ad4b4592e81eedb8db086a7d6"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/Core/Storage/GACAppCheckStorage.m": {
+    "mtime": 1777833428.0943303,
+    "hash": "d9bde31541fc055e1a8eb78fe323da77"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/Core/Storage/GACAppCheckStorage.h": {
+    "mtime": 1777833428.0946887,
+    "hash": "984a3e26018a3c431c642924ff1fdbdb"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/Core/Errors/GACAppCheckHTTPError.m": {
+    "mtime": 1777833428.09533,
+    "hash": "af6df9d26cc03da0e6f3899706e4e0b4"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h": {
+    "mtime": 1777833428.0954533,
+    "hash": "2e8c7adf113360a0db5e6ada23e0b774"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/Core/Errors/GACAppCheckHTTPError.h": {
+    "mtime": 1777833428.095575,
+    "hash": "25276d163fe6bf590ac8610c9fdf7bda"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.m": {
+    "mtime": 1777833428.0957148,
+    "hash": "14fec022767da924c34e1d28035aacdb"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/Core/Errors/GACAppCheckErrors.m": {
+    "mtime": 1777833428.095831,
+    "hash": "c7495632d964f35fcf62faf067f0c3fd"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/Core/APIService/NSURLSession+GACPromises.m": {
+    "mtime": 1777833428.0960264,
+    "hash": "7f528359fff30bfad1a8cf26818556ff"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/Core/APIService/GACAppCheckAPIService.h": {
+    "mtime": 1777833428.0961602,
+    "hash": "3e4dafa507008253d9a8b8cda50802be"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/Core/APIService/GACURLSessionDataResponse.h": {
+    "mtime": 1777833428.096297,
+    "hash": "1c66169c2d9134cd04aee36c7d8b1ced"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/Core/APIService/NSURLSession+GACPromises.h": {
+    "mtime": 1777833428.0965512,
+    "hash": "3756c5054a13ea3ec4367ec71a061292"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/Core/APIService/GACAppCheckAPIService.m": {
+    "mtime": 1777833428.0966797,
+    "hash": "1dd44ade96f391f376ae2346cf4555fc"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/Core/APIService/GACURLSessionDataResponse.m": {
+    "mtime": 1777833428.0969179,
+    "hash": "4bd7e80e674ac74afa9631c7b4b7d4e9"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/DebugProvider/GACAppCheckDebugProvider.m": {
+    "mtime": 1777833428.097616,
+    "hash": "90a7cde397f5496b659f3effaca97f1e"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/DebugProvider/API/GACAppCheckDebugProviderAPIService.m": {
+    "mtime": 1777833428.0978088,
+    "hash": "002b75b62909c54a68b697d93207684a"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/DebugProvider/API/GACAppCheckDebugProviderAPIService.h": {
+    "mtime": 1777833428.0979323,
+    "hash": "5729f401e990c35f3cd9a36729e7fbbd"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/DeviceCheckProvider/GACDeviceCheckProvider.m": {
+    "mtime": 1777833428.0989032,
+    "hash": "0a6dbfb109ba25d7e377c05e6a2a29b6"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/DeviceCheckProvider/API/GACDeviceCheckAPIService.m": {
+    "mtime": 1777833428.098619,
+    "hash": "574b140ec0efde0e7a26cd68bc19d68b"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/DeviceCheckProvider/API/GACDeviceCheckAPIService.h": {
+    "mtime": 1777833428.0987582,
+    "hash": "ec45b6e4593487841522dea2dbad744a"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckAvailability.h": {
+    "mtime": 1777833428.0991967,
+    "hash": "54adb82f631119cea852598ed5142ef2"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/Public/AppCheckCore/GACAppCheck.h": {
+    "mtime": 1777833428.099328,
+    "hash": "326165cb3c187a91579e2e989e504e96"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/Public/AppCheckCore/GACDeviceCheckProvider.h": {
+    "mtime": 1777833428.099457,
+    "hash": "ae74b5855a6fc5faa4045cc335747e9f"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckSettings.h": {
+    "mtime": 1777833428.099731,
+    "hash": "aac1c7af256d0218a59e60d5ad9b94da"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrors.h": {
+    "mtime": 1777833428.099882,
+    "hash": "16ffde979b67867e0e89269d98ea6beb"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckDebugProvider.h": {
+    "mtime": 1777833428.1001613,
+    "hash": "9ff5900cadcc4c46a5253f67c1c5f2c4"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/Public/AppCheckCore/AppCheckCore.h": {
+    "mtime": 1777833428.100293,
+    "hash": "d25504f88a7b963e8c956cc9b3db7b36"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckProvider.h": {
+    "mtime": 1777833428.1004217,
+    "hash": "37d4349193d86ffd15d3a65542249ed1"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckLogger.h": {
+    "mtime": 1777833428.100702,
+    "hash": "47fd635ee86799eb0aebc03b9075b343"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/Public/AppCheckCore/GACAppAttestProvider.h": {
+    "mtime": 1777833428.1008327,
+    "hash": "d9ded084a603556b85f6dce252ae4a8d"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/AppAttestProvider/GACAppAttestProvider.m": {
+    "mtime": 1777833428.1010795,
+    "hash": "845777072d6b53cd41be2974f0490b11"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/AppAttestProvider/GACAppAttestProviderState.m": {
+    "mtime": 1777833428.101213,
+    "hash": "e731633d808448bdf9021e077f99c709"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/AppAttestProvider/DCAppAttestService+GACAppAttestService.m": {
+    "mtime": 1777833428.1013315,
+    "hash": "cef83160ded62aed1615c1e1bbad5d55"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/AppAttestProvider/GACAppAttestProviderState.h": {
+    "mtime": 1777833428.1029296,
+    "hash": "35a3ae4f82695eb4e670f4ece72ff4d1"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/AppAttestProvider/DCAppAttestService+GACAppAttestService.h": {
+    "mtime": 1777833428.1033833,
+    "hash": "bf193a796ef7321fc40fa995b0b8f56b"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/AppAttestProvider/GACAppAttestService.h": {
+    "mtime": 1777833428.1035075,
+    "hash": "cc9f682758b6951f215bfc1819cbc731"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/AppAttestProvider/Storage/GACAppAttestKeyIDStorage.h": {
+    "mtime": 1777833428.101524,
+    "hash": "d5ff6928ef079d63a8acdd184be0cc4c"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/AppAttestProvider/Storage/GACAppAttestArtifactStorage.h": {
+    "mtime": 1777833428.1016474,
+    "hash": "edacbc1538007742b206684699f17e67"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/AppAttestProvider/Storage/GACAppAttestStoredArtifact.m": {
+    "mtime": 1777833428.1017768,
+    "hash": "aceec95213dc643c4334835fa47e7ab8"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/AppAttestProvider/Storage/GACAppAttestKeyIDStorage.m": {
+    "mtime": 1777833428.1019301,
+    "hash": "29206691d337b34a55036df851ca2df1"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/AppAttestProvider/Storage/GACAppAttestArtifactStorage.m": {
+    "mtime": 1777833428.102071,
+    "hash": "a8b8e4859098308e1243f2ccf4bdeccd"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/AppAttestProvider/Storage/GACAppAttestStoredArtifact.h": {
+    "mtime": 1777833428.102193,
+    "hash": "c47a94434ee3914acc80f91eb8209fea"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/AppAttestProvider/API/GACAppAttestAPIService.m": {
+    "mtime": 1777833428.1024065,
+    "hash": "284877bb9f7a71658af63028d81df8f5"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/AppAttestProvider/API/GACAppAttestAttestationResponse.h": {
+    "mtime": 1777833428.1025357,
+    "hash": "bbd540f4fca2d7037a81cb06d27cd083"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/AppAttestProvider/API/GACAppAttestAPIService.h": {
+    "mtime": 1777833428.102657,
+    "hash": "d04146715bcd7b32f96951c4f46de5f4"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/AppAttestProvider/API/GACAppAttestAttestationResponse.m": {
+    "mtime": 1777833428.102788,
+    "hash": "dbc10f0899702e10a4fa5cb715153ae9"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/AppAttestProvider/Errors/GACAppAttestRejectionError.m": {
+    "mtime": 1777833428.1031349,
+    "hash": "23ce81b56f3c308f3d9a2eaf5835f428"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/AppCheckCore/Sources/AppAttestProvider/Errors/GACAppAttestRejectionError.h": {
+    "mtime": 1777833428.1032581,
+    "hash": "e40f90e9aeda90ee322d8e261df2fc0d"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuth.h": {
+    "mtime": 1777833426.7079399,
+    "hash": "df0a94cc11bc44385527415a54a5320f"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore.h": {
+    "mtime": 1777833426.7081175,
+    "hash": "c0167e373a110e49f7879669eebdedac"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuth/macOS/OIDAuthState+Mac.h": {
+    "mtime": 1777833426.7090771,
+    "hash": "b02ca88da8098eeb26c01ba5e9f3d8c1"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuth/macOS/OIDAuthorizationService+Mac.m": {
+    "mtime": 1777833426.7092972,
+    "hash": "461a66048af1334ec05bd0384fc10bda"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuth/macOS/OIDExternalUserAgentMac.m": {
+    "mtime": 1777833426.7097292,
+    "hash": "f0827cddfba6e4517ae79e45d393df46"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuth/macOS/OIDRedirectHTTPHandler.h": {
+    "mtime": 1777833426.7102547,
+    "hash": "f3b0f1d3dc28076547e8f6966514c055"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuth/macOS/OIDExternalUserAgentMac.h": {
+    "mtime": 1777833426.7108796,
+    "hash": "b2b0a17ccd82ff62f086a4a6ba418fc5"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuth/macOS/OIDAuthorizationService+Mac.h": {
+    "mtime": 1777833426.7110868,
+    "hash": "465e6f41d15b7f837470b43c219dba1a"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuth/macOS/OIDAuthState+Mac.m": {
+    "mtime": 1777833426.7112799,
+    "hash": "44ebb0710e769dc3a943f97e0c20f5cf"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuth/macOS/OIDRedirectHTTPHandler.m": {
+    "mtime": 1777833426.7116783,
+    "hash": "3f2ac6bc50eb172e412e7ce250c1651b"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuth/macOS/LoopbackHTTPServer/OIDLoopbackHTTPServer.m": {
+    "mtime": 1777833426.7085829,
+    "hash": "61f8d02f546ce8180b4e3f802ff6d565"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuth/macOS/LoopbackHTTPServer/OIDLoopbackHTTPServer.h": {
+    "mtime": 1777833426.708825,
+    "hash": "6f2243ec5bd1a9e30422e2b61eaabd03"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDAuthorizationService.h": {
+    "mtime": 1777833426.7165933,
+    "hash": "612ad32bb4cbb95e9b97ebbe34d66664"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDScopeUtilities.m": {
+    "mtime": 1777833426.7167835,
+    "hash": "6739b991d4254c25a02e5b1e414b581a"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDFieldMapping.m": {
+    "mtime": 1777833426.7170258,
+    "hash": "6e9045e4d94d6cc5e9a82754f04ff5cd"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDRegistrationRequest.m": {
+    "mtime": 1777833426.717721,
+    "hash": "08c28ac2738563d008ed9e27c2524e86"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDAuthStateChangeDelegate.h": {
+    "mtime": 1777833426.7179334,
+    "hash": "c82396f359d9f8d96582415af698c202"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDResponseTypes.h": {
+    "mtime": 1777833426.718153,
+    "hash": "5be8b2350b568caee67aed22eb07c572"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDAuthorizationRequest.m": {
+    "mtime": 1777833426.7183554,
+    "hash": "5f659aa4cfe4bcb27e2906bf92d8128d"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDScopes.m": {
+    "mtime": 1777833426.7186227,
+    "hash": "7731c594d230c64cc6a41753d3bab6ab"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDError.m": {
+    "mtime": 1777833426.718848,
+    "hash": "5611beeff5e6361b28b58b70ee7784d8"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDExternalUserAgent.h": {
+    "mtime": 1777833426.7190144,
+    "hash": "07388dc6b4666a1fc08083fa1d0db5c2"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDAuthState.m": {
+    "mtime": 1777833426.7192426,
+    "hash": "2bf9d9e6250126f5e2351a88dc65db18"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDGrantTypes.m": {
+    "mtime": 1777833426.7198403,
+    "hash": "ea7f35acd1e15e133156923d35be7f7d"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDURLSessionProvider.m": {
+    "mtime": 1777833426.720219,
+    "hash": "feb4498c4a391f94796083f6611051f2"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDEndSessionRequest.h": {
+    "mtime": 1777833426.7204351,
+    "hash": "06de6880aa391ea3b69249cc20b094b3"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDServiceConfiguration.h": {
+    "mtime": 1777833426.7206273,
+    "hash": "4bbf432a071f55d58edb4b7d66066c8a"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDServiceDiscovery.m": {
+    "mtime": 1777833426.7211914,
+    "hash": "7eb4bad7843309a76eccb1a2fdb3476b"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDURLQueryComponent.h": {
+    "mtime": 1777833426.7213483,
+    "hash": "ccd68cd7938938d93d26d65d7906f15c"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDClientMetadataParameters.h": {
+    "mtime": 1777833426.7215743,
+    "hash": "2a45bceebf9abc9f8d46513011668924"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDEndSessionResponse.h": {
+    "mtime": 1777833426.72179,
+    "hash": "a0e11d268b128b973b41e878e154e491"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDErrorUtilities.h": {
+    "mtime": 1777833426.7220254,
+    "hash": "d5ae2ad79990d8e4c0a401323bb63556"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDRegistrationResponse.h": {
+    "mtime": 1777833426.7222476,
+    "hash": "7168172b26231894169f6aa29a59aaae"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDAuthorizationResponse.h": {
+    "mtime": 1777833426.7224686,
+    "hash": "3a776185e0e22becd2a8fd92704bf4a5"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDResponseTypes.m": {
+    "mtime": 1777833426.7226918,
+    "hash": "818faee8b3ad7ac5cbd75b59041f7128"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDAuthorizationRequest.h": {
+    "mtime": 1777833426.7230499,
+    "hash": "a0fc802efc899416a07aa2af62e2421e"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDRegistrationRequest.h": {
+    "mtime": 1777833426.723231,
+    "hash": "a23c4cc87002de8f39c3ede8e77ce722"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDAuthStateErrorDelegate.h": {
+    "mtime": 1777833426.7236674,
+    "hash": "39f8556f04fc97a86f5753e1fb41c3c1"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDFieldMapping.h": {
+    "mtime": 1777833426.7238727,
+    "hash": "f0c4af1f795ec024f5944035ebc28cac"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDScopeUtilities.h": {
+    "mtime": 1777833426.7240436,
+    "hash": "9116c23fa09622922a74eefe799b793e"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDAuthorizationService.m": {
+    "mtime": 1777833426.7242875,
+    "hash": "96ce7bf4d71f448dca829c3c3b477776"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDAuthState.h": {
+    "mtime": 1777833426.724515,
+    "hash": "22324491aea944a823daf2ca3c3b17fd"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDError.h": {
+    "mtime": 1777833426.7248487,
+    "hash": "4226c21fb57f8a191238fdf2b36b7b41"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDScopes.h": {
+    "mtime": 1777833426.725045,
+    "hash": "de3a7132b50280fb84cf504e59f5384e"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDDefines.h": {
+    "mtime": 1777833426.7252362,
+    "hash": "9e659f82ba9d6de54dddb4b82f0bcc88"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDExternalUserAgentRequest.h": {
+    "mtime": 1777833426.7254333,
+    "hash": "f44ba7bcf8ea8a21e2391c6172bdb627"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDEndSessionRequest.m": {
+    "mtime": 1777833426.725632,
+    "hash": "3bfb2da3a0f89cc4fdc824495a4e282e"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDURLSessionProvider.h": {
+    "mtime": 1777833426.7257597,
+    "hash": "74f25314c33d7630f342f203616cb545"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDGrantTypes.h": {
+    "mtime": 1777833426.7260141,
+    "hash": "d9065c385a834feeb62a51029e16db92"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDRegistrationResponse.m": {
+    "mtime": 1777833426.7263875,
+    "hash": "a0060fe9c9ccdc35812bf03c72933faf"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDAuthorizationResponse.m": {
+    "mtime": 1777833426.7266235,
+    "hash": "5ff5a39f5bef85db0337c8208673061c"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDErrorUtilities.m": {
+    "mtime": 1777833426.7268388,
+    "hash": "2641031fd67a559f3827c113d007367b"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDExternalUserAgentSession.h": {
+    "mtime": 1777833426.727018,
+    "hash": "5249097d23bc84b88088a01cd2a13ffc"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDEndSessionResponse.m": {
+    "mtime": 1777833426.7272222,
+    "hash": "5e7a33c1e9ce03064ba955983144ab70"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDClientMetadataParameters.m": {
+    "mtime": 1777833426.7274237,
+    "hash": "f5a9daaa5a09c1b73ede777c12bb3546"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDServiceDiscovery.h": {
+    "mtime": 1777833426.7276618,
+    "hash": "b21b4e73308883fa4947c4afce4c088e"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDURLQueryComponent.m": {
+    "mtime": 1777833426.7278028,
+    "hash": "20c83017ae2e26602f8b502bba4b4188"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/Sources/AppAuthCore/OIDServiceConfiguration.m": {
+    "mtime": 1777833426.7282164,
+    "hash": "ccd24441559a9448e89099e0615b0e6d"
+  },
   "/Users/tibinthomas/my_app/macos/Pods/Target Support Files/url_launcher_macos/url_launcher_macos-umbrella.h": {
     "mtime": 1777742419.6865003,
     "hash": "37e63c617f1a0095db62260f2d58bc7c"
@@ -22,6 +782,50 @@
   "/Users/tibinthomas/my_app/macos/Pods/Target Support Files/url_launcher_macos/url_launcher_macos-dummy.m": {
     "mtime": 1777742419.6874373,
     "hash": "e5b4b9bb80b99af0bf90ab3296174b80"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/Target Support Files/google_sign_in_ios/google_sign_in_ios-dummy.m": {
+    "mtime": 1777833481.6699114,
+    "hash": "caea06eaf72f7b3eb6b356ed6a797cd8"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/Target Support Files/firebase_auth/firebase_auth-dummy.m": {
+    "mtime": 1777833481.6585765,
+    "hash": "b3158463d4e36d0d341ab68b84f1b21b"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/Target Support Files/firebase_auth/firebase_auth-umbrella.h": {
+    "mtime": 1777833481.657581,
+    "hash": "5451c6c40f91c1e025c2f3792f86b75a"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/Target Support Files/FirebaseCore/FirebaseCore-dummy.m": {
+    "mtime": 1777833481.6154933,
+    "hash": "b8d60f2d98f140044d2e6905b57b0da3"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/Target Support Files/FirebaseCore/FirebaseCore-umbrella.h": {
+    "mtime": 1777833481.6142802,
+    "hash": "624c03412954306f7351c6e891a27401"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/Target Support Files/PromisesObjC/PromisesObjC-dummy.m": {
+    "mtime": 1777833481.6466014,
+    "hash": "1e823aad403cc04c6bce6b115cd49f00"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/Target Support Files/PromisesObjC/PromisesObjC-umbrella.h": {
+    "mtime": 1777833481.64585,
+    "hash": "dfa788fc887f508a66323f45e0956348"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/Target Support Files/AppCheckCore/AppCheckCore-dummy.m": {
+    "mtime": 1777833481.5978487,
+    "hash": "ceb73f213e169687f0a7922756bf612e"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/Target Support Files/AppCheckCore/AppCheckCore-umbrella.h": {
+    "mtime": 1777833481.5968924,
+    "hash": "93567aaec6d30f7911f872a352e108ec"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/Target Support Files/AppAuth/AppAuth-dummy.m": {
+    "mtime": 1777833481.59192,
+    "hash": "658b7a38953a7bbc604ad7757626f248"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/Target Support Files/AppAuth/AppAuth-umbrella.h": {
+    "mtime": 1777833481.590414,
+    "hash": "4e6d1dc0177251d8b8dc7b32b10d46be"
   },
   "/Users/tibinthomas/my_app/macos/Pods/Target Support Files/file_selector_macos/file_selector_macos-dummy.m": {
     "mtime": 1777794250.5305114,
@@ -31,6 +835,22 @@
     "mtime": 1777794250.52955,
     "hash": "7896232ff4e2d44c58f8358117764bb6"
   },
+  "/Users/tibinthomas/my_app/macos/Pods/Target Support Files/FirebaseAuth/FirebaseAuth-dummy.m": {
+    "mtime": 1777833481.6080127,
+    "hash": "82ffa30859d27faf51b39b77f7fc1f53"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/Target Support Files/FirebaseAuth/FirebaseAuth-umbrella.h": {
+    "mtime": 1777833481.606738,
+    "hash": "cfc4cc9dff91b2080e09d5e6f8410669"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/Target Support Files/FirebaseAppCheckInterop/FirebaseAppCheckInterop-umbrella.h": {
+    "mtime": 1777833481.6012251,
+    "hash": "2605b7eae39d997c7a72793197438ad6"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/Target Support Files/FirebaseAppCheckInterop/FirebaseAppCheckInterop-dummy.m": {
+    "mtime": 1777833481.6022043,
+    "hash": "6bdcb530a9ca95635d0a2cb151983816"
+  },
   "/Users/tibinthomas/my_app/macos/Pods/Target Support Files/audioplayers_darwin/audioplayers_darwin-umbrella.h": {
     "mtime": 1777794250.5257201,
     "hash": "1cad6fd5996d88faf94950f88a7a8296"
@@ -38,6 +858,38 @@
   "/Users/tibinthomas/my_app/macos/Pods/Target Support Files/audioplayers_darwin/audioplayers_darwin-dummy.m": {
     "mtime": 1777794250.5273573,
     "hash": "081a75428f50f9188ad8e6c8de082f08"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/Target Support Files/FirebaseCoreExtension/FirebaseCoreExtension-dummy.m": {
+    "mtime": 1777833481.6187603,
+    "hash": "23041b1b7e67c8ac3b9871a32c6d0121"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/Target Support Files/FirebaseCoreExtension/FirebaseCoreExtension-umbrella.h": {
+    "mtime": 1777833481.6178234,
+    "hash": "c3dd713ba31065f256b5ed1fbdecc6e4"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/Target Support Files/GTMSessionFetcher/GTMSessionFetcher-umbrella.h": {
+    "mtime": 1777833481.6313353,
+    "hash": "eb7305c548b89a3551d6ad47f16e8ea2"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/Target Support Files/GTMSessionFetcher/GTMSessionFetcher-dummy.m": {
+    "mtime": 1777833481.6321564,
+    "hash": "d7fe8d9b2ebdcb191c530dd20d7dfeb2"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/Target Support Files/firebase_core/firebase_core-umbrella.h": {
+    "mtime": 1777833481.6630626,
+    "hash": "37887dc3e1aa7cd8f31c0d1475c9976b"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/Target Support Files/firebase_core/firebase_core-dummy.m": {
+    "mtime": 1777833481.664928,
+    "hash": "40d095c87bcec9c4acee0eb9c075ed33"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/Target Support Files/FirebaseCoreInternal/FirebaseCoreInternal-dummy.m": {
+    "mtime": 1777833481.621645,
+    "hash": "602ec2feca9ce16ed98ea8d1a381733a"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/Target Support Files/FirebaseCoreInternal/FirebaseCoreInternal-umbrella.h": {
+    "mtime": 1777833481.6206658,
+    "hash": "daee0e2de1302dcc0e70563baf8a2919"
   },
   "/Users/tibinthomas/my_app/macos/Pods/Target Support Files/Pods-Runner/Pods-Runner-umbrella.h": {
     "mtime": 1777696593.3973918,
@@ -62,6 +914,1138 @@
   "/Users/tibinthomas/my_app/macos/Pods/Target Support Files/Pods-RunnerTests/Pods-RunnerTests-umbrella.h": {
     "mtime": 1777696593.4012775,
     "hash": "c23802aedf43339011f9ddde1d7d0c49"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/Target Support Files/GoogleUtilities/GoogleUtilities-umbrella.h": {
+    "mtime": 1777833481.6419637,
+    "hash": "174aaad62c4b9d5f8db48e0f3c35dbf4"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/Target Support Files/GoogleUtilities/GoogleUtilities-dummy.m": {
+    "mtime": 1777833481.642777,
+    "hash": "707822938b8093fa13daf1123ea0f26b"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/Target Support Files/GoogleSignIn/GoogleSignIn-umbrella.h": {
+    "mtime": 1777833481.636723,
+    "hash": "b78649b246c1af0d33085a7d82e8d25b"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/Target Support Files/GoogleSignIn/GoogleSignIn-dummy.m": {
+    "mtime": 1777833481.637703,
+    "hash": "659b82609d0bc40d9001060e8067d921"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/Target Support Files/FirebaseAuthInterop/FirebaseAuthInterop-umbrella.h": {
+    "mtime": 1777833481.6096697,
+    "hash": "652b41a3635b207a850cc3e9a3b851cf"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/Target Support Files/FirebaseAuthInterop/FirebaseAuthInterop-dummy.m": {
+    "mtime": 1777833481.6111107,
+    "hash": "df4308a9fcde5a5a1e830497b5ee9ec2"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/Target Support Files/GTMAppAuth/GTMAppAuth-umbrella.h": {
+    "mtime": 1777833481.6271622,
+    "hash": "7f0e1ceb6d5097900c99b01fb64c3024"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/Target Support Files/GTMAppAuth/GTMAppAuth-dummy.m": {
+    "mtime": 1777833481.628117,
+    "hash": "ca3b6ab7da7451e96e7874b8c3b174b4"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Public/FirebaseAuth/FIRUser.h": {
+    "mtime": 1777833447.949741,
+    "hash": "6af888954d7ac576687b4807214d9ea7"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Public/FirebaseAuth/FIRGitHubAuthProvider.h": {
+    "mtime": 1777833447.949962,
+    "hash": "d49ea07e64056401362c91ad0ba1103b"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Public/FirebaseAuth/FIRGameCenterAuthProvider.h": {
+    "mtime": 1777833447.950234,
+    "hash": "8a2323d800b33e76592b3517392fbbcd"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Public/FirebaseAuth/FIRAuth.h": {
+    "mtime": 1777833447.9505203,
+    "hash": "6ffd8dedceba57e6147b5ae4080b2f4e"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Public/FirebaseAuth/FIRFederatedAuthProvider.h": {
+    "mtime": 1777833447.9506578,
+    "hash": "f599ed4099e3c773e12d62c5f72df409"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Public/FirebaseAuth/FIREmailAuthProvider.h": {
+    "mtime": 1777833447.9507835,
+    "hash": "3ef3e04f88671a996824eb0e8dcece53"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Public/FirebaseAuth/FIRFacebookAuthProvider.h": {
+    "mtime": 1777833447.9509163,
+    "hash": "ceabdb972502b6acbd71851d88a01357"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Public/FirebaseAuth/FirebaseAuth.h": {
+    "mtime": 1777833447.9510407,
+    "hash": "1a95fbcf1280d00d41f0dfe7b3825448"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Public/FirebaseAuth/FIRMultiFactor.h": {
+    "mtime": 1777833447.9513495,
+    "hash": "af9908387b936a51e182987050d2454b"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Public/FirebaseAuth/FIRTwitterAuthProvider.h": {
+    "mtime": 1777833447.9518661,
+    "hash": "f7989a984539677ea2053bfdd77a5725"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Public/FirebaseAuth/FIRAuthErrors.h": {
+    "mtime": 1777833447.9520142,
+    "hash": "b1df6c9379d5e9030e88ee43fea54779"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Public/FirebaseAuth/FIRPhoneAuthProvider.h": {
+    "mtime": 1777833447.9521458,
+    "hash": "34b4d8d506a3e433c2703ad73bd05b41"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Public/FirebaseAuth/FIRGoogleAuthProvider.h": {
+    "mtime": 1777833447.9522803,
+    "hash": "e9a3695a3c1b8fec856f25c4c9b029bc"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Base64URLEncodedStringExtension.swift": {
+    "mtime": 1777833447.9803786,
+    "hash": "2d4ddb04da5bcb9c98fa97c90fdc3e32"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/ActionCode/ActionCodeURL.swift": {
+    "mtime": 1777833447.9525535,
+    "hash": "46fef75e89959d44b3bfd8c339a101ac"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/ActionCode/ActionCodeInfo.swift": {
+    "mtime": 1777833447.9526844,
+    "hash": "086d77ce24a8b5117ce9caa87645c5ab"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/ActionCode/ActionCodeSettings.swift": {
+    "mtime": 1777833447.9529853,
+    "hash": "0bce96c3c4ca3bcab419d628239a914d"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/ActionCode/ActionCodeOperation.swift": {
+    "mtime": 1777833447.95311,
+    "hash": "befee2d3125c2411b07b86d09e4c504b"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Auth/AuthGlobalWorkQueue.swift": {
+    "mtime": 1777833447.9533136,
+    "hash": "1c0ed4505b4ef04db76529003886903d"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Auth/Auth.swift": {
+    "mtime": 1777833447.9535832,
+    "hash": "6bd6cd164c7f02d0a5573cf10b128769"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Auth/AuthDataResult.swift": {
+    "mtime": 1777833447.9537246,
+    "hash": "bc5d527d10662f8a2a772d5a870225c5"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Auth/AuthComponent.swift": {
+    "mtime": 1777833447.9538696,
+    "hash": "87efde9b4253954ce95ef05bb18c073c"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Auth/AuthDispatcher.swift": {
+    "mtime": 1777833447.9542882,
+    "hash": "972118c0478360c9e47e5fcbe1f27e8a"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Auth/AuthSettings.swift": {
+    "mtime": 1777833447.9544184,
+    "hash": "83c4fe8348abce754b0dc8601c0292c8"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Auth/AuthOperationType.swift": {
+    "mtime": 1777833447.9545546,
+    "hash": "afb6c130633f1e87ee854736256d5ff5"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/SystemService/AuthStoredUserManager.swift": {
+    "mtime": 1777833447.9558566,
+    "hash": "5be5a8ac407e5e052720273b66b82704"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/SystemService/AuthNotificationManager.swift": {
+    "mtime": 1777833447.9559884,
+    "hash": "9b43aebf1584ac8eb1d0a777a18d3bd7"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/MultiFactor/MultiFactorSession.swift": {
+    "mtime": 1777833447.9569902,
+    "hash": "29897ab7fe06aea66b7471093152c0ed"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/MultiFactor/MultiFactorInfo.swift": {
+    "mtime": 1777833447.957193,
+    "hash": "5074f8fa38bfba6a7aff67961965e640"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/MultiFactor/MultiFactorResolver.swift": {
+    "mtime": 1777833447.9573154,
+    "hash": "dfd456316cbe42ca027697e2330e9a34"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/MultiFactor/MultiFactorAssertion.swift": {
+    "mtime": 1777833447.9575446,
+    "hash": "feacdfe527d5937f7c3dece8ad6fb334"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/MultiFactor/MultiFactor.swift": {
+    "mtime": 1777833447.9577177,
+    "hash": "c8f13550df4ade4269869ec151f18e95"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/MultiFactor/Phone/PhoneMultiFactorAssertion.swift": {
+    "mtime": 1777833447.9579346,
+    "hash": "dbea8e6e97b49dba340d637ae17f6d07"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/MultiFactor/Phone/PhoneMultiFactorGenerator.swift": {
+    "mtime": 1777833447.9580672,
+    "hash": "4c7ca75e3770f665238023a126c3a8a3"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/MultiFactor/Phone/PhoneMultiFactorInfo.swift": {
+    "mtime": 1777833447.958197,
+    "hash": "9e5daf3f363595677f59bac4cc27ec2f"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/MultiFactor/TOTP/TOTPMultiFactorInfo.swift": {
+    "mtime": 1777833447.9583943,
+    "hash": "606e6111c2d4ec36b372fabeb64b6a0f"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/MultiFactor/TOTP/TOTPMultiFactorGenerator.swift": {
+    "mtime": 1777833447.9587128,
+    "hash": "b620c84e22f2ba30fea524a76e2f62c2"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/MultiFactor/TOTP/TOTPMultFactorAssertion.swift": {
+    "mtime": 1777833447.9588473,
+    "hash": "f6207bb8777a4f8155c64b130b1d1eda"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/User/UserMetadata.swift": {
+    "mtime": 1777833447.9592762,
+    "hash": "e990fcc2fd3e9fb551b34a92d32093bc"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/User/UserProfileUpdate.swift": {
+    "mtime": 1777833447.9594958,
+    "hash": "8418a26f91aa0c5c81a6e947b663121f"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/User/UserInfo.swift": {
+    "mtime": 1777833447.959709,
+    "hash": "76afa6c1d431aa5e9b4967cbed42321f"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/User/UserProfileChangeRequest.swift": {
+    "mtime": 1777833447.9598486,
+    "hash": "b5e1cda35d96c4b0d318110f466b4471"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/User/UserInfoImpl.swift": {
+    "mtime": 1777833447.9599905,
+    "hash": "8d486306542b77202cf42ce38c6d63b9"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/User/AdditionalUserInfo.swift": {
+    "mtime": 1777833447.960344,
+    "hash": "e62f6ecc7dc8d5c17348fc97221e0f4e"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/User/User.swift": {
+    "mtime": 1777833447.9606276,
+    "hash": "3620c439ee1f8ee9c8010e82ff1826a5"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/VerifyClientResponse.swift": {
+    "mtime": 1777833447.961003,
+    "hash": "4f833edd7af79b090317f10977316053"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/VerifyClientRequest.swift": {
+    "mtime": 1777833447.9611306,
+    "hash": "015a55683841b1d9677079e7ab6073bd"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/AuthRequestConfiguration.swift": {
+    "mtime": 1777833447.961263,
+    "hash": "98e446f5d63f1af51be061e1e00e748d"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/AuthRPCResponse.swift": {
+    "mtime": 1777833447.9614015,
+    "hash": "b45690717dd7df33b8012708cbaa3edf"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/AuthBackendRPCIssuer.swift": {
+    "mtime": 1777833447.9615228,
+    "hash": "970162c29d7795d81aa2aa1325a88329"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/IdentityToolkitRequest.swift": {
+    "mtime": 1777833447.9616542,
+    "hash": "f0fe541b4e40187be45e93750457f900"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/AuthBackend.swift": {
+    "mtime": 1777833447.9730163,
+    "hash": "e15b06e9b834cd21fb6049d2408545cb"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/AuthRPCRequest.swift": {
+    "mtime": 1777833447.9731514,
+    "hash": "448d8ef829e9d70af53090152ab6673f"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/GetAccountInfoRequest.swift": {
+    "mtime": 1777833447.9621944,
+    "hash": "efff3eb9b4fcd49f29cc6916bf1f4477"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/VerifyPhoneNumberRequest.swift": {
+    "mtime": 1777833447.9623363,
+    "hash": "5af1736f1d5b2dd5056fd82c1da4efe8"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/SetAccountInfoRequest.swift": {
+    "mtime": 1777833447.962478,
+    "hash": "9c661205ee4595422c944ba74edd29ea"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/CreateAuthURIRequest.swift": {
+    "mtime": 1777833447.962631,
+    "hash": "7c0f4bfc76d0ed0440393f9dab159e91"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/SignInWithGameCenterRequest.swift": {
+    "mtime": 1777833447.965141,
+    "hash": "695cd67431a14c68822a439b8088e9f2"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/GetProjectConfigResponse.swift": {
+    "mtime": 1777833447.9654553,
+    "hash": "6eb28fff13f9603d20d2fe3af9ba9cbd"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/GetAccountInfoResponse.swift": {
+    "mtime": 1777833447.965607,
+    "hash": "d15d5ffaec5f3509cebb251d07f20c26"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/CreateAuthURIResponse.swift": {
+    "mtime": 1777833447.965752,
+    "hash": "fdc1d4da16c15b0355412a8b7854eff9"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/GetRecaptchaConfigRequest.swift": {
+    "mtime": 1777833447.96589,
+    "hash": "4949cfb9831c7dc5fdc4c256e5748fe5"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/EmailLinkSignInRequest.swift": {
+    "mtime": 1777833447.9660485,
+    "hash": "d51b4aae0d829461d38b3e48b33ecde1"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/VerifyAssertionRequest.swift": {
+    "mtime": 1777833447.9684463,
+    "hash": "c2e956dd140199365f9da573039ecfa5"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/GetOOBConfirmationCodeResponse.swift": {
+    "mtime": 1777833447.9685898,
+    "hash": "c3dfddd365725558b9c044638dc1de0c"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/SignUpNewUserResponse.swift": {
+    "mtime": 1777833447.9687393,
+    "hash": "7ee5b3facd1d5a73595159386b5b5e95"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/VerifyAssertionResponse.swift": {
+    "mtime": 1777833447.9689639,
+    "hash": "213fd8fbe5c21f49deefdd19f63353aa"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/EmailLinkSignInResponse.swift": {
+    "mtime": 1777833447.9692307,
+    "hash": "d45fec16d6300574162b5b379ded1daa"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/DeleteAccountRequest.swift": {
+    "mtime": 1777833447.9693582,
+    "hash": "7f6db78147ddb7c940cbb5cef6995d3e"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/DeleteAccountResponse.swift": {
+    "mtime": 1777833447.9697242,
+    "hash": "59f337f95faa7b19967382ca6b0d032a"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/GetRecaptchaConfigResponse.swift": {
+    "mtime": 1777833447.9699888,
+    "hash": "c9baca0238e194c752e0ee54272282b3"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/VerifyPhoneNumberResponse.swift": {
+    "mtime": 1777833447.9701211,
+    "hash": "b1983968a7f6af92a3b73b8b1dcf7424"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/GetProjectConfigRequest.swift": {
+    "mtime": 1777833447.9709802,
+    "hash": "718c4d414a59c7e8e77f78a343a42e9d"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/GetOOBConfirmationCodeRequest.swift": {
+    "mtime": 1777833447.9713697,
+    "hash": "2c8cd26997b4da0e299f083f8bc49070"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/SignInWithGameCenterResponse.swift": {
+    "mtime": 1777833447.9718764,
+    "hash": "ac55b82aa5b7db695cf884c73933dc5d"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/AuthMFAResponse.swift": {
+    "mtime": 1777833447.972073,
+    "hash": "8f5ec6f09898b64ddcb567a8bafc9489"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/SignUpNewUserRequest.swift": {
+    "mtime": 1777833447.9725037,
+    "hash": "c2d041c9a77893c810130ffc0da66378"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/SetAccountInfoResponse.swift": {
+    "mtime": 1777833447.9727724,
+    "hash": "f13a77050c2a99e85ca932c3e444a6ee"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/Proto/AuthProtoMFAEnrollment.swift": {
+    "mtime": 1777833447.962883,
+    "hash": "7156c4b9a655dd5698c85f43840169e2"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/Proto/AuthProto.swift": {
+    "mtime": 1777833447.9630294,
+    "hash": "0a08f0b5db40d91a8bccdc0ac1edd59f"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/Proto/Phone/AuthProtoStartMFAPhoneRequestInfo.swift": {
+    "mtime": 1777833447.9632719,
+    "hash": "91ee63ae7dabe7c8033f14b2dba335d9"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/Proto/Phone/AuthProtoFinalizeMFAPhoneResponseInfo.swift": {
+    "mtime": 1777833447.9634204,
+    "hash": "749693f8a2fdd3559ad0eac72f15b52d"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/Proto/Phone/AuthProtoStartMFAPhoneResponseInfo.swift": {
+    "mtime": 1777833447.9635625,
+    "hash": "e84e797e39c22153bb22661c5663ee25"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/Proto/Phone/AuthProtoFinalizeMFAPhoneRequestInfo.swift": {
+    "mtime": 1777833447.9637034,
+    "hash": "1f746090b41870609dc79e796fdc2121"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/Proto/TOTP/AuthProtoFinalizeMFATOTPSignInRequestInfo.swift": {
+    "mtime": 1777833447.9639473,
+    "hash": "26559fdfec38468c8e7275bc6d9e2b2f"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/Proto/TOTP/AuthProtoStartMFATOTPEnrollmentResponseInfo.swift": {
+    "mtime": 1777833447.9641073,
+    "hash": "9fdc15dbc07a247e8f46925b6a46354a"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/Proto/TOTP/AuthProtoStartMFATOTPEnrollmentRequestInfo.swift": {
+    "mtime": 1777833447.964245,
+    "hash": "7ffeea39f6c60424921284d8beb68a07"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/Proto/TOTP/AuthProtoFinalizeMFATOTPEnrollmentRequestInfo.swift": {
+    "mtime": 1777833447.9646432,
+    "hash": "4c56bacb6938d523e631020b9aad6db5"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/Proto/TOTP/AuthProtoFinalizeMFATOTPEnrollmentResponseInfo.swift": {
+    "mtime": 1777833447.9648342,
+    "hash": "fb6c52e1f8a39e0244b8631d9708bf8f"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/MultiFactor/Enroll/FinalizeMFAEnrollmentResponse.swift": {
+    "mtime": 1777833447.96638,
+    "hash": "2180102746119fe73ca9f718650919c6"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/MultiFactor/Enroll/StartMFAEnrollmentResponse.swift": {
+    "mtime": 1777833447.9665487,
+    "hash": "cf59c8d84b933ef99366ab86a7d3685d"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/MultiFactor/Enroll/FinalizeMFAEnrollmentRequest.swift": {
+    "mtime": 1777833447.966698,
+    "hash": "c484a886237c3de39991bb3abaf387fa"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/MultiFactor/Enroll/StartMFAEnrollmentRequest.swift": {
+    "mtime": 1777833447.9668586,
+    "hash": "76aa0695dc21788de6b3107a6d92603a"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/MultiFactor/SignIn/FinalizeMFASignInResponse.swift": {
+    "mtime": 1777833447.9671092,
+    "hash": "a0cb5640e4dffdc6353d84fbfbe0897f"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/MultiFactor/SignIn/StartMFASignInResponse.swift": {
+    "mtime": 1777833447.9673324,
+    "hash": "c07d24ee90d31d7a69af647fb9c868d1"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/MultiFactor/SignIn/StartMFASignInRequest.swift": {
+    "mtime": 1777833447.9674606,
+    "hash": "3617cad544a92d0a664d52912e70d1a9"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/MultiFactor/SignIn/FinalizeMFASignInRequest.swift": {
+    "mtime": 1777833447.967828,
+    "hash": "e1e5ad7f636e83bcd9e93edae12c8c4c"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/MultiFactor/Unenroll/WithdrawMFARequest.swift": {
+    "mtime": 1777833447.9680612,
+    "hash": "78d492863c75dc02aef2e10c0fb84b5e"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Backend/RPC/MultiFactor/Unenroll/WithdrawMFAResponse.swift": {
+    "mtime": 1777833447.9682071,
+    "hash": "3afc7f368cde697d41b3d638cf65b23b"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Storage/AuthKeychainStorage.swift": {
+    "mtime": 1777833447.9734485,
+    "hash": "88aebc0a2155fe693787786c67a8cb54"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Storage/AuthKeychainServices.swift": {
+    "mtime": 1777833447.973683,
+    "hash": "e5ca72d89b6d1e43db798db15aafbe48"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Storage/AuthKeychainStorageReal.swift": {
+    "mtime": 1777833447.9741192,
+    "hash": "d7afe1819fdd4621faff2b7c9eb1c7f9"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Storage/AuthUserDefaults.swift": {
+    "mtime": 1777833447.9743025,
+    "hash": "ecbf7f3d8f6d7459d2b2b923e6e6dc1d"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Utilities/AuthURLPresenter.swift": {
+    "mtime": 1777833447.9746025,
+    "hash": "bb012b3974bfb83569544416f733ef2f"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Utilities/AuthRecaptchaVerifier.swift": {
+    "mtime": 1777833447.974825,
+    "hash": "bfc5b7e98aed7039e44ab7f38cc6aa66"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Utilities/AuthWebView.swift": {
+    "mtime": 1777833447.9752016,
+    "hash": "2947a678452e65729a314cfafde5364f"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Utilities/AuthCondition.swift": {
+    "mtime": 1777833447.9753408,
+    "hash": "dabe4ab0f54dfe8ad66b8d55d9e52dec"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Utilities/AuthErrorUtils.swift": {
+    "mtime": 1777833447.975592,
+    "hash": "9fb3159d34fb04ff0d57e654b0155b4a"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Utilities/AuthWebUtils.swift": {
+    "mtime": 1777833447.9757867,
+    "hash": "ec0e58b091354d8eab01a6f98135e0b4"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Utilities/AuthLog.swift": {
+    "mtime": 1777833447.9760869,
+    "hash": "23635265b8c0c0da6a6f6cf606c4a193"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Utilities/AuthInternalErrors.swift": {
+    "mtime": 1777833447.9763298,
+    "hash": "918fe6cb264a47f5295d157f055bbbf4"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Utilities/AuthWebViewController.swift": {
+    "mtime": 1777833447.9765446,
+    "hash": "aa0206213acc950803bb3ff688f9e352"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Utilities/AuthUIDelegate.swift": {
+    "mtime": 1777833447.9766788,
+    "hash": "0717aec7b44f93044d2e388c0b4739d2"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Utilities/AuthDefaultUIDelegate.swift": {
+    "mtime": 1777833447.9768078,
+    "hash": "90a53794506c5c414397cebdd16e3e60"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/Utilities/AuthErrors.swift": {
+    "mtime": 1777833447.9770336,
+    "hash": "1e6cbaa6f8770775c4650d8d92c203d7"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/AuthProvider/GameCenterAuthProvider.swift": {
+    "mtime": 1777833447.977722,
+    "hash": "a3485892ab23a18c1bf30beb4ba91acd"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/AuthProvider/FacebookAuthProvider.swift": {
+    "mtime": 1777833447.9782917,
+    "hash": "2281900a608f22b607f58d150bf029ef"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/AuthProvider/AuthProviderID.swift": {
+    "mtime": 1777833447.9784462,
+    "hash": "556d749fd920ef324caaeb9c279f11b0"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/AuthProvider/GoogleAuthProvider.swift": {
+    "mtime": 1777833447.978583,
+    "hash": "5fbadedf8d608fbe9e51aa6c61276e58"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/AuthProvider/OAuthProvider.swift": {
+    "mtime": 1777833447.9788294,
+    "hash": "c81cecfce7a237f10b621a1f9c2d2cb0"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/AuthProvider/GitHubAuthProvider.swift": {
+    "mtime": 1777833447.9789848,
+    "hash": "70bfc88db892d4a47f7d9bf58baa5372"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/AuthProvider/FederatedAuthProvider.swift": {
+    "mtime": 1777833447.979126,
+    "hash": "bc5d8fc99eb34c6c480593560709e1e8"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/AuthProvider/EmailAuthProvider.swift": {
+    "mtime": 1777833447.9794524,
+    "hash": "b55ddf3455216dd8a23be06852fdb9b4"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/AuthProvider/PhoneAuthProvider.swift": {
+    "mtime": 1777833447.9797115,
+    "hash": "326e226557972609e4caab2300716ec5"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/Swift/AuthProvider/TwitterAuthProvider.swift": {
+    "mtime": 1777833447.9800725,
+    "hash": "dd4723a43fe4aa7249034f36466237e3"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/ObjC/FIRAuthProvider.m": {
+    "mtime": 1777833447.9806068,
+    "hash": "70a068c4e88cb795e75eccb3ba6a4211"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/ObjC/FIRAuth.m": {
+    "mtime": 1777833447.98077,
+    "hash": "55a55e3064cde7e1fb8e61018c12a7df"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/ObjC/FIRMultiFactorConstants.m": {
+    "mtime": 1777833447.9813342,
+    "hash": "ca1a2b91632e56b9897f444d7c6c89b8"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/Sources/ObjC/FIRAuthErrorUtils.m": {
+    "mtime": 1777833447.981491,
+    "hash": "0d419f38ca07f2f3631a141802f821af"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAppCheckInterop/FirebaseAppCheck/Interop/dummy.m": {
+    "mtime": 1777833440.974395,
+    "hash": "f386a04b172b37f6e012c627f2c6c304"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAppCheckInterop/FirebaseAppCheck/Interop/Public/FirebaseAppCheckInterop/FIRAppCheckInterop.h": {
+    "mtime": 1777833440.974652,
+    "hash": "367f3cba3a959c2337afe35253ad31c0"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAppCheckInterop/FirebaseAppCheck/Interop/Public/FirebaseAppCheckInterop/FirebaseAppCheckInterop.h": {
+    "mtime": 1777833440.9747705,
+    "hash": "900bbd8688251e7d8a6f60865d7e21ca"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCoreExtension/FirebaseCore/Extension/FIRComponentContainer.h": {
+    "mtime": 1777833466.8781836,
+    "hash": "82d607e70d03cb644241ef2397f94a61"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCoreExtension/FirebaseCore/Extension/FirebaseCoreInternal.h": {
+    "mtime": 1777833466.8793542,
+    "hash": "abb9a3eaafc2d5f841ba3409b30e8b25"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCoreExtension/FirebaseCore/Extension/FIRLogger.h": {
+    "mtime": 1777833466.8796687,
+    "hash": "ad36f008d0fe1c6159d2913082f3a14c"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCoreExtension/FirebaseCore/Extension/FIRAppInternal.h": {
+    "mtime": 1777833466.8799386,
+    "hash": "0eaf83935d4951b8e853a004f44c13ad"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCoreExtension/FirebaseCore/Extension/FIRComponentType.h": {
+    "mtime": 1777833466.880428,
+    "hash": "6e9ce19af13bb2a4add6f5e333e9e6dd"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCoreExtension/FirebaseCore/Extension/FIRHeartbeatLogger.h": {
+    "mtime": 1777833466.880976,
+    "hash": "f0ed90d50f07e366f8fff5c55e97a665"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCoreExtension/FirebaseCore/Extension/dummy.m": {
+    "mtime": 1777833466.8813233,
+    "hash": "f386a04b172b37f6e012c627f2c6c304"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCoreExtension/FirebaseCore/Extension/FIRComponent.h": {
+    "mtime": 1777833466.8814676,
+    "hash": "cd46fd37ac6f9ddba528dda9260943bc"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCoreExtension/FirebaseCore/Extension/FIRLibrary.h": {
+    "mtime": 1777833466.881677,
+    "hash": "858bd4b7c8dcdc0a65e3c54323f11860"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GTMSessionFetcher/Sources/Full/GTMGatherInputStream.m": {
+    "mtime": 1777833476.5063946,
+    "hash": "9ae0a009eb2335faac521c8afe8b3200"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GTMSessionFetcher/Sources/Full/GTMReadMonitorInputStream.m": {
+    "mtime": 1777833476.5069017,
+    "hash": "03f96d11a17e050a2c118869474791fa"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GTMSessionFetcher/Sources/Full/GTMMIMEDocument.m": {
+    "mtime": 1777833476.508109,
+    "hash": "e3bddfa881305780f8d14b146bb3ee12"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GTMSessionFetcher/Sources/Full/Public/GTMSessionFetcher/GTMMIMEDocument.h": {
+    "mtime": 1777833476.5073464,
+    "hash": "b37c86673d93da9a30dd9795ce199004"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GTMSessionFetcher/Sources/Full/Public/GTMSessionFetcher/GTMGatherInputStream.h": {
+    "mtime": 1777833476.5076897,
+    "hash": "76dbc0271b4e394357db87a309bf6937"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GTMSessionFetcher/Sources/Full/Public/GTMSessionFetcher/GTMReadMonitorInputStream.h": {
+    "mtime": 1777833476.5078754,
+    "hash": "6254c2852561c101f9330cea721aebe6"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GTMSessionFetcher/Sources/Core/GTMSessionFetcherLogging.m": {
+    "mtime": 1777833476.50846,
+    "hash": "058a62516ab30ab6c47c0517de4644a7"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GTMSessionFetcher/Sources/Core/GTMSessionFetcherService+Internal.h": {
+    "mtime": 1777833476.508984,
+    "hash": "6b08b1439f859bfbcd46b1fc4189f5dd"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GTMSessionFetcher/Sources/Core/GTMSessionFetcherService.m": {
+    "mtime": 1777833476.5092738,
+    "hash": "2828419cfd410f350be1014c0b811ba1"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GTMSessionFetcher/Sources/Core/GTMSessionFetcher.m": {
+    "mtime": 1777833476.512145,
+    "hash": "0073839f966b7d53dd3c41b7d685ed48"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GTMSessionFetcher/Sources/Core/GTMSessionUploadFetcher.m": {
+    "mtime": 1777833476.5127134,
+    "hash": "ceddf13710e20f52af0a6f6a3f789105"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GTMSessionFetcher/Sources/Core/Public/GTMSessionFetcher/GTMSessionFetcher.h": {
+    "mtime": 1777833476.5099177,
+    "hash": "db74eb6c5a3178eb33815bc43570f06e"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GTMSessionFetcher/Sources/Core/Public/GTMSessionFetcher/GTMSessionUploadFetcher.h": {
+    "mtime": 1777833476.5105116,
+    "hash": "b1e4bb067c2acb172851d04ba9232b47"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GTMSessionFetcher/Sources/Core/Public/GTMSessionFetcher/GTMSessionFetcherLogging.h": {
+    "mtime": 1777833476.5109313,
+    "hash": "4ef58183f2931e66450627f859813f30"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GTMSessionFetcher/Sources/Core/Public/GTMSessionFetcher/GTMSessionFetcherService.h": {
+    "mtime": 1777833476.511604,
+    "hash": "5e3957f7ad4ed84321b7c9c0fbb9d43b"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCoreInternal/FirebaseCore/Internal/Sources/HeartbeatLogging/Storage.swift": {
+    "mtime": 1777833472.9885194,
+    "hash": "1409f928123ed057a4d6af6a9d34dbf1"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCoreInternal/FirebaseCore/Internal/Sources/HeartbeatLogging/Heartbeat.swift": {
+    "mtime": 1777833472.9887066,
+    "hash": "466383ee7e09bec6e22048504e62fd90"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCoreInternal/FirebaseCore/Internal/Sources/HeartbeatLogging/RingBuffer.swift": {
+    "mtime": 1777833472.9888911,
+    "hash": "ecc003f2788ca829241a1e842f28ad92"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCoreInternal/FirebaseCore/Internal/Sources/HeartbeatLogging/_ObjC_HeartbeatController.swift": {
+    "mtime": 1777833472.9890757,
+    "hash": "e4889ec4bac0caa927fd0971c296f6a4"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCoreInternal/FirebaseCore/Internal/Sources/HeartbeatLogging/HeartbeatController.swift": {
+    "mtime": 1777833472.9893162,
+    "hash": "2a249fbe831735532c33f8b22833cdeb"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCoreInternal/FirebaseCore/Internal/Sources/HeartbeatLogging/_ObjC_HeartbeatsPayload.swift": {
+    "mtime": 1777833472.9894702,
+    "hash": "f22b2c3bbe2e88ddba1929b6930c380c"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCoreInternal/FirebaseCore/Internal/Sources/HeartbeatLogging/HeartbeatLoggingTestUtils.swift": {
+    "mtime": 1777833472.9896207,
+    "hash": "41c46f2f5cbeb1ad8fe9eb0ca6ba5fc6"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCoreInternal/FirebaseCore/Internal/Sources/HeartbeatLogging/HeartbeatStorage.swift": {
+    "mtime": 1777833472.9898558,
+    "hash": "8857d2c1abe55b709575c2c49d390353"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCoreInternal/FirebaseCore/Internal/Sources/HeartbeatLogging/HeartbeatsBundle.swift": {
+    "mtime": 1777833472.990021,
+    "hash": "9984aaf4f000f9783f484a59a58c6d4f"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCoreInternal/FirebaseCore/Internal/Sources/HeartbeatLogging/WeakContainer.swift": {
+    "mtime": 1777833472.990163,
+    "hash": "ebf818a74170c9da696e0796476fc7ba"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCoreInternal/FirebaseCore/Internal/Sources/HeartbeatLogging/HeartbeatsPayload.swift": {
+    "mtime": 1777833472.9903183,
+    "hash": "ad66b2f339525a9fd5d1c9908cedc900"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCoreInternal/FirebaseCore/Internal/Sources/HeartbeatLogging/StorageFactory.swift": {
+    "mtime": 1777833472.9904566,
+    "hash": "489c6c24067430fe5c7518de33b599fc"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCoreInternal/FirebaseCore/Internal/Sources/Utilities/AtomicBox.swift": {
+    "mtime": 1777833472.990831,
+    "hash": "06497acc5039a86b90abdc314260e42d"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCoreInternal/FirebaseCore/Internal/Sources/Utilities/FIRAllocatedUnfairLock.swift": {
+    "mtime": 1777833472.9909673,
+    "hash": "1e68e33a00075c9bc80690b7772554c7"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/Firebase/CoreOnly/Sources/Firebase.h": {
+    "mtime": 1777833434.467406,
+    "hash": "fef2c849066a88f57e6b6daf08270807"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/Headers/Public/Firebase/Firebase.h": {
+    "mtime": 1777833434.467406,
+    "hash": "fef2c849066a88f57e6b6daf08270807"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/Headers/Private/Firebase/Firebase.h": {
+    "mtime": 1777833434.467406,
+    "hash": "fef2c849066a88f57e6b6daf08270807"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/third_party/IsAppEncrypted/IsAppEncrypted.m": {
+    "mtime": 1777833479.8469994,
+    "hash": "82c43499933e92638182bbd67d665499"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/third_party/IsAppEncrypted/Public/IsAppEncrypted.h": {
+    "mtime": 1777833479.8468173,
+    "hash": "e0d9a05a0844944698ff4cf57b29f11f"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/GoogleUtilities/UserDefaults/GULUserDefaults.m": {
+    "mtime": 1777833479.8476527,
+    "hash": "1cc2b55ceb0e82ed7700ed9d1ba949ef"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/GoogleUtilities/UserDefaults/Public/GoogleUtilities/GULUserDefaults.h": {
+    "mtime": 1777833479.8474674,
+    "hash": "3a13f90bfc94fc9577371c4ec34d7a8f"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/GoogleUtilities/Logger/GULLogger.m": {
+    "mtime": 1777833479.8488169,
+    "hash": "df0de89fe2c7c8910f9908ef7eb67eb3"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/GoogleUtilities/Logger/Public/GoogleUtilities/GULLoggerLevel.h": {
+    "mtime": 1777833479.8497849,
+    "hash": "a8d6da0422cc80630a4ed78e64a41955"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/GoogleUtilities/Logger/Public/GoogleUtilities/GULLogger.h": {
+    "mtime": 1777833479.8502967,
+    "hash": "40239ac28e51614da0db851bcee52348"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/GoogleUtilities/Network/GULNetworkInternal.h": {
+    "mtime": 1777833479.850852,
+    "hash": "5388d9cfb2990d85cabb6731a8c8f969"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/GoogleUtilities/Network/GULNetworkConstants.m": {
+    "mtime": 1777833479.85105,
+    "hash": "d4a2942a2ece0c1ef4d2620352826fb0"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/GoogleUtilities/Network/GULMutableDictionary.m": {
+    "mtime": 1777833479.8521404,
+    "hash": "8ab106955a5e67c5c1556e8fea9f597c"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/GoogleUtilities/Network/GULNetworkURLSession.m": {
+    "mtime": 1777833479.852306,
+    "hash": "2a071e4e4491a22e868fbd3118947564"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/GoogleUtilities/Network/GULNetwork.m": {
+    "mtime": 1777833479.8524573,
+    "hash": "f160494d9980163b08a1066c04caabda"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/GoogleUtilities/Network/Public/GoogleUtilities/GULNetworkMessageCode.h": {
+    "mtime": 1777833479.851363,
+    "hash": "b9adb3372e64675c2ea84583c41167f5"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/GoogleUtilities/Network/Public/GoogleUtilities/GULMutableDictionary.h": {
+    "mtime": 1777833479.8515034,
+    "hash": "54f822a5b3db6537bcc073e32dc2cadd"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/GoogleUtilities/Network/Public/GoogleUtilities/GULNetworkURLSession.h": {
+    "mtime": 1777833479.851632,
+    "hash": "3e1bb5d1b33ea081b80e42ef64e866dd"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/GoogleUtilities/Network/Public/GoogleUtilities/GULNetworkLoggerProtocol.h": {
+    "mtime": 1777833479.8517652,
+    "hash": "d9def7602012c79855126824cc34e704"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/GoogleUtilities/Network/Public/GoogleUtilities/GULNetwork.h": {
+    "mtime": 1777833479.8518875,
+    "hash": "ac76e15740be8500b2f41e9a9fe7420e"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/GoogleUtilities/Network/Public/GoogleUtilities/GULNetworkConstants.h": {
+    "mtime": 1777833479.8520107,
+    "hash": "2d3f2cbf53745b1e68536062b7978866"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/GoogleUtilities/Common/GULLoggerCodes.h": {
+    "mtime": 1777833479.8584886,
+    "hash": "d73d7096c1393847407311321f3a6d8b"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/GoogleUtilities/Reachability/GULReachabilityChecker.m": {
+    "mtime": 1777833479.8587399,
+    "hash": "93ebbbabe0fd6f35972e2b4fb7ce628e"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/GoogleUtilities/Reachability/GULReachabilityMessageCode.h": {
+    "mtime": 1777833479.8588762,
+    "hash": "d719a5991bc7a1ddac658abd7ea8871a"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/GoogleUtilities/Reachability/GULReachabilityChecker+Internal.h": {
+    "mtime": 1777833479.859004,
+    "hash": "38421bd5294f563a1330c26766209090"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/GoogleUtilities/Reachability/Public/GoogleUtilities/GULReachabilityChecker.h": {
+    "mtime": 1777833479.8592625,
+    "hash": "3221fbe7e97504043ff4a58e21ef789a"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/GoogleUtilities/AppDelegateSwizzler/GULSceneDelegateSwizzler.m": {
+    "mtime": 1777833479.8601518,
+    "hash": "07d283e759e2a4bdc2728a8752b71bbd"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/GoogleUtilities/AppDelegateSwizzler/GULAppDelegateSwizzler.m": {
+    "mtime": 1777833479.8614318,
+    "hash": "32f739740cacf61bb0a2128eac47af54"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/GoogleUtilities/AppDelegateSwizzler/Internal/GULAppDelegateSwizzler_Private.h": {
+    "mtime": 1777833479.860374,
+    "hash": "a1dee3f171e61f09a665d937ddf570d9"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/GoogleUtilities/AppDelegateSwizzler/Internal/GULSceneDelegateSwizzler_Private.h": {
+    "mtime": 1777833479.8605318,
+    "hash": "24f98a9a8ba3bad2e262eab53a1ab1e9"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/GoogleUtilities/AppDelegateSwizzler/Public/GoogleUtilities/GULApplication.h": {
+    "mtime": 1777833479.860858,
+    "hash": "6c146071062f50f721a07475791e2037"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/GoogleUtilities/AppDelegateSwizzler/Public/GoogleUtilities/GULAppDelegateSwizzler.h": {
+    "mtime": 1777833479.8610103,
+    "hash": "e194b567d88d33b063da82b85cfdbd8f"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/GoogleUtilities/AppDelegateSwizzler/Public/GoogleUtilities/GULSceneDelegateSwizzler.h": {
+    "mtime": 1777833479.8612742,
+    "hash": "eb309948b0974babd803463e4b7662b3"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/GoogleUtilities/Environment/GULAppEnvironmentUtil.m": {
+    "mtime": 1777833479.8622348,
+    "hash": "d2432344dcc090de61689edb8fd26ccf"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/GoogleUtilities/Environment/NetworkInfo/GULNetworkInfo.m": {
+    "mtime": 1777833479.8617027,
+    "hash": "28ea0f3e9c47c8477ea80b9bccf190c3"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/GoogleUtilities/Environment/SecureStorage/GULKeychainUtils.m": {
+    "mtime": 1777833479.8618982,
+    "hash": "86f7949e97d3e605a11190380d33e398"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/GoogleUtilities/Environment/SecureStorage/GULKeychainStorage.m": {
+    "mtime": 1777833479.8620481,
+    "hash": "a0d50da300b844c9b8fe2035b22b9add"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/GoogleUtilities/Environment/Public/GoogleUtilities/GULAppEnvironmentUtil.h": {
+    "mtime": 1777833479.8625102,
+    "hash": "7c9fa6f059cfd9355f3924080ea7dacb"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/GoogleUtilities/Environment/Public/GoogleUtilities/GULKeychainStorage.h": {
+    "mtime": 1777833479.8626363,
+    "hash": "76495f34d479db13e2858a9fb67e5af3"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/GoogleUtilities/Environment/Public/GoogleUtilities/GULNetworkInfo.h": {
+    "mtime": 1777833479.8627713,
+    "hash": "4589ea01fc4c0987a149ee62455b55fd"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/GoogleUtilities/Environment/Public/GoogleUtilities/GULKeychainUtils.h": {
+    "mtime": 1777833479.8628955,
+    "hash": "8da83d7d85056536c766eb39f2fd6634"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/GoogleUtilities/NSData+zlib/GULNSData+zlib.m": {
+    "mtime": 1777833479.8654692,
+    "hash": "702569270c554f987310127a340c602a"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/GoogleUtilities/NSData+zlib/Public/GoogleUtilities/GULNSData+zlib.h": {
+    "mtime": 1777833479.865744,
+    "hash": "a2e6481cf47ecc764d0b7be9bde556d8"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDCallbackQueue.m": {
+    "mtime": 1777833478.2841809,
+    "hash": "132a7b8727e099d2ab8798166d07c6b6"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDSignIn_Private.h": {
+    "mtime": 1777833478.2843914,
+    "hash": "3684625303bffde4035faf3f7751d7ab"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDEMMErrorHandler.m": {
+    "mtime": 1777833478.2846057,
+    "hash": "153b1f70c3479bdcf250047e899d3cd2"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDAuthentication.m": {
+    "mtime": 1777833478.2847934,
+    "hash": "81e19d8342b9d552f764939a95f7d24d"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDSignIn.m": {
+    "mtime": 1777833478.3048172,
+    "hash": "15f3f43981cdf541d76768b13077c24d"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDMDMPasscodeCache.m": {
+    "mtime": 1777833478.3049603,
+    "hash": "8adc621567518b9bd3a9ee90d52f5d52"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDScopes.h": {
+    "mtime": 1777833478.305175,
+    "hash": "6f6ff4e8a5daae3a6ab66e13eb1ac552"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDAuthStateMigration.m": {
+    "mtime": 1777833478.3055162,
+    "hash": "cd4a2d2aac9694603bfa1cb500cc1993"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDProfileData.m": {
+    "mtime": 1777833478.3059309,
+    "hash": "499b1e57a23080969cdd317936ad49f6"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDSignInInternalOptions.m": {
+    "mtime": 1777833478.3073788,
+    "hash": "ec65266554cce77b54c4564528bcf8b3"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/NSBundle+GID3PAdditions.h": {
+    "mtime": 1777833478.307553,
+    "hash": "69898ec6789872a519a46b0a966dea6b"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDMDMPasscodeState.h": {
+    "mtime": 1777833478.3077738,
+    "hash": "3bcb6959aa49abeb5c2c3592b6349254"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDSignInButton.m": {
+    "mtime": 1777833478.3079135,
+    "hash": "8b23f5e0a506ba0731f2aa24b27265e6"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDSignInStrings.m": {
+    "mtime": 1777833478.3086581,
+    "hash": "1efe5091fe4abb806239444251a9bd19"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDSignInPreferences.m": {
+    "mtime": 1777833478.3088627,
+    "hash": "09750f87a2e2526c2dad40d8beb7a072"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDEMMSupport.m": {
+    "mtime": 1777833478.309128,
+    "hash": "9f502bf2c005f0479af4438565da5c37"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDSignInCallbackSchemes.m": {
+    "mtime": 1777833478.309349,
+    "hash": "ff830625dbe5f76fd8379d7c99463672"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDProfileData_Private.h": {
+    "mtime": 1777833478.3096268,
+    "hash": "55bb46f03491db3ba75b62f6ccc97f1d"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDAuthentication.h": {
+    "mtime": 1777833478.3098376,
+    "hash": "73e2a22961b82b7ff6fd7b67a1c62ecd"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDSignInResult.m": {
+    "mtime": 1777833478.3100522,
+    "hash": "aa92c9f68c14fe92cabc91e53839b9a8"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDEMMErrorHandler.h": {
+    "mtime": 1777833478.3123102,
+    "hash": "df9c3c4fc2086c7a99100963b3105ace"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDGoogleUser_Private.h": {
+    "mtime": 1777833478.312498,
+    "hash": "f14b81246b3bc01563e46ce058177fb3"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDSignInResult_Private.h": {
+    "mtime": 1777833478.312677,
+    "hash": "0c7771f413ebf1edfda76b1e864a0329"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDCallbackQueue.h": {
+    "mtime": 1777833478.312881,
+    "hash": "40dfb818f636d35a4f52bbead92a6d72"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDMDMPasscodeState.m": {
+    "mtime": 1777833478.3130841,
+    "hash": "88d4d2493919a4dd2397bd14a8b0385e"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/NSBundle+GID3PAdditions.m": {
+    "mtime": 1777833478.3147624,
+    "hash": "d68bbc30c14c864ae154b955a3939230"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDMDMPasscodeState_Private.h": {
+    "mtime": 1777833478.31496,
+    "hash": "4beaa85bd5aec59d498c60115e177afb"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDSignInInternalOptions.h": {
+    "mtime": 1777833478.3151424,
+    "hash": "5c7a906d7e07ebf4afc1af05d766ab52"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDConfiguration.m": {
+    "mtime": 1777833478.315321,
+    "hash": "145ffbbde0b0ba48631f5b3f462d0630"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDGoogleUser.m": {
+    "mtime": 1777833478.3155336,
+    "hash": "b47b031408ea7775f9378704552b9130"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDAuthStateMigration.h": {
+    "mtime": 1777833478.3157349,
+    "hash": "2665933e504e8e3a6dcdee8d170b3eef"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDScopes.m": {
+    "mtime": 1777833478.315921,
+    "hash": "14af7e3b7b3b8e3abd8c7f295724c3f2"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDMDMPasscodeCache.h": {
+    "mtime": 1777833478.3161108,
+    "hash": "006eedfb84ca43c18dcbfa64f5622e6f"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDSignInCallbackSchemes.h": {
+    "mtime": 1777833478.3162456,
+    "hash": "db2c4fb73a3861276a72df6f5207f8b8"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDSignInPreferences.h": {
+    "mtime": 1777833478.316456,
+    "hash": "f570c03514e545e8f6b9260221adc89c"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDEMMSupport.h": {
+    "mtime": 1777833478.3166213,
+    "hash": "a26202e2eface7698ebbe33cd2ba731d"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDSignInStrings.h": {
+    "mtime": 1777833478.3168106,
+    "hash": "eea9ea2bf01ba577b5bd642b4fd889f2"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDTimedLoader/GIDTimedLoader.m": {
+    "mtime": 1777833478.3081775,
+    "hash": "80fe773cad57eb0a7469b246bff6c39a"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDTimedLoader/GIDTimedLoader.h": {
+    "mtime": 1777833478.3084214,
+    "hash": "8e87c6f132486f526802c1f81abcf578"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/Public/GoogleSignIn/GIDSignInResult.h": {
+    "mtime": 1777833478.310399,
+    "hash": "fb096e9442c049451c9722ddcb8c3566"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/Public/GoogleSignIn/GIDGoogleUser.h": {
+    "mtime": 1777833478.3106833,
+    "hash": "9179596ccb1f67c0af449f76cdeb760d"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/Public/GoogleSignIn/GIDConfiguration.h": {
+    "mtime": 1777833478.310913,
+    "hash": "197f3042f7abfccf55d6870fdad7cb90"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/Public/GoogleSignIn/GIDAppCheckError.h": {
+    "mtime": 1777833478.3111382,
+    "hash": "11dec819cbe986892d9702909add8702"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/Public/GoogleSignIn/GoogleSignIn.h": {
+    "mtime": 1777833478.311308,
+    "hash": "50a8100866a64b3fd172bd258b6a4b3e"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/Public/GoogleSignIn/GIDSignIn.h": {
+    "mtime": 1777833478.3115351,
+    "hash": "198a8a5f6aeffebd982ea3a0fbb94d5f"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/Public/GoogleSignIn/GIDSignInButton.h": {
+    "mtime": 1777833478.3117352,
+    "hash": "7bd133a1a00a2183def3caecfb75606e"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/Public/GoogleSignIn/GIDProfileData.h": {
+    "mtime": 1777833478.3119097,
+    "hash": "4a9cc25efa5cbbfad5e51122ed7a0261"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDAppCheck/UI/GIDActivityIndicatorViewController.m": {
+    "mtime": 1777833478.313425,
+    "hash": "e7c9a505e55d346de271268515f30447"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDAppCheck/UI/GIDActivityIndicatorViewController.h": {
+    "mtime": 1777833478.3136244,
+    "hash": "d15a650aca942a9e690baf72157bb7e7"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDAppCheck/Implementations/GIDAppCheck.h": {
+    "mtime": 1777833478.3138926,
+    "hash": "eb20571ec2fc281bee7f7792c822c325"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDAppCheck/Implementations/GIDAppCheck.m": {
+    "mtime": 1777833478.314562,
+    "hash": "48a41c0cbf63ac8d882ae0d01807ba9a"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDAppCheck/Implementations/Fake/GIDAppCheckProviderFake.m": {
+    "mtime": 1777833478.3141775,
+    "hash": "c51781a16aafa4cf4f06a25d5acc2a5b"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/GIDAppCheck/Implementations/Fake/GIDAppCheckProviderFake.h": {
+    "mtime": 1777833478.3143542,
+    "hash": "36d5d5944efad6282703f3955042ad52"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuthInterop/FirebaseAuth/Interop/dummy.m": {
+    "mtime": 1777833454.0653584,
+    "hash": "f386a04b172b37f6e012c627f2c6c304"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuthInterop/FirebaseAuth/Interop/Public/FirebaseAuthInterop/FIRAuthInterop.h": {
+    "mtime": 1777833454.0657325,
+    "hash": "432a9fe8900ab4e5bc51638449173045"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GTMAppAuth/GTMAppAuth/Sources/AuthSessionStore.swift": {
+    "mtime": 1777833474.7499316,
+    "hash": "fdab6b916881890e7bb4cbea24247478"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GTMAppAuth/GTMAppAuth/Sources/AuthSessionDelegate.swift": {
+    "mtime": 1777833474.7500951,
+    "hash": "c17b46989e645cbcc289eda97971fad4"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GTMAppAuth/GTMAppAuth/Sources/AuthSession.swift": {
+    "mtime": 1777833474.7502596,
+    "hash": "8fe2acbcdd1df95525f95a617b66f649"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GTMAppAuth/GTMAppAuth/Sources/KeychainStore/KeychainHelper.swift": {
+    "mtime": 1777833474.7505076,
+    "hash": "6cc45894e42e4a57b7b74b7a48feae5d"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GTMAppAuth/GTMAppAuth/Sources/KeychainStore/KeychainStore.swift": {
+    "mtime": 1777833474.7506912,
+    "hash": "cacd83a74c1efd83fcf5ee1e4eb3c54b"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GTMAppAuth/GTMAppAuth/Sources/KeychainStore/KeychainAttribute.swift": {
+    "mtime": 1777833474.7508457,
+    "hash": "dc098a01b010c0b019e682d08561e50a"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GTMAppAuth/GTMAppAuth/Sources/KeychainStore/GTMOAuth2Compatibility.swift": {
+    "mtime": 1777833474.7510188,
+    "hash": "1072bce476a16dc6a8f5b554bc236f99"
   },
   "/Users/tibinthomas/my_app/test/widget_test.dart": {
     "mtime": 1777697443.0023468,
@@ -140,8 +2124,8 @@
     "hash": "d3ed486aec6e0a110d1715cc7f586710"
   },
   "/Users/tibinthomas/my_app/lib/firebase_options.dart": {
-    "mtime": 1777826458.2208529,
-    "hash": "1336d54d90d35f50eee08f6e49027a1b"
+    "mtime": 1777833955.1874654,
+    "hash": "800da7ce1e7e5dfac23653bbe2d951ce"
   },
   "/Users/tibinthomas/my_app/lib/main.dart": {
     "mtime": 1777816191.3674297,
@@ -279,6 +2263,70 @@
     "mtime": 1777687427.381633,
     "hash": "66d03d7647c8e438164feaf5b922d44a"
   },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCore/README.md": {
+    "mtime": 1777833460.366616,
+    "hash": "0ca679bdf6ae08f9b2b0fec4352170f8"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/PromisesObjC/README.md": {
+    "mtime": 1777833481.326142,
+    "hash": "eb27eb597921ceb7913ae703c333f3e9"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppCheckCore/README.md": {
+    "mtime": 1777833428.103626,
+    "hash": "2e6d64eec52843358ef1dace1fc195a5"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/AppAuth/README.md": {
+    "mtime": 1777833426.707478,
+    "hash": "d2ab4565f29a9644b35d4363366beb4c"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/README.md": {
+    "mtime": 1777833447.9820144,
+    "hash": "0ca679bdf6ae08f9b2b0fec4352170f8"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/CHANGELOG.md": {
+    "mtime": 1777833447.935677,
+    "hash": "6f61383db121124e14f8cadd5dad8334"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuth/FirebaseAuth/README.md": {
+    "mtime": 1777833447.9487445,
+    "hash": "e10d6581c4e16adc1ad5b67324cc7f58"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAppCheckInterop/README.md": {
+    "mtime": 1777833440.975688,
+    "hash": "0ca679bdf6ae08f9b2b0fec4352170f8"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCoreExtension/README.md": {
+    "mtime": 1777833466.8822153,
+    "hash": "0ca679bdf6ae08f9b2b0fec4352170f8"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GTMSessionFetcher/README.md": {
+    "mtime": 1777833476.5059805,
+    "hash": "f05c6d067feadcf4b2c6a728a4594b4e"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseCoreInternal/README.md": {
+    "mtime": 1777833472.991395,
+    "hash": "0ca679bdf6ae08f9b2b0fec4352170f8"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/Firebase/README.md": {
+    "mtime": 1777833434.46779,
+    "hash": "0ca679bdf6ae08f9b2b0fec4352170f8"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleUtilities/README.md": {
+    "mtime": 1777833479.8456101,
+    "hash": "e20c38c066079caf15152d75798ef0c0"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/README.md": {
+    "mtime": 1777833478.2763805,
+    "hash": "5b6d7b39d64b1d4eb522f5d7ea809888"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/FirebaseAuthInterop/README.md": {
+    "mtime": 1777833454.065855,
+    "hash": "0ca679bdf6ae08f9b2b0fec4352170f8"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GTMAppAuth/README.md": {
+    "mtime": 1777833474.7461047,
+    "hash": "f5ec5ae01f20df5b05c9fd6f741b3a75"
+  },
   "/Users/tibinthomas/my_app/web/index.html": {
     "mtime": 1777816218.8228993,
     "hash": "7c95d9e4f97e6f429774b4592a84da5a"
@@ -338,6 +2386,18 @@
   "/Users/tibinthomas/my_app/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_32.png": {
     "mtime": 1777367788.646267,
     "hash": "8e0ae58e362a6636bdfccbc04da2c58c"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/Resources/google@3x.png": {
+    "mtime": 1777833478.3064117,
+    "hash": "e4ac216f3c5a8f56f372e4e77a38fe25"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/Resources/google@2x.png": {
+    "mtime": 1777833478.306579,
+    "hash": "d0520e210c539754e3c8ccb09c465c7f"
+  },
+  "/Users/tibinthomas/my_app/macos/Pods/GoogleSignIn/GoogleSignIn/Sources/Resources/google.png": {
+    "mtime": 1777833478.3069766,
+    "hash": "a0e4d2cfd5e55788e6fcefa7b1dd4637"
   },
   "/Users/tibinthomas/my_app/web/favicon.png": {
     "mtime": 1777367340.473941,
