@@ -1,11 +1,11 @@
 # Graph Report - my_app  (2026-05-04)
 
 ## Corpus Check
-- 563 files · ~309,264 words
+- 563 files · ~309,283 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 3203 nodes · 3439 edges · 143 communities detected
+- 3203 nodes · 3439 edges · 142 communities detected
 - Extraction: 93% EXTRACTED · 7% INFERRED · 0% AMBIGUOUS · INFERRED: 247 edges (avg confidence: 0.82)
 - Token cost: 0 input · 0 output
 
@@ -126,14 +126,14 @@
 - [[_COMMUNITY_Community 113|Community 113]]
 - [[_COMMUNITY_Community 114|Community 114]]
 - [[_COMMUNITY_Community 115|Community 115]]
-- [[_COMMUNITY_Community 116|Community 116]]
+- [[_COMMUNITY_Community 117|Community 117]]
 - [[_COMMUNITY_Community 118|Community 118]]
 - [[_COMMUNITY_Community 119|Community 119]]
 - [[_COMMUNITY_Community 120|Community 120]]
 - [[_COMMUNITY_Community 121|Community 121]]
 - [[_COMMUNITY_Community 122|Community 122]]
 - [[_COMMUNITY_Community 123|Community 123]]
-- [[_COMMUNITY_Community 124|Community 124]]
+- [[_COMMUNITY_Community 125|Community 125]]
 - [[_COMMUNITY_Community 126|Community 126]]
 - [[_COMMUNITY_Community 127|Community 127]]
 - [[_COMMUNITY_Community 128|Community 128]]
@@ -146,13 +146,12 @@
 - [[_COMMUNITY_Community 135|Community 135]]
 - [[_COMMUNITY_Community 136|Community 136]]
 - [[_COMMUNITY_Community 137|Community 137]]
-- [[_COMMUNITY_Community 138|Community 138]]
+- [[_COMMUNITY_Community 139|Community 139]]
 - [[_COMMUNITY_Community 140|Community 140]]
 - [[_COMMUNITY_Community 141|Community 141]]
 - [[_COMMUNITY_Community 142|Community 142]]
 - [[_COMMUNITY_Community 143|Community 143]]
 - [[_COMMUNITY_Community 144|Community 144]]
-- [[_COMMUNITY_Community 145|Community 145]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `GTMSessionFetcher` - 181 edges
@@ -190,87 +189,87 @@ Nodes (162): attachment.dart, attachment_preview.dart, dart:async, dart:io, exte
 
 ### Community 2 - "Community 2"
 Cohesion: 0.02
-Nodes (53): PodsDummy_AppAuth, PodsDummy_AppCheckCore, PodsDummy_audioplayers_darwin, AuthSettings, AuthUIDelegate, PodsDummy_file_selector_macos, PodsDummy_firebase_auth, PodsDummy_firebase_core (+45 more)
+Nodes (65): initializeRecaptchaConfig(), GameCenterAuthCredential, GameCenterAuthProvider, WarningWorkaround, credential(), handleVerifyErrorWithRetry(), internalVerify(), reCAPTCHAFlowWithUIDelegate() (+57 more)
 
 ### Community 3 - "Community 3"
 Cohesion: 0.02
-Nodes (101): Error, Data, FileStorage, Storage, StorageError, readError, writeError, UserDefaultsStorage (+93 more)
+Nodes (52): PodsDummy_AppAuth, PodsDummy_AppCheckCore, PodsDummy_audioplayers_darwin, AuthSettings, AuthUIDelegate, PodsDummy_file_selector_macos, PodsDummy_firebase_auth, PodsDummy_firebase_core (+44 more)
 
 ### Community 4 - "Community 4"
 Cohesion: 0.02
-Nodes (105): GTMSessionFetcher, -beginFetchForRetry, -completionHandlerWithTargetdidFinishSelector, -createSessionIdentifierWithMetadata, -invokeOnCallbackQueueafterUserStoppedblock, -parentUploadFetcher, -releaseCallbacks, -retryTimer (+97 more)
+Nodes (102): Error, Data, FileStorage, Storage, StorageError, readError, writeError, UserDefaultsStorage (+94 more)
 
 ### Community 5 - "Community 5"
-Cohesion: 0.03
-Nodes (42): OIDAuthorizationResponse, -copyWithZone, -description, -encodeWithCoder, -fieldMap, -initparameters, -initWithCoder, -supportsSecureCoding (+34 more)
+Cohesion: 0.02
+Nodes (105): GTMSessionFetcher, -beginFetchForRetry, -completionHandlerWithTargetdidFinishSelector, -createSessionIdentifierWithMetadata, -invokeOnCallbackQueueafterUserStoppedblock, -parentUploadFetcher, -releaseCallbacks, -retryTimer (+97 more)
 
 ### Community 6 - "Community 6"
-Cohesion: 0.02
-Nodes (72): ActionCodeOperation, emailLink, passwordReset, recoverEmail, revertSecondFactorAddition, unknown, verifyAndChangeEmail, verifyEmail (+64 more)
+Cohesion: 0.03
+Nodes (25): ActionCodeInfo, AuthCredential, FacebookAuthCredential, FacebookAuthProvider, GitHubAuthCredential, GitHubAuthProvider, GoogleAuthCredential, GoogleAuthProvider (+17 more)
 
 ### Community 7 - "Community 7"
-Cohesion: 0.03
-Nodes (45): AuthCredential, FacebookAuthCredential, FacebookAuthProvider, GameCenterAuthCredential, GameCenterAuthProvider, WarningWorkaround, GitHubAuthCredential, GitHubAuthProvider (+37 more)
-
-### Community 8 - "Community 8"
 Cohesion: 0.04
 Nodes (56): addIDTokenDidChangeListener(), addProtectedDataDidBecomeAvailableObserver(), addStateDidChangeListener(), applyActionCode(), Auth, canHandle(), canHandleNotification(), checkActionCode() (+48 more)
 
-### Community 9 - "Community 9"
+### Community 8 - "Community 8"
 Cohesion: 0.03
-Nodes (33): credential(), handleVerifyErrorWithRetry(), internalVerify(), reCAPTCHAFlowWithUIDelegate(), reCAPTCHAToken(), reCAPTCHAURL(), verifyClAndSendVerificationCode(), verifyClAndSendVerificationCodeWithRecaptcha() (+25 more)
+Nodes (30): AuthMFAResponse, AuthProto, AuthRPCResponse, VerifyClientResponse, FinalizeMFAEnrollmentResponse, StartMFAEnrollmentResponse, AuthProtoFinalizeMFAPhoneResponseInfo, AuthProtoStartMFAPhoneResponseInfo (+22 more)
 
-### Community 10 - "Community 10"
+### Community 9 - "Community 9"
 Cohesion: 0.05
 Nodes (79): accountExistsWithDifferentCredentialError(), appNotAuthorizedError(), appNotVerifiedError(), appVerificationUserInteractionFailure(), blockingCloudFunctionServerResponse(), captchaCheckFailedError(), credentialAlreadyInUseError(), customTokenMismatchError() (+71 more)
 
-### Community 11 - "Community 11"
+### Community 10 - "Community 10"
 Cohesion: 0.03
-Nodes (63): AuthBackendRPCIssuer, AuthBackendRPCIssuerProtocol, GTMSessionFetcherService, -abandonDispatcher, -addDecorator, -addDelayedFetcherforHost, -addRunningFetcherforHost, -authorizer (+55 more)
+Nodes (66): AuthBackendRPCIssuer, AuthBackendRPCIssuerProtocol, AuthRequestConfiguration, GTMSessionFetcherService, -abandonDispatcher, -addDecorator, -addDelayedFetcherforHost, -addRunningFetcherforHost (+58 more)
+
+### Community 11 - "Community 11"
+Cohesion: 0.05
+Nodes (45): ActionCodeURL, credential(), getCredentialWith(), getHeadfulLiteUrl(), hash(), httpArgumentsString(), oAuthResponseForURL(), CaseIterable (+37 more)
 
 ### Community 12 - "Community 12"
-Cohesion: 0.05
-Nodes (16): ActionCodeInfo, ActionCodeURL, AuthBackend, AuthBackendProtocol, AuthRPCResponse, Data, Encodable, HeartbeatStorage (+8 more)
+Cohesion: 0.04
+Nodes (34): AuthProviderID, Codable, CustomNSError, Equatable, Heartbeat, DateStandardizer, HeartbeatController, HeartbeatsBundle (+26 more)
 
 ### Community 13 - "Community 13"
-Cohesion: 0.06
-Nodes (40): credential(), getCredentialWith(), getHeadfulLiteUrl(), hash(), httpArgumentsString(), oAuthResponseForURL(), CaseIterable, Constants (+32 more)
-
-### Community 14 - "Community 14"
 Cohesion: 0.04
 Nodes (49): HTTPConnection, -dealloc, -delegate, -init, -initWithPeerAddressinputStreamoutputStreamforServer, -invalidate, -isValid, -nextRequest (+41 more)
 
+### Community 14 - "Community 14"
+Cohesion: 0.04
+Nodes (43): OIDAuthorizationResponse, -copyWithZone, -description, -encodeWithCoder, -fieldMap, -initparameters, -initWithCoder, -supportsSecureCoding (+35 more)
+
 ### Community 15 - "Community 15"
 Cohesion: 0.04
-Nodes (46): GIDAuthFlow, GIDSignIn, -addCompletionCallback, -addDecodeIdTokenCallback, -additionalParametersFromOptions, -addSaveAuthCallback, -addScopespresentingViewControllercompletion, -addScopespresentingWindowcompletion (+38 more)
+Nodes (37): ActionCodeOperation, emailLink, passwordReset, recoverEmail, revertSecondFactorAddition, unknown, verifyAndChangeEmail, verifyEmail (+29 more)
 
 ### Community 16 - "Community 16"
 Cohesion: 0.04
-Nodes (44): FIROptions, -analyticsOptionsDictionary, -analyticsOptionsDictionaryWithInfoDictionary, -androidClientID, -APIKey, -bundleID, -checkEditingLocked, -clientID (+36 more)
+Nodes (46): GIDAuthFlow, GIDSignIn, -addCompletionCallback, -addDecodeIdTokenCallback, -additionalParametersFromOptions, -addSaveAuthCallback, -addScopespresentingViewControllercompletion, -addScopespresentingWindowcompletion (+38 more)
 
 ### Community 17 - "Community 17"
-Cohesion: 0.05
-Nodes (41): FIRApp, -actualBundleID, -addAppToAppDictionary, -allApps, -appDidBecomeActive, -applicationNameAllowedCharacters, -appNamed, -appWasConfiguredTwiceusingOptions (+33 more)
+Cohesion: 0.04
+Nodes (44): FIROptions, -analyticsOptionsDictionary, -analyticsOptionsDictionaryWithInfoDictionary, -androidClientID, -APIKey, -bundleID, -checkEditingLocked, -clientID (+36 more)
 
 ### Community 18 - "Community 18"
 Cohesion: 0.05
-Nodes (37): FBLPromise, -onQueuewrap2ObjectsOrErrorCompletion, -onQueuewrapBoolCompletion, -onQueuewrapBoolOrErrorCompletion, -onQueuewrapCompletion, -onQueuewrapDoubleCompletion, -onQueuewrapDoubleOrErrorCompletion, -onQueuewrapErrorCompletion (+29 more)
+Nodes (41): FIRApp, -actualBundleID, -addAppToAppDictionary, -allApps, -appDidBecomeActive, -applicationNameAllowedCharacters, -appNamed, -appWasConfiguredTwiceusingOptions (+33 more)
 
 ### Community 19 - "Community 19"
 Cohesion: 0.05
-Nodes (37): GULAppDelegateObserver, -observeUIApplication, -observeValueForKeyPathofObjectchangecontext, -sharedInstance, GULAppDelegateSwizzler, -addInstanceMethodWithDestinationSelectorwithImplementationFromSourceSelectorfromClasstoClass, -addInstanceMethodWithSelectorfromClasstoClass, -appDelegateInvocationForSelector (+29 more)
+Nodes (37): FBLPromise, -onQueuewrap2ObjectsOrErrorCompletion, -onQueuewrapBoolCompletion, -onQueuewrapBoolOrErrorCompletion, -onQueuewrapCompletion, -onQueuewrapDoubleCompletion, -onQueuewrapDoubleOrErrorCompletion, -onQueuewrapErrorCompletion (+29 more)
 
 ### Community 20 - "Community 20"
+Cohesion: 0.05
+Nodes (37): GULAppDelegateObserver, -observeUIApplication, -observeValueForKeyPathofObjectchangecontext, -sharedInstance, GULAppDelegateSwizzler, -addInstanceMethodWithDestinationSelectorwithImplementationFromSourceSelectorfromClasstoClass, -addInstanceMethodWithSelectorfromClasstoClass, -appDelegateInvocationForSelector (+29 more)
+
+### Community 21 - "Community 21"
 Cohesion: 0.06
 Nodes (35): GTMSessionFetcher, -beginFetchMayDelaymayAuthorizemayDecorate, GTMSessionFetcherSessionDelegateDispatcher, -abandon, -description, -destroyDiscardTimer, -destroySessionAndTimer, -discardInterval (+27 more)
 
-### Community 21 - "Community 21"
+### Community 22 - "Community 22"
 Cohesion: 0.08
 Nodes (16): AuthSessionStore, KeychainHelper, KeychainWrapper, ErrorCode, failedToConvertAuthSessionToData, failedToConvertKeychainDataToAuthSession, failedToConvertRedirectURItoURL, failedToCreateResponseStringFromAuthSession (+8 more)
-
-### Community 22 - "Community 22"
-Cohesion: 0.06
-Nodes (31): OIDAuthState, -accessToken, -accessTokenExpirationDate, -authStateByPresentingAuthorizationRequestexternalUserAgentcallback, -description, -didChangeState, -encodeWithCoder, -idToken (+23 more)
 
 ### Community 23 - "Community 23"
 Cohesion: 0.06
@@ -389,437 +388,433 @@ Cohesion: 0.17
 Nodes (11): GACAppCheck, -createRetrieveOrRefreshTokenPromiseForcingRefresh, -getCachedValidTokenForcingRefresh, -initWithServiceNameappCheckProviderstoragetokenRefreshersettingstokenDelegate, -initWithServiceNameresourceNameappCheckProvidersettingstokenDelegatekeychainAccessGroup, -limitedUseToken, -limitedUseTokenWithCompletion, -periodicTokenRefreshWithCompletion (+3 more)
 
 ### Community 52 - "Community 52"
-Cohesion: 0.18
-Nodes (3): AuthNotificationManager, PendingCount, AuthCondition
-
-### Community 53 - "Community 53"
 Cohesion: 0.17
 Nodes (11): GULMutableDictionary, -count, -description, -dictionary, -init, -objectForKey, -objectForKeyedSubscript, -removeAllObjects (+3 more)
 
-### Community 54 - "Community 54"
+### Community 53 - "Community 53"
 Cohesion: 0.17
 Nodes (11): GULReachabilityChecker, -dealloc, -initWithReachabilityDelegatewithHost, -isActive, -reachabilityApi, -reachabilityFlagsChanged, -setReachabilityApi, -setReachabilityDelegate (+3 more)
 
-### Community 55 - "Community 55"
+### Community 54 - "Community 54"
 Cohesion: 0.18
 Nodes (10): FBLPromise, -attemptsdelayconditionretry, -attemptsretry, -onQueueattemptsdelayconditionretry, -onQueueattemptsretry, -onQueueretry, -retry, -retryAgain (+2 more)
 
-### Community 56 - "Community 56"
+### Community 55 - "Community 55"
 Cohesion: 0.27
 Nodes (1): AuthWebUtils
 
-### Community 57 - "Community 57"
+### Community 56 - "Community 56"
 Cohesion: 0.18
 Nodes (10): GIDAppCheck, -appAttestProvider, -appAttestResourceName, -appCheckUsingAppAttestProvider, -appCheckUsingDebugProviderWithAPIKey, -debugAppCheckProviderWithAPIKey, -getLimitedUseTokenWithCompletion, -initWithAppCheckProvideruserDefaults (+2 more)
 
-### Community 58 - "Community 58"
+### Community 57 - "Community 57"
 Cohesion: 0.18
 Nodes (3): AuthKeychainStorage, GeneratedPluginRegistrant, AuthKeychainStorageReal
 
-### Community 59 - "Community 59"
+### Community 58 - "Community 58"
 Cohesion: 0.2
 Nodes (9): OIDRedirectHTTPHandler, -cancelHTTPListener, -dealloc, -HTTPConnectiondidReceiveRequest, -init, -initWithSuccessURL, -startHTTPListener, -startHTTPListenerwithPort (+1 more)
 
-### Community 60 - "Community 60"
+### Community 59 - "Community 59"
 Cohesion: 0.2
 Nodes (9): OIDErrorUtilities, -errorWithCodeunderlyingErrordescription, -HTTPErrorWithHTTPResponsedata, -isOAuthErrorDomain, -OAuthErrorCodeFromString, -OAuthErrorWithDomainOAuthResponseunderlyingError, -raiseException, -raiseExceptionmessage (+1 more)
 
-### Community 61 - "Community 61"
+### Community 60 - "Community 60"
 Cohesion: 0.2
 Nodes (9): GULKeychainStorage, -getObjectForKeyobjectClassaccessGroupcompletionHandler, -getObjectFromKeychainForKeyobjectClassaccessGroupcompletionHandler, -initWithService, -initWithServicecache, -keychainQueryWithKeyaccessGroup, -removeObjectForKeyaccessGroupcompletionHandler, -resetInMemoryCache (+1 more)
 
-### Community 62 - "Community 62"
+### Community 61 - "Community 61"
 Cohesion: 0.2
 Nodes (9): GIDProfileData, -copyWithZone, -encodeWithCoder, -hasImage, -imageURLWithDimension, -initWithCoder, -initWithEmailnamegivenNamefamilyNameimageURL, -isFIFEAvatarURL (+1 more)
 
-### Community 63 - "Community 63"
+### Community 62 - "Community 62"
 Cohesion: 0.22
 Nodes (3): FlutterAppDelegate, FlutterImplicitEngineDelegate, AppDelegate
 
-### Community 64 - "Community 64"
+### Community 63 - "Community 63"
 Cohesion: 0.22
 Nodes (8): GACAppCheckAPIService, -appCheckTokenWithAPIResponse, -defaultQueue, -initWithURLSessionbaseURLAPIKeyrequestHooks, -requestWithURLHTTPMethodbodyadditionalHeaders, -sendRequestWithURLHTTPMethodbodyadditionalHeaders, -sendURLRequest, -validateHTTPResponseStatusCode
 
-### Community 65 - "Community 65"
+### Community 64 - "Community 64"
 Cohesion: 0.22
 Nodes (8): GACAppCheckDebugProvider, -currentDebugToken, -getLimitedUseTokenWithCompletion, -getTokenWithCompletion, -getTokenWithLimitedUsecompletion, -initWithAPIService, -initWithServiceNameresourceNamebaseURLAPIKeyrequestHooks, -localDebugToken
 
-### Community 66 - "Community 66"
+### Community 65 - "Community 65"
 Cohesion: 0.22
 Nodes (8): OIDRegistrationResponse, -copyWithZone, -description, -encodeWithCoder, -fieldMap, -initparameters, -initWithCoder, -supportsSecureCoding
 
-### Community 67 - "Community 67"
+### Community 66 - "Community 66"
 Cohesion: 0.22
 Nodes (4): FederatedAuthProvider, NSObjectProtocol, UserInfo, AuthUIDelegate
 
-### Community 68 - "Community 68"
+### Community 67 - "Community 67"
 Cohesion: 0.25
 Nodes (7): GACAppCheckHTTPError, -copyWithZone, -encodeWithCoder, -initWithCoder, -initWithHTTPResponsedata, -supportsSecureCoding, -userInfoWithHTTPResponsedata
 
-### Community 69 - "Community 69"
+### Community 68 - "Community 68"
 Cohesion: 0.25
 Nodes (7): GACAppAttestKeyIDStorage, -appAttestKeyIDFromStorage, -getAppAttestKeyID, -initWithKeySuffix, -keyIDStorageKey, -setAppAttestKeyID, -storeAppAttestKeyID
 
-### Community 70 - "Community 70"
+### Community 69 - "Community 69"
 Cohesion: 0.25
 Nodes (7): GACAppAttestArtifactStorage, -artifactKey, -getArtifactForKey, -initWithKeySuffixaccessGroup, -initWithKeySuffixkeychainStorageaccessGroup, -setArtifactforKey, -storeArtifactforKey
 
-### Community 71 - "Community 71"
+### Community 70 - "Community 70"
 Cohesion: 0.43
 Nodes (1): AuthLog
 
-### Community 72 - "Community 72"
+### Community 71 - "Community 71"
 Cohesion: 0.32
 Nodes (5): Constants, FileManager, FileStorage, StorageFactory, UserDefaultsStorage
 
-### Community 73 - "Community 73"
+### Community 72 - "Community 72"
 Cohesion: 0.25
 Nodes (7): GIDEMMSupport, -additionalTokenRefreshParametersForAuthSession, -handleTokenFetchEMMErrorcompletion, -init, -parametersWithParametersemmSupportisPasscodeInfoRequired, -updatedEMMParametersWithParameters, -updateErrorForAuthSessionoriginalErrorcompletion
 
-### Community 74 - "Community 74"
+### Community 73 - "Community 73"
 Cohesion: 0.29
 Nodes (6): FIRFirebaseUserAgent, -environmentComponents, -firebaseUserAgent, -init, -reset, -setValueforComponent
 
-### Community 75 - "Community 75"
+### Community 74 - "Community 74"
 Cohesion: 0.29
 Nodes (6): FIRBundleUtil, -bundleIdentifierByRemovingLastPartFrom, -hasBundleIdentifierPrefixinBundles, -optionsDictionaryPathWithResourceNameandFileTypeinBundles, -relevantBundles, -relevantURLSchemes
 
-### Community 76 - "Community 76"
+### Community 75 - "Community 75"
 Cohesion: 0.29
 Nodes (6): FIRHeartbeatLogger, -currentUserAgentProvider, -heartbeatCodeForToday, -initWithAppID, -initWithAppIDuserAgentProvider, -log
 
-### Community 77 - "Community 77"
+### Community 76 - "Community 76"
 Cohesion: 0.29
 Nodes (6): GACAppCheckStorage, -getToken, -initWithTokenKeyaccessGroup, -initWithTokenKeykeychainStorageaccessGroup, -setToken, -storeToken
 
-### Community 78 - "Community 78"
+### Community 77 - "Community 77"
 Cohesion: 0.29
 Nodes (6): GACAppAttestStoredArtifact, -encodeWithCoder, -initWithCoder, -initWithKeyIDartifact, -storageVersion, -supportsSecureCoding
 
-### Community 79 - "Community 79"
+### Community 78 - "Community 78"
 Cohesion: 0.33
 Nodes (1): IdentityToolkitRequest
 
-### Community 80 - "Community 80"
+### Community 79 - "Community 79"
 Cohesion: 0.29
 Nodes (6): GULKeychainUtils, -getItemWithQueryerror, -keychainErrorWithFunctionstatus, -multiplatformQueryWithQuery, -removeItemWithQueryerror, -setItemwithQueryerror
 
-### Community 81 - "Community 81"
+### Community 80 - "Community 80"
 Cohesion: 0.29
 Nodes (6): GIDAuthStateMigration, -extractAuthSessionWithTokenURLcallbackPath, -init, -initWithKeychainStore, -migrateIfNeededWithTokenURLcallbackPathkeychainNameisFreshInstall, -passwordForService
 
-### Community 82 - "Community 82"
+### Community 81 - "Community 81"
 Cohesion: 0.29
 Nodes (6): GIDTimedLoader, -initWithPresentingViewController, -presentLoadingViewController, -remainingDurationToAnimate, -startTiming, -stopTimingWithCompletion
 
-### Community 83 - "Community 83"
+### Community 82 - "Community 82"
 Cohesion: 0.33
 Nodes (3): RegisterGeneratedPlugins(), NSWindow, MainFlutterWindow
 
-### Community 84 - "Community 84"
+### Community 83 - "Community 83"
 Cohesion: 0.33
 Nodes (5): FIRConfiguration, -init, -loggerLevel, -setLoggerLevel, -sharedInstance
 
-### Community 85 - "Community 85"
+### Community 84 - "Community 84"
 Cohesion: 0.33
 Nodes (5): FIRAnalyticsConfiguration, -postNotificationNamevalue, -setAnalyticsCollectionEnabled, -setAnalyticsCollectionEnabledpersistSetting, -sharedInstance
 
-### Community 86 - "Community 86"
+### Community 85 - "Community 85"
 Cohesion: 0.33
 Nodes (5): FBLPromise, -onQueuereducecombine, -reduce, -reducecombine, -reduceOn
 
-### Community 87 - "Community 87"
+### Community 86 - "Community 86"
 Cohesion: 0.33
 Nodes (5): GACAppCheckDebugProviderAPIService, -appCheckTokenWithDebugTokenlimitedUse, -backgroundQueue, -HTTPBodyWithDebugTokenlimitedUse, -initWithAPIServiceresourceName
 
-### Community 88 - "Community 88"
+### Community 87 - "Community 87"
 Cohesion: 0.33
 Nodes (5): GACDeviceCheckAPIService, -appCheckTokenWithDeviceTokenlimitedUse, -backgroundQueue, -HTTPBodyWithDeviceTokenlimitedUse, -initWithAPIServiceresourceName
 
-### Community 89 - "Community 89"
+### Community 88 - "Community 88"
 Cohesion: 0.33
 Nodes (5): GACAppAttestProviderState, -initUnsupportedWithError, -initWithGeneratedKeyID, -initWithRegisteredKeyIDartifact, -initWithSupportedInitialState
 
-### Community 90 - "Community 90"
+### Community 89 - "Community 89"
 Cohesion: 0.33
 Nodes (5): GIDAuthentication, -encodeWithCoder, -initWithAuthState, -initWithCoder, -supportsSecureCoding
 
-### Community 91 - "Community 91"
+### Community 90 - "Community 90"
 Cohesion: 0.47
 Nodes (4): wWinMain(), CreateAndAttachConsole(), GetCommandLineArguments(), Utf8FromUtf16()
 
-### Community 92 - "Community 92"
+### Community 91 - "Community 91"
 Cohesion: 0.4
 Nodes (2): RunnerTests, XCTestCase
 
-### Community 93 - "Community 93"
+### Community 92 - "Community 92"
 Cohesion: 0.4
 Nodes (4): FIRComponent, -componentWithProtocolcreationBlock, -componentWithProtocolinstantiationTimingcreationBlock, -initWithProtocolinstantiationTimingcreationBlock
 
-### Community 94 - "Community 94"
+### Community 93 - "Community 93"
 Cohesion: 0.4
 Nodes (4): FBLPromise, -do, -doOn, -onQueuedo
 
-### Community 95 - "Community 95"
+### Community 94 - "Community 94"
 Cohesion: 0.4
 Nodes (4): FBLPromise, -delay, -delayOn, -onQueuedelay
 
-### Community 96 - "Community 96"
+### Community 95 - "Community 95"
 Cohesion: 0.4
 Nodes (4): FBLPromise, -onQueuethen, -then, -thenOn
 
-### Community 97 - "Community 97"
+### Community 96 - "Community 96"
 Cohesion: 0.4
 Nodes (4): FBLPromise, -onQueuetimeout, -timeout, -timeoutOn
 
-### Community 98 - "Community 98"
+### Community 97 - "Community 97"
 Cohesion: 0.4
 Nodes (4): FBLPromise, -any, -anyOn, -onQueueany
 
-### Community 99 - "Community 99"
+### Community 98 - "Community 98"
 Cohesion: 0.4
 Nodes (4): FBLPromise, -async, -asyncOn, -onQueueasync
 
-### Community 100 - "Community 100"
+### Community 99 - "Community 99"
 Cohesion: 0.4
 Nodes (4): FBLPromise, -always, -alwaysOn, -onQueuealways
 
-### Community 101 - "Community 101"
+### Community 100 - "Community 100"
 Cohesion: 0.4
 Nodes (4): FBLPromise, -catch, -catchOn, -onQueuecatch
 
-### Community 102 - "Community 102"
+### Community 101 - "Community 101"
 Cohesion: 0.4
 Nodes (4): FBLPromise, -onQueuerecover, -recover, -recoverOn
 
-### Community 103 - "Community 103"
+### Community 102 - "Community 102"
 Cohesion: 0.4
 Nodes (4): FBLPromise, -onQueuerace, -race, -raceOn
 
-### Community 104 - "Community 104"
+### Community 103 - "Community 103"
 Cohesion: 0.4
 Nodes (4): FBLPromise, -all, -allOn, -onQueueall
 
-### Community 105 - "Community 105"
+### Community 104 - "Community 104"
 Cohesion: 0.4
 Nodes (4): FBLPromise, -onQueuevalidate, -validate, -validateOn
 
-### Community 106 - "Community 106"
+### Community 105 - "Community 105"
 Cohesion: 0.4
 Nodes (4): GACAppCheckLogger, -load, -logLevel, -setLogLevel
 
-### Community 107 - "Community 107"
+### Community 106 - "Community 106"
 Cohesion: 0.4
 Nodes (4): OIDAuthState, -authStateByPresentingAuthorizationRequestcallback, -authStateByPresentingAuthorizationRequestpresentingWindowcallback, -authStateByPresentingAuthorizationRequestpresentingWindowprefersEphemeralSessioncallback
 
-### Community 108 - "Community 108"
+### Community 107 - "Community 107"
 Cohesion: 0.4
 Nodes (4): OIDScopeUtilities, -disallowedScopeCharacters, -scopesArrayWithString, -scopesWithArray
 
-### Community 109 - "Community 109"
+### Community 108 - "Community 108"
 Cohesion: 0.5
 Nodes (1): AtomicBox
 
-### Community 110 - "Community 110"
+### Community 109 - "Community 109"
 Cohesion: 0.4
 Nodes (4): GIDSignInStrings, -localizedStringForKeytext, -signInString, -signInWithGoogleString
 
-### Community 111 - "Community 111"
+### Community 110 - "Community 110"
 Cohesion: 0.4
 Nodes (4): GIDSignInPreferences, -googleAuthorizationServer, -googleTokenServer, -googleUserInfoServer
 
-### Community 112 - "Community 112"
+### Community 111 - "Community 111"
 Cohesion: 0.4
 Nodes (4): GIDAppCheckProviderFake, -getLimitedUseTokenWithCompletion, -getTokenWithCompletion, -initWithAppCheckTokenerror
 
-### Community 113 - "Community 113"
+### Community 112 - "Community 112"
 Cohesion: 0.4
 Nodes (4): dart:math, dart:typed_data, package:audioplayers/audioplayers.dart, _buildChimeWav
 
-### Community 114 - "Community 114"
+### Community 113 - "Community 113"
 Cohesion: 0.5
 Nodes (3): GACAppAttestAttestationResponse, -initWithArtifacttoken, -initWithResponseDatarequestDateerror
 
-### Community 115 - "Community 115"
+### Community 114 - "Community 114"
 Cohesion: 0.5
 Nodes (3): GACAppAttestRejectionError, -initWithUnderlyingError, -underlyingError
 
-### Community 116 - "Community 116"
+### Community 115 - "Community 115"
 Cohesion: 0.5
 Nodes (3): OIDURLSessionProvider, -session, -setSession
 
-### Community 118 - "Community 118"
+### Community 117 - "Community 117"
 Cohesion: 0.5
 Nodes (1): AuthDispatcher
 
-### Community 119 - "Community 119"
+### Community 118 - "Community 118"
 Cohesion: 0.5
 Nodes (3): GULNetworkInfo, -getNetworkRadioType, -getNetworkType
 
-### Community 120 - "Community 120"
+### Community 119 - "Community 119"
 Cohesion: 0.5
 Nodes (3): NSBundle, -gid_frameworkBundle, -gid_registerFonts
 
-### Community 121 - "Community 121"
+### Community 120 - "Community 120"
 Cohesion: 0.5
 Nodes (3): package:flutter_test/flutter_test.dart, package:my_app/main.dart, main
 
-### Community 122 - "Community 122"
+### Community 121 - "Community 121"
 Cohesion: 0.5
 Nodes (2): handle_new_rx_page(), Intercept NOTIFY_DEBUGGER_ABOUT_RX_PAGES and touch the pages.
 
-### Community 123 - "Community 123"
+### Community 122 - "Community 122"
 Cohesion: 0.67
 Nodes (2): FIRComponentType, -instanceForProtocolinContainer
 
-### Community 124 - "Community 124"
+### Community 123 - "Community 123"
 Cohesion: 0.67
 Nodes (2): FBLPromise, -dispatchGroup
 
-### Community 126 - "Community 126"
+### Community 125 - "Community 125"
 Cohesion: 0.67
 Nodes (2): GACAppCheckCryptoUtils, -sha256HashFromData
 
-### Community 127 - "Community 127"
+### Community 126 - "Community 126"
 Cohesion: 0.67
 Nodes (2): NSURLSession, -gac_dataTaskPromiseWithRequest
 
-### Community 128 - "Community 128"
+### Community 127 - "Community 127"
 Cohesion: 0.67
 Nodes (2): GACURLSessionDataResponse, -initWithResponseHTTPBody
 
-### Community 129 - "Community 129"
+### Community 128 - "Community 128"
 Cohesion: 0.67
 Nodes (1): Data
 
-### Community 130 - "Community 130"
+### Community 129 - "Community 129"
 Cohesion: 0.67
 Nodes (1): AuthRPCRequest
 
-### Community 131 - "Community 131"
+### Community 130 - "Community 130"
 Cohesion: 0.67
 Nodes (1): AuthProto
 
-### Community 132 - "Community 132"
+### Community 131 - "Community 131"
 Cohesion: 0.67
 Nodes (2): GIDSignInResult, -initWithGoogleUserserverAuthCode
 
-### Community 133 - "Community 133"
+### Community 132 - "Community 132"
 Cohesion: 0.67
 Nodes (2): GIDScopes, -scopesWithBasicProfile
 
-### Community 134 - "Community 134"
+### Community 133 - "Community 133"
 Cohesion: 0.67
 Nodes (2): GIDActivityIndicatorViewController, -viewDidLoad
 
-### Community 135 - "Community 135"
+### Community 134 - "Community 134"
 Cohesion: 0.67
 Nodes (2): GeneratedPluginRegistrant, -registerWithRegistry
 
-### Community 136 - "Community 136"
+### Community 135 - "Community 135"
 Cohesion: 0.67
 Nodes (2): FlutterSceneDelegate, SceneDelegate
 
-### Community 137 - "Community 137"
+### Community 136 - "Community 136"
 Cohesion: 1.0
 Nodes (1): DCAppAttestService
 
-### Community 138 - "Community 138"
+### Community 137 - "Community 137"
 Cohesion: 1.0
 Nodes (1): AuthMFAResponse
 
-### Community 140 - "Community 140"
+### Community 139 - "Community 139"
 Cohesion: 1.0
 Nodes (1): AuthSessionStore
 
-### Community 141 - "Community 141"
+### Community 140 - "Community 140"
 Cohesion: 1.0
 Nodes (1): AuthSessionDelegate
 
-### Community 142 - "Community 142"
+### Community 141 - "Community 141"
 Cohesion: 1.0
 Nodes (1): MainActivity
 
-### Community 143 - "Community 143"
+### Community 142 - "Community 142"
 Cohesion: 1.0
 Nodes (1): formatDate
 
-### Community 144 - "Community 144"
+### Community 143 - "Community 143"
 Cohesion: 1.0
 Nodes (1): ExternalLink
 
-### Community 145 - "Community 145"
+### Community 144 - "Community 144"
 Cohesion: 1.0
 Nodes (1): Attachment
 
 ## Knowledge Gaps
 - **1628 isolated node(s):** `-sharedInstance`, `-init`, `-setLoggerLevel`, `-loggerLevel`, `-ISO8601String` (+1623 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **Thin community `Community 56`** (11 nodes): `AuthWebUtils.swift`, `AuthWebUtils`, `.dictionary()`, `.extractDomain()`, `.fetchAuthDomain()`, `.isCallbackSchemeRegistered()`, `.isExpectedCallbackURL()`, `.parseURL()`, `.queryItemValue()`, `.randomString()`, `.string()`
+- **Thin community `Community 55`** (11 nodes): `AuthWebUtils.swift`, `AuthWebUtils`, `.dictionary()`, `.extractDomain()`, `.fetchAuthDomain()`, `.isCallbackSchemeRegistered()`, `.isExpectedCallbackURL()`, `.parseURL()`, `.queryItemValue()`, `.randomString()`, `.string()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 71`** (8 nodes): `AuthLog.swift`, `AuthLog`, `.log()`, `.logDebug()`, `.logError()`, `.logInfo()`, `.logNotice()`, `.logWarning()`
+- **Thin community `Community 70`** (8 nodes): `AuthLog.swift`, `AuthLog`, `.log()`, `.logDebug()`, `.logError()`, `.logInfo()`, `.logNotice()`, `.logWarning()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 79`** (7 nodes): `IdentityToolkitRequest`, `.init()`, `.queryParams()`, `.requestConfiguration()`, `.requestURL()`, `.setHost()`, `IdentityToolkitRequest.swift`
+- **Thin community `Community 78`** (7 nodes): `IdentityToolkitRequest`, `.init()`, `.queryParams()`, `.requestConfiguration()`, `.requestURL()`, `.setHost()`, `IdentityToolkitRequest.swift`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 92`** (5 nodes): `RunnerTests.swift`, `RunnerTests.swift`, `RunnerTests`, `.testExample()`, `XCTestCase`
+- **Thin community `Community 91`** (5 nodes): `RunnerTests.swift`, `RunnerTests.swift`, `RunnerTests`, `.testExample()`, `XCTestCase`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 109`** (5 nodes): `AtomicBox.swift`, `AtomicBox`, `.init()`, `.value()`, `.withLock()`
+- **Thin community `Community 108`** (5 nodes): `AtomicBox.swift`, `AtomicBox`, `.init()`, `.value()`, `.withLock()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 118`** (4 nodes): `AuthDispatcher`, `.dispatch()`, `.init()`, `AuthDispatcher.swift`
+- **Thin community `Community 117`** (4 nodes): `AuthDispatcher`, `.dispatch()`, `.init()`, `AuthDispatcher.swift`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 122`** (4 nodes): `handle_new_rx_page()`, `__lldb_init_module()`, `Intercept NOTIFY_DEBUGGER_ABOUT_RX_PAGES and touch the pages.`, `flutter_lldb_helper.py`
+- **Thin community `Community 121`** (4 nodes): `handle_new_rx_page()`, `__lldb_init_module()`, `Intercept NOTIFY_DEBUGGER_ABOUT_RX_PAGES and touch the pages.`, `flutter_lldb_helper.py`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 123`** (3 nodes): `FIRComponentType.m`, `FIRComponentType`, `-instanceForProtocolinContainer`
+- **Thin community `Community 122`** (3 nodes): `FIRComponentType.m`, `FIRComponentType`, `-instanceForProtocolinContainer`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 124`** (3 nodes): `FBLPromise`, `-dispatchGroup`, `FBLPromise+Testing.m`
+- **Thin community `Community 123`** (3 nodes): `FBLPromise`, `-dispatchGroup`, `FBLPromise+Testing.m`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 126`** (3 nodes): `GACAppCheckCryptoUtils.m`, `GACAppCheckCryptoUtils`, `-sha256HashFromData`
+- **Thin community `Community 125`** (3 nodes): `GACAppCheckCryptoUtils.m`, `GACAppCheckCryptoUtils`, `-sha256HashFromData`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 127`** (3 nodes): `NSURLSession`, `-gac_dataTaskPromiseWithRequest`, `NSURLSession+GACPromises.m`
+- **Thin community `Community 126`** (3 nodes): `NSURLSession`, `-gac_dataTaskPromiseWithRequest`, `NSURLSession+GACPromises.m`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 128`** (3 nodes): `GACURLSessionDataResponse`, `-initWithResponseHTTPBody`, `GACURLSessionDataResponse.m`
+- **Thin community `Community 127`** (3 nodes): `GACURLSessionDataResponse`, `-initWithResponseHTTPBody`, `GACURLSessionDataResponse.m`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 129`** (3 nodes): `Base64URLEncodedStringExtension.swift`, `Data`, `.base64URLEncodedString()`
+- **Thin community `Community 128`** (3 nodes): `Base64URLEncodedStringExtension.swift`, `Data`, `.base64URLEncodedString()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 130`** (3 nodes): `AuthRPCRequest`, `.injectRecaptchaFields()`, `AuthRPCRequest.swift`
+- **Thin community `Community 129`** (3 nodes): `AuthRPCRequest`, `.injectRecaptchaFields()`, `AuthRPCRequest.swift`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 131`** (3 nodes): `AuthProto.swift`, `AuthProto`, `.init()`
+- **Thin community `Community 130`** (3 nodes): `AuthProto.swift`, `AuthProto`, `.init()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 132`** (3 nodes): `GIDSignInResult.m`, `GIDSignInResult`, `-initWithGoogleUserserverAuthCode`
+- **Thin community `Community 131`** (3 nodes): `GIDSignInResult.m`, `GIDSignInResult`, `-initWithGoogleUserserverAuthCode`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 133`** (3 nodes): `GIDScopes.m`, `GIDScopes`, `-scopesWithBasicProfile`
+- **Thin community `Community 132`** (3 nodes): `GIDScopes.m`, `GIDScopes`, `-scopesWithBasicProfile`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 134`** (3 nodes): `GIDActivityIndicatorViewController.m`, `GIDActivityIndicatorViewController`, `-viewDidLoad`
+- **Thin community `Community 133`** (3 nodes): `GIDActivityIndicatorViewController.m`, `GIDActivityIndicatorViewController`, `-viewDidLoad`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 135`** (3 nodes): `GeneratedPluginRegistrant.m`, `GeneratedPluginRegistrant`, `-registerWithRegistry`
+- **Thin community `Community 134`** (3 nodes): `GeneratedPluginRegistrant.m`, `GeneratedPluginRegistrant`, `-registerWithRegistry`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 136`** (3 nodes): `FlutterSceneDelegate`, `SceneDelegate.swift`, `SceneDelegate`
+- **Thin community `Community 135`** (3 nodes): `FlutterSceneDelegate`, `SceneDelegate.swift`, `SceneDelegate`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 137`** (2 nodes): `DCAppAttestService`, `DCAppAttestService+GACAppAttestService.m`
+- **Thin community `Community 136`** (2 nodes): `DCAppAttestService`, `DCAppAttestService+GACAppAttestService.m`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 138`** (2 nodes): `AuthMFAResponse.swift`, `AuthMFAResponse`
+- **Thin community `Community 137`** (2 nodes): `AuthMFAResponse.swift`, `AuthMFAResponse`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 140`** (2 nodes): `AuthSessionStore.swift`, `AuthSessionStore`
+- **Thin community `Community 139`** (2 nodes): `AuthSessionStore.swift`, `AuthSessionStore`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 141`** (2 nodes): `AuthSessionDelegate.swift`, `AuthSessionDelegate`
+- **Thin community `Community 140`** (2 nodes): `AuthSessionDelegate.swift`, `AuthSessionDelegate`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 142`** (2 nodes): `MainActivity.kt`, `MainActivity`
+- **Thin community `Community 141`** (2 nodes): `MainActivity.kt`, `MainActivity`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 143`** (2 nodes): `date_formatter.dart`, `formatDate`
+- **Thin community `Community 142`** (2 nodes): `date_formatter.dart`, `formatDate`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 144`** (2 nodes): `external_link.dart`, `ExternalLink`
+- **Thin community `Community 143`** (2 nodes): `external_link.dart`, `ExternalLink`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 145`** (2 nodes): `attachment.dart`, `Attachment`
+- **Thin community `Community 144`** (2 nodes): `attachment.dart`, `Attachment`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `AuthErrorCode` connect `Community 3` to `Community 2`, `Community 6`?**
+- **Why does `AuthErrorCode` connect `Community 4` to `Community 15`?**
   _High betweenness centrality (0.029) - this node is a cross-community bridge._
-- **Why does `GTMOAuth2Compatibility` connect `Community 5` to `Community 2`?**
-  _High betweenness centrality (0.028) - this node is a cross-community bridge._
-- **Why does `GTMSessionFetcherSessionDelegateDispatcher` connect `Community 20` to `Community 2`?**
+- **Why does `GTMOAuth2Compatibility` connect `Community 14` to `Community 8`, `Community 3`?**
+  _High betweenness centrality (0.027) - this node is a cross-community bridge._
+- **Why does `GTMSessionFetcherSessionDelegateDispatcher` connect `Community 21` to `Community 3`?**
   _High betweenness centrality (0.021) - this node is a cross-community bridge._
 - **What connects `-sharedInstance`, `-init`, `-setLoggerLevel` to the rest of the system?**
   _1628 weakly-connected nodes found - possible documentation gaps or missing edges._
