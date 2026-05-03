@@ -2,13 +2,14 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'package:audioplayers/audioplayers.dart';
 
-Future<void> playChime() async {
+Future<void> playChime({double volume = 0.7}) async {
   final player = AudioPlayer();
+  player.setVolume(volume);
   player.onPlayerComplete.listen((_) => player.dispose());
-  await player.play(BytesSource(_buildChimeWav()));
+  await player.play(BytesSource(_buildChimeWav(volume)));
 }
 
-Uint8List _buildChimeWav() {
+Uint8List _buildChimeWav(double volume) {
   const sr = 44100;
   const dur = 0.8;
   final n = (sr * dur).round();
@@ -39,7 +40,7 @@ Uint8List _buildChimeWav() {
         sin(2 * pi * 1760 * t) * 0.28 +
         sin(2 * pi * 2640 * t) * 0.12 +
         sin(2 * pi * 3520 * t) * 0.05;
-    bd.setInt16(44 + i * 2, (v * env * 29000).round().clamp(-32768, 32767), Endian.little);
+    bd.setInt16(44 + i * 2, (v * env * 29000 * volume).round().clamp(-32768, 32767), Endian.little);
   }
   return out;
 }

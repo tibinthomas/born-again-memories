@@ -3,221 +3,37 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/attachment.dart';
 import '../models/external_link.dart';
-import '../models/kid_profile.dart';
 import '../models/milestone.dart';
+import '../providers/app_settings_provider.dart';
+import '../providers/milestone_form_provider.dart';
+import '../providers/profiles_provider.dart';
 import '../utils/attachment_helper.dart';
 import '../utils/chime.dart';
 import '../utils/date_formatter.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/milestone_card.dart';
 import '../widgets/overview_chip.dart';
+import 'settings_screen.dart';
 
-class MilestoneHomePage extends StatefulWidget {
+class MilestoneHomePage extends ConsumerWidget {
   const MilestoneHomePage({super.key});
 
-  @override
-  State<MilestoneHomePage> createState() => _MilestoneHomePageState();
-}
-
-class _MilestoneHomePageState extends State<MilestoneHomePage> {
-  late List<KidProfile> _profiles;
-  late int _selectedProfileIndex;
-
-  @override
-  void initState() {
-    super.initState();
-    _profiles = [
-      KidProfile(
-        id: 'profile_1',
-        name: 'Emma',
-        dateOfBirth: DateTime.now().subtract(const Duration(days: 45)),
-        color: Colors.pinkAccent,
-        milestones: [
-          Milestone(
-            title: 'First smile',
-            description: 'A bright morning smile that warmed your heart.',
-            date: DateTime.now().subtract(const Duration(days: 16)),
-            color: Colors.amber,
-          ),
-          Milestone(
-            title: 'First hold',
-            description: 'Baby held your finger for the very first time.',
-            date: DateTime.now().subtract(const Duration(days: 10)),
-            color: Colors.lightBlue,
-          ),
-          Milestone(
-            title: 'Sleepy cuddle',
-            description: 'A calm evening full of soft cuddles and tiny yawns.',
-            date: DateTime.now().subtract(const Duration(days: 4)),
-            color: Colors.pinkAccent,
-          ),
-        ],
-      ),
-    ];
-    _selectedProfileIndex = 0;
-  }
-
-  KidProfile get _currentProfile => _profiles[_selectedProfileIndex];
-  List<Milestone> get _milestones => _currentProfile.milestones;
-
-  void _updateMilestones(List<Milestone> newMilestones) {
-    setState(() {
-      _profiles[_selectedProfileIndex] = KidProfile(
-        id: _currentProfile.id,
-        name: _currentProfile.name,
-        dateOfBirth: _currentProfile.dateOfBirth,
-        color: _currentProfile.color,
-        milestones: newMilestones,
-      );
-    });
-  }
-
-  void _addProfile(String name, DateTime dob, Color color) {
-    setState(() {
-      _profiles.add(KidProfile(
-        id: 'profile_${DateTime.now().millisecondsSinceEpoch}',
-        name: name,
-        dateOfBirth: dob,
-        color: color,
-        milestones: [],
-      ));
-    });
-  }
-
-  void _deleteProfile(int index) {
-    setState(() {
-      _profiles.removeAt(index);
-      if (_selectedProfileIndex >= _profiles.length) {
-        _selectedProfileIndex = _profiles.length - 1;
-      }
-    });
-  }
-
-  void _showAddProfileSheet() {
-    final nameController = TextEditingController();
-    DateTime selectedDob = DateTime.now();
-    Color selectedColor = Colors.pinkAccent;
-
+  void _showAddProfileSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                left: 24,
-                right: 24,
-                top: 16,
-                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 18),
-                    height: 4,
-                    width: 48,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  const Text(
-                    'Add a new kid',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Baby\'s name',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  OutlinedButton(
-                    onPressed: () async {
-                      final picked = await showDatePicker(
-                        context: context,
-                        initialDate: selectedDob,
-                        firstDate: DateTime.now().subtract(const Duration(days: 365)),
-                        lastDate: DateTime.now(),
-                      );
-                      if (picked != null) setModalState(() => selectedDob = picked);
-                    },
-                    child: Text('DOB: ${formatDate(selectedDob)}'),
-                  ),
-                  const SizedBox(height: 12),
-                  const Text('Profile color'),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 10,
-                    runSpacing: 10,
-                    children: Colors.primaries.take(6).map((color) {
-                      return GestureDetector(
-                        onTap: () => setModalState(() => selectedColor = color),
-                        child: Container(
-                          height: 50,
-                          width: 50,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: color,
-                            border: Border.all(
-                              color: selectedColor == color ? Colors.black : Colors.transparent,
-                              width: 3,
-                            ),
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      final name = nameController.text.trim();
-                      if (name.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Please enter your baby\'s name.')),
-                        );
-                        return;
-                      }
-                      _addProfile(name, selectedDob, selectedColor);
-                      setState(() => _selectedProfileIndex = _profiles.length - 1);
-                      Navigator.of(context).pop();
-                    },
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: const Text('Create profile'),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
+      builder: (_) => const _AddProfileSheet(),
     );
   }
 
-  void _showAddMilestoneSheet() {
-    final titleController = TextEditingController();
-    final descController = TextEditingController();
-    final linkController = TextEditingController();
-    final linkLabelController = TextEditingController();
-    DateTime selectedDate = DateTime.now();
-    final selectedAttachments = <Attachment>[];
-    final selectedLinks = <ExternalLink>[];
-    final picker = ImagePicker();
-
+  void _showAddMilestoneSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -225,371 +41,18 @@ class _MilestoneHomePageState extends State<MilestoneHomePage> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setSt) {
-          final theme = Theme.of(ctx);
-
-          final inputDeco = InputDecoration(
-            filled: true,
-            fillColor: Colors.grey.shade50,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade200),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade200),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: theme.colorScheme.primary, width: 1.5),
-            ),
-          );
-
-          void addXFiles(List<XFile> files) {
-            setSt(() {
-              for (final f in files) {
-                final ext = f.path.split('.').last.toLowerCase();
-                selectedAttachments.add(Attachment(
-                  name: f.name,
-                  path: f.path,
-                  type: getAttachmentTypeFromExtension(ext),
-                ));
-              }
-            });
-          }
-
-          void addLink() {
-            final raw = linkController.text.trim();
-            if (raw.isEmpty) return;
-            final url = raw.startsWith('http') ? raw : 'https://$raw';
-            final lbl = linkLabelController.text.trim();
-            setSt(() {
-              selectedLinks.add(ExternalLink(url: url, label: lbl.isEmpty ? null : lbl));
-              linkController.clear();
-              linkLabelController.clear();
-            });
-          }
-
-          return Padding(
-            padding: EdgeInsets.only(
-              left: 20,
-              right: 20,
-              top: 14,
-              bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
-            ),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Drag handle
-                  Center(
-                    child: Container(
-                      margin: const EdgeInsets.only(bottom: 14),
-                      height: 4,
-                      width: 40,
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade300,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                  ),
-
-                  // Title + date chip
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Expanded(
-                        child: Text(
-                          'Record a milestone',
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () async {
-                          final picked = await showDatePicker(
-                            context: ctx,
-                            initialDate: selectedDate,
-                            firstDate: DateTime.now().subtract(const Duration(days: 365 * 5)),
-                            lastDate: DateTime.now(),
-                          );
-                          if (picked != null) setSt(() => selectedDate = picked);
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.primary.withAlpha(25),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.calendar_today, size: 13, color: theme.colorScheme.primary),
-                              const SizedBox(width: 5),
-                              Text(
-                                formatDate(selectedDate),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: theme.colorScheme.primary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Milestone name
-                  TextField(
-                    controller: titleController,
-                    decoration: inputDeco.copyWith(labelText: 'Milestone name'),
-                  ),
-                  const SizedBox(height: 10),
-
-                  // Description
-                  TextField(
-                    controller: descController,
-                    maxLines: 3,
-                    decoration: inputDeco.copyWith(labelText: 'Why this moment matters'),
-                  ),
-                  const SizedBox(height: 18),
-
-                  // ── Media ──────────────────────────────────
-                  _sectionLabel('Media'),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      _MediaOptionButton(
-                        icon: Icons.camera_alt,
-                        label: 'Photo',
-                        color: Colors.blue,
-                        onTap: () async {
-                          final f = await picker.pickImage(source: ImageSource.camera);
-                          if (f != null) addXFiles([f]);
-                        },
-                      ),
-                      const SizedBox(width: 8),
-                      _MediaOptionButton(
-                        icon: Icons.videocam,
-                        label: 'Video',
-                        color: Colors.red,
-                        onTap: () async {
-                          final f = await picker.pickVideo(source: ImageSource.camera);
-                          if (f != null) addXFiles([f]);
-                        },
-                      ),
-                      const SizedBox(width: 8),
-                      _MediaOptionButton(
-                        icon: Icons.photo_library,
-                        label: 'Gallery',
-                        color: Colors.purple,
-                        onTap: () async {
-                          final files = await picker.pickMultipleMedia();
-                          if (files.isNotEmpty) addXFiles(files);
-                        },
-                      ),
-                      const SizedBox(width: 8),
-                      _MediaOptionButton(
-                        icon: Icons.audiotrack,
-                        label: 'Audio',
-                        color: Colors.orange,
-                        onTap: () async {
-                          final result = await FilePicker.platform.pickFiles(
-                            allowMultiple: true,
-                            type: FileType.custom,
-                            allowedExtensions: ['wav', 'mp3', 'm4a', 'aac'],
-                          );
-                          if (result != null) {
-                            setSt(() {
-                              for (final f in result.files.where((f) => f.path != null)) {
-                                selectedAttachments.add(Attachment(
-                                  name: f.name,
-                                  path: f.path!,
-                                  type: AttachmentType.audio,
-                                ));
-                              }
-                            });
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-
-                  // Thumbnail strip
-                  if (selectedAttachments.isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      height: 84,
-                      child: ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: selectedAttachments.length,
-                        separatorBuilder: (context, index) => const SizedBox(width: 8),
-                        itemBuilder: (_, i) {
-                          final a = selectedAttachments[i];
-                          return Stack(
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: a.type == AttachmentType.image
-                                    ? Image.file(File(a.path),
-                                        width: 84, height: 84, fit: BoxFit.cover)
-                                    : Container(
-                                        width: 84,
-                                        height: 84,
-                                        decoration: BoxDecoration(
-                                          color: Colors.grey.shade200,
-                                          borderRadius: BorderRadius.circular(12),
-                                        ),
-                                        child: Column(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              a.type == AttachmentType.video
-                                                  ? Icons.videocam
-                                                  : Icons.audiotrack,
-                                              size: 26,
-                                              color: Colors.grey.shade600,
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Padding(
-                                              padding: const EdgeInsets.symmetric(horizontal: 4),
-                                              child: Text(
-                                                a.name,
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                                style: const TextStyle(fontSize: 9),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                              ),
-                              Positioned(
-                                top: 3,
-                                right: 3,
-                                child: GestureDetector(
-                                  onTap: () => setSt(() => selectedAttachments.removeAt(i)),
-                                  child: Container(
-                                    width: 20,
-                                    height: 20,
-                                    decoration: const BoxDecoration(
-                                      color: Colors.black54,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: const Icon(Icons.close, size: 12, color: Colors.white),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 18),
-
-                  // ── Links ──────────────────────────────────
-                  _sectionLabel('Links'),
-                  const SizedBox(height: 8),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: TextField(
-                          controller: linkController,
-                          keyboardType: TextInputType.url,
-                          decoration: inputDeco.copyWith(
-                            labelText: 'Link URL',
-                            isDense: true,
-                            prefixIcon: const Icon(Icons.link, size: 18),
-                          ),
-                          onSubmitted: (_) => addLink(),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        flex: 1,
-                        child: TextField(
-                          controller: linkLabelController,
-                          decoration: inputDeco.copyWith(labelText: 'Label', isDense: true),
-                          onSubmitted: (_) => addLink(),
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      IconButton(
-                        icon: const Icon(Icons.add_circle_outline),
-                        tooltip: 'Add link',
-                        onPressed: addLink,
-                      ),
-                    ],
-                  ),
-                  if (selectedLinks.isNotEmpty) ...[
-                    const SizedBox(height: 10),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 4,
-                      children: selectedLinks.asMap().entries.map((e) {
-                        final lbl = e.value.label?.isNotEmpty == true
-                            ? e.value.label!
-                            : (Uri.tryParse(e.value.url)?.host ?? e.value.url);
-                        return Chip(
-                          avatar: const Icon(Icons.link, size: 14),
-                          label: Text(lbl, style: const TextStyle(fontSize: 12)),
-                          deleteIcon: const Icon(Icons.close, size: 14),
-                          onDeleted: () => setSt(() => selectedLinks.removeAt(e.key)),
-                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          visualDensity: VisualDensity.compact,
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                  const SizedBox(height: 24),
-
-                  // ── Save ───────────────────────────────────
-                  _SaveButton(
-                    onSave: () {
-                      final title = titleController.text.trim();
-                      final desc = descController.text.trim();
-                      if (title.isEmpty || desc.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Please add a title and a note.')),
-                        );
-                        return false;
-                      }
-                      _updateMilestones([
-                        Milestone(
-                          title: title,
-                          description: desc,
-                          date: selectedDate,
-                          color: Colors.primaries[
-                                  _milestones.length % Colors.primaries.length]
-                              .shade300,
-                          attachments: List.from(selectedAttachments),
-                          externalLinks: List.from(selectedLinks),
-                        ),
-                        ..._milestones,
-                      ]);
-                      return true;
-                    },
-                    onDismiss: () => Navigator.of(context).pop(),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
+      builder: (_) => const _AddMilestoneSheet(),
     );
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final profiles = ref.watch(profilesProvider);
+    final selectedIndex = ref.watch(selectedProfileIndexProvider);
+    final currentProfile = profiles[selectedIndex];
+    final milestones = currentProfile.milestones;
+
     final gradient = LinearGradient(
       colors: [theme.colorScheme.primary, theme.colorScheme.secondary],
       begin: Alignment.topLeft,
@@ -643,44 +106,59 @@ class _MilestoneHomePageState extends State<MilestoneHomePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          CircleAvatar(
-                            backgroundColor: Colors.white,
-                            radius: 26,
-                            child: Icon(
-                              Icons.child_care,
-                              color: _currentProfile.color,
-                              size: 32,
-                            ),
-                          ),
-                          const SizedBox(width: 14),
                           Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                            child: Row(
                               children: [
-                                Text(
-                                  _currentProfile.name,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
+                                CircleAvatar(
+                                  backgroundColor: Colors.white,
+                                  radius: 26,
+                                  child: Icon(
+                                    Icons.child_care,
+                                    color: currentProfile.color,
+                                    size: 32,
                                   ),
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Age: ${_currentProfile.ageText}',
-                                  style: const TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 14,
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        currentProfile.name,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Age: ${currentProfile.ageText}',
+                                        style: const TextStyle(
+                                          color: Colors.white70,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
                             ),
                           ),
+                          IconButton(
+                            onPressed: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                            ),
+                            icon: const Icon(Icons.settings, color: Colors.white70),
+                            tooltip: 'Settings',
+                          ),
                         ],
                       ),
                       const SizedBox(height: 24),
-                      if (_profiles.length > 1) ...[
+                      if (profiles.length > 1) ...[
                         const Text(
                           'Switch profile',
                           style: TextStyle(color: Colors.white70, fontSize: 12),
@@ -689,11 +167,13 @@ class _MilestoneHomePageState extends State<MilestoneHomePage> {
                         SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           child: Row(
-                            children: List.generate(_profiles.length, (index) {
-                              final profile = _profiles[index];
-                              final isSelected = index == _selectedProfileIndex;
+                            children: List.generate(profiles.length, (index) {
+                              final profile = profiles[index];
+                              final isSelected = index == selectedIndex;
                               return GestureDetector(
-                                onTap: () => setState(() => _selectedProfileIndex = index),
+                                onTap: () => ref
+                                    .read(selectedProfileIndexProvider.notifier)
+                                    .state = index,
                                 child: Container(
                                   margin: const EdgeInsets.only(right: 10),
                                   padding: const EdgeInsets.all(12),
@@ -745,7 +225,7 @@ class _MilestoneHomePageState extends State<MilestoneHomePage> {
                         children: [
                           OverviewChip(
                             label: 'Milestones',
-                            value: _milestones.length.toString(),
+                            value: milestones.length.toString(),
                             icon: Icons.flag,
                           ),
                           const SizedBox(width: 12),
@@ -788,7 +268,7 @@ class _MilestoneHomePageState extends State<MilestoneHomePage> {
                             ),
                           ),
                           IconButton(
-                            onPressed: _showAddMilestoneSheet,
+                            onPressed: () => _showAddMilestoneSheet(context),
                             icon: const Icon(Icons.add_circle_outline),
                             color: theme.colorScheme.primary,
                           ),
@@ -796,13 +276,13 @@ class _MilestoneHomePageState extends State<MilestoneHomePage> {
                       ),
                       const SizedBox(height: 12),
                       Expanded(
-                        child: _milestones.isEmpty
+                        child: milestones.isEmpty
                             ? EmptyState(theme: theme)
                             : ListView.builder(
                                 padding: const EdgeInsets.only(bottom: 24),
-                                itemCount: _milestones.length,
+                                itemCount: milestones.length,
                                 itemBuilder: (context, index) {
-                                  return MilestoneCard(milestone: _milestones[index]);
+                                  return MilestoneCard(milestone: milestones[index]);
                                 },
                               ),
                       ),
@@ -818,18 +298,527 @@ class _MilestoneHomePageState extends State<MilestoneHomePage> {
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           FloatingActionButton(
-            onPressed: _showAddProfileSheet,
+            onPressed: () => _showAddProfileSheet(context),
             mini: true,
             tooltip: 'Add kid profile',
             child: const Icon(Icons.person_add),
           ),
           const SizedBox(height: 12),
           FloatingActionButton.extended(
-            onPressed: _showAddMilestoneSheet,
+            onPressed: () => _showAddMilestoneSheet(context),
             icon: const Icon(Icons.add),
             label: const Text('Add milestone'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ── Add-profile sheet ──────────────────────────────────────────────────────────
+
+class _AddProfileSheet extends ConsumerStatefulWidget {
+  const _AddProfileSheet();
+
+  @override
+  ConsumerState<_AddProfileSheet> createState() => _AddProfileSheetState();
+}
+
+class _AddProfileSheetState extends ConsumerState<_AddProfileSheet> {
+  final _nameController = TextEditingController();
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final form = ref.watch(addProfileFormProvider);
+
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 24,
+        right: 24,
+        top: 16,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            margin: const EdgeInsets.only(bottom: 18),
+            height: 4,
+            width: 48,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
+          const Text(
+            'Add a new kid',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _nameController,
+            decoration: const InputDecoration(
+              labelText: 'Baby\'s name',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 12),
+          OutlinedButton(
+            onPressed: () async {
+              final picked = await showDatePicker(
+                context: context,
+                initialDate: form.dob,
+                firstDate: DateTime.now().subtract(const Duration(days: 365)),
+                lastDate: DateTime.now(),
+              );
+              if (picked != null) {
+                ref.read(addProfileFormProvider.notifier).setDob(picked);
+              }
+            },
+            child: Text('DOB: ${formatDate(form.dob)}'),
+          ),
+          const SizedBox(height: 12),
+          const Text('Profile color'),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: Colors.primaries.take(6).map((color) {
+              return GestureDetector(
+                onTap: () => ref.read(addProfileFormProvider.notifier).setColor(color),
+                child: Container(
+                  height: 50,
+                  width: 50,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: color,
+                    border: Border.all(
+                      color: form.color == color ? Colors.black : Colors.transparent,
+                      width: 3,
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () {
+              final name = _nameController.text.trim();
+              if (name.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please enter your baby\'s name.')),
+                );
+                return;
+              }
+              ref.read(profilesProvider.notifier).addProfile(name, form.dob, form.color);
+              ref.read(selectedProfileIndexProvider.notifier).state =
+                  ref.read(profilesProvider).length - 1;
+              Navigator.of(context).pop();
+            },
+            style: ElevatedButton.styleFrom(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+            child: const Text('Create profile'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Add-milestone sheet ────────────────────────────────────────────────────────
+
+class _AddMilestoneSheet extends ConsumerStatefulWidget {
+  const _AddMilestoneSheet();
+
+  @override
+  ConsumerState<_AddMilestoneSheet> createState() => _AddMilestoneSheetState();
+}
+
+class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
+  final _titleController = TextEditingController();
+  final _descController = TextEditingController();
+  final _linkController = TextEditingController();
+  final _linkLabelController = TextEditingController();
+  final _picker = ImagePicker();
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _descController.dispose();
+    _linkController.dispose();
+    _linkLabelController.dispose();
+    super.dispose();
+  }
+
+  void _addXFiles(List<XFile> files) {
+    for (final f in files) {
+      final ext = f.path.split('.').last.toLowerCase();
+      ref.read(addMilestoneFormProvider.notifier).addAttachment(Attachment(
+        name: f.name,
+        path: f.path,
+        type: getAttachmentTypeFromExtension(ext),
+      ));
+    }
+  }
+
+  void _addLink() {
+    final raw = _linkController.text.trim();
+    if (raw.isEmpty) return;
+    final url = raw.startsWith('http') ? raw : 'https://$raw';
+    final lbl = _linkLabelController.text.trim();
+    ref.read(addMilestoneFormProvider.notifier).addLink(
+          ExternalLink(url: url, label: lbl.isEmpty ? null : lbl),
+        );
+    _linkController.clear();
+    _linkLabelController.clear();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final form = ref.watch(addMilestoneFormProvider);
+
+    final inputDeco = InputDecoration(
+      filled: true,
+      fillColor: Colors.grey.shade50,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.grey.shade200),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.grey.shade200),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: theme.colorScheme.primary, width: 1.5),
+      ),
+    );
+
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 14,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Drag handle
+            Center(
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 14),
+                height: 4,
+                width: 40,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+            ),
+
+            // Title + date chip
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Expanded(
+                  child: Text(
+                    'Record a milestone',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: form.date,
+                      firstDate: DateTime.now().subtract(const Duration(days: 365 * 5)),
+                      lastDate: DateTime.now(),
+                    );
+                    if (picked != null) {
+                      ref.read(addMilestoneFormProvider.notifier).setDate(picked);
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary.withAlpha(25),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.calendar_today, size: 13, color: theme.colorScheme.primary),
+                        const SizedBox(width: 5),
+                        Text(
+                          formatDate(form.date),
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Milestone name
+            TextField(
+              controller: _titleController,
+              decoration: inputDeco.copyWith(labelText: 'Milestone name'),
+            ),
+            const SizedBox(height: 10),
+
+            // Description
+            TextField(
+              controller: _descController,
+              maxLines: 3,
+              decoration: inputDeco.copyWith(labelText: 'Why this moment matters'),
+            ),
+            const SizedBox(height: 18),
+
+            // ── Media ──────────────────────────────────
+            _sectionLabel('Media'),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                _MediaOptionButton(
+                  icon: Icons.camera_alt,
+                  label: 'Photo',
+                  color: Colors.blue,
+                  onTap: () async {
+                    final f = await _picker.pickImage(source: ImageSource.camera);
+                    if (f != null) _addXFiles([f]);
+                  },
+                ),
+                const SizedBox(width: 8),
+                _MediaOptionButton(
+                  icon: Icons.videocam,
+                  label: 'Video',
+                  color: Colors.red,
+                  onTap: () async {
+                    final f = await _picker.pickVideo(source: ImageSource.camera);
+                    if (f != null) _addXFiles([f]);
+                  },
+                ),
+                const SizedBox(width: 8),
+                _MediaOptionButton(
+                  icon: Icons.photo_library,
+                  label: 'Gallery',
+                  color: Colors.purple,
+                  onTap: () async {
+                    final files = await _picker.pickMultipleMedia();
+                    if (files.isNotEmpty) _addXFiles(files);
+                  },
+                ),
+                const SizedBox(width: 8),
+                _MediaOptionButton(
+                  icon: Icons.audiotrack,
+                  label: 'Audio',
+                  color: Colors.orange,
+                  onTap: () async {
+                    final result = await FilePicker.platform.pickFiles(
+                      allowMultiple: true,
+                      type: FileType.custom,
+                      allowedExtensions: ['wav', 'mp3', 'm4a', 'aac'],
+                    );
+                    if (result != null) {
+                      for (final f in result.files.where((f) => f.path != null)) {
+                        ref.read(addMilestoneFormProvider.notifier).addAttachment(Attachment(
+                          name: f.name,
+                          path: f.path!,
+                          type: AttachmentType.audio,
+                        ));
+                      }
+                    }
+                  },
+                ),
+              ],
+            ),
+
+            // Thumbnail strip
+            if (form.attachments.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 84,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: form.attachments.length,
+                  separatorBuilder: (context, i) => const SizedBox(width: 8),
+                  itemBuilder: (_, i) {
+                    final a = form.attachments[i];
+                    return Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: a.type == AttachmentType.image
+                              ? Image.file(File(a.path),
+                                  width: 84, height: 84, fit: BoxFit.cover)
+                              : Container(
+                                  width: 84,
+                                  height: 84,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade200,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        a.type == AttachmentType.video
+                                            ? Icons.videocam
+                                            : Icons.audiotrack,
+                                        size: 26,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                                        child: Text(
+                                          a.name,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(fontSize: 9),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                        ),
+                        Positioned(
+                          top: 3,
+                          right: 3,
+                          child: GestureDetector(
+                            onTap: () => ref
+                                .read(addMilestoneFormProvider.notifier)
+                                .removeAttachment(i),
+                            child: Container(
+                              width: 20,
+                              height: 20,
+                              decoration: const BoxDecoration(
+                                color: Colors.black54,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.close, size: 12, color: Colors.white),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ],
+            const SizedBox(height: 18),
+
+            // ── Links ──────────────────────────────────
+            _sectionLabel('Links'),
+            const SizedBox(height: 8),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: TextField(
+                    controller: _linkController,
+                    keyboardType: TextInputType.url,
+                    decoration: inputDeco.copyWith(
+                      labelText: 'Link URL',
+                      isDense: true,
+                      prefixIcon: const Icon(Icons.link, size: 18),
+                    ),
+                    onSubmitted: (_) => _addLink(),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  flex: 1,
+                  child: TextField(
+                    controller: _linkLabelController,
+                    decoration: inputDeco.copyWith(labelText: 'Label', isDense: true),
+                    onSubmitted: (_) => _addLink(),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                IconButton(
+                  icon: const Icon(Icons.add_circle_outline),
+                  tooltip: 'Add link',
+                  onPressed: _addLink,
+                ),
+              ],
+            ),
+            if (form.links.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                children: form.links.asMap().entries.map((e) {
+                  final lbl = e.value.label?.isNotEmpty == true
+                      ? e.value.label!
+                      : (Uri.tryParse(e.value.url)?.host ?? e.value.url);
+                  return Chip(
+                    avatar: const Icon(Icons.link, size: 14),
+                    label: Text(lbl, style: const TextStyle(fontSize: 12)),
+                    deleteIcon: const Icon(Icons.close, size: 14),
+                    onDeleted: () =>
+                        ref.read(addMilestoneFormProvider.notifier).removeLink(e.key),
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    visualDensity: VisualDensity.compact,
+                  );
+                }).toList(),
+              ),
+            ],
+            const SizedBox(height: 24),
+
+            // ── Save ───────────────────────────────────
+            _SaveButton(
+              onSave: () {
+                final title = _titleController.text.trim();
+                final desc = _descController.text.trim();
+                if (title.isEmpty || desc.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please add a title and a note.')),
+                  );
+                  return false;
+                }
+                final profileIndex = ref.read(selectedProfileIndexProvider);
+                final existingCount =
+                    ref.read(profilesProvider)[profileIndex].milestones.length;
+                ref.read(profilesProvider.notifier).prependMilestone(
+                      profileIndex,
+                      Milestone(
+                        title: title,
+                        description: desc,
+                        date: form.date,
+                        color: Colors.primaries[existingCount % Colors.primaries.length]
+                            .shade300,
+                        attachments: List.from(form.attachments),
+                        externalLinks: List.from(form.links),
+                      ),
+                    );
+                return true;
+              },
+              onDismiss: () => Navigator.of(context).pop(),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -895,17 +884,18 @@ class _MediaOptionButton extends StatelessWidget {
   }
 }
 
-class _SaveButton extends StatefulWidget {
+class _SaveButton extends ConsumerStatefulWidget {
   final bool Function() onSave;
   final VoidCallback onDismiss;
 
   const _SaveButton({required this.onSave, required this.onDismiss});
 
   @override
-  State<_SaveButton> createState() => _SaveButtonState();
+  ConsumerState<_SaveButton> createState() => _SaveButtonState();
 }
 
-class _SaveButtonState extends State<_SaveButton> with SingleTickerProviderStateMixin {
+class _SaveButtonState extends ConsumerState<_SaveButton>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl;
   late final Animation<double> _scale;
   bool _saved = false;
@@ -939,8 +929,9 @@ class _SaveButtonState extends State<_SaveButton> with SingleTickerProviderState
         final ok = widget.onSave();
         if (!ok) return;
         setState(() => _saved = true);
-        HapticFeedback.mediumImpact();
-        unawaited(playChime());
+        final settings = ref.read(appSettingsProvider);
+        if (settings.hapticEnabled) HapticFeedback.mediumImpact();
+        if (settings.soundEnabled) unawaited(playChime(volume: settings.soundVolume));
         await Future.delayed(const Duration(milliseconds: 700));
         widget.onDismiss();
       },
