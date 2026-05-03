@@ -20,7 +20,10 @@ class AuthService {
     if (defaultTargetPlatform == TargetPlatform.macOS) {
       return '535814593524-6dnrg7ake15fjh9lv6ioelfg03o9af6c.apps.googleusercontent.com';
     }
-    return null; // iOS/Android read it from GoogleService-Info.plist / google-services.json
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      return '535814593524-2ivnq4cakusq84cd3c65la319getapt1.apps.googleusercontent.com';
+    }
+    return null; // Android reads it from google-services.json
   }
 
   User? get currentUser => _auth.currentUser;
