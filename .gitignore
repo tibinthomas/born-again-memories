@@ -172,3 +172,8 @@ test_driver/keys.json
 *.local
 *.override
 **/.flutter_plugins_dependencies
+
+# graphify - ignore machine-specific files, commit cache + graph
+graphify-out/.graphify_python
+graphify-out/.graphify_root
+graphify-out/graph.html
