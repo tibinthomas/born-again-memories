@@ -1,9 +1,11 @@
 import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/app_settings_provider.dart';
+import '../providers/auth_provider.dart';
 import '../utils/chime.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -76,6 +78,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           _sectionHeader('About'),
           const SizedBox(height: 12),
           _aboutTile(theme),
+          const SizedBox(height: 32),
+
+          _sectionHeader('Account'),
+          const SizedBox(height: 12),
+          _accountTile(theme),
+          const SizedBox(height: 32),
         ],
       ),
     );
@@ -270,6 +278,89 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
       );
 
+  Widget _accountTile(ThemeData theme) {
+    final user = FirebaseAuth.instance.currentUser;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 22,
+                backgroundImage: user?.photoURL != null
+                    ? NetworkImage(user!.photoURL!)
+                    : null,
+                backgroundColor: theme.colorScheme.primaryContainer,
+                child: user?.photoURL == null
+                    ? Icon(Icons.person, color: theme.colorScheme.onPrimaryContainer)
+                    : null,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      user?.displayName ?? 'Unknown',
+                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                    ),
+                    Text(
+                      user?.email ?? '',
+                      style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          const Divider(),
+          const SizedBox(height: 4),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => _confirmSignOut(theme),
+              icon: const Icon(Icons.logout, color: Colors.red),
+              label: const Text('Sign out', style: TextStyle(color: Colors.red)),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Colors.red),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmSignOut(ThemeData theme) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Sign out?'),
+        content: const Text('You will be returned to the login screen.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              await ref.read(authServiceProvider).signOut();
+            },
+            child: const Text('Sign out', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _aboutTile(ThemeData theme) => Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -289,7 +380,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Baby Milestones',
+                        'Born Again Memories',
                         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                       Text(

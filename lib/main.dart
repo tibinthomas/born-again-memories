@@ -1,9 +1,15 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'firebase_options.dart';
 import 'providers/app_settings_provider.dart';
+import 'providers/auth_provider.dart';
+import 'screens/login_screen.dart';
 import 'screens/milestone_home_page.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const ProviderScope(child: BabyMilestonesApp()));
 }
 
@@ -13,9 +19,11 @@ class BabyMilestonesApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(appSettingsProvider);
+    final authState = ref.watch(authStateProvider);
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Baby Milestones',
+      title: 'Born Again Memories',
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(seedColor: settings.themeColor),
@@ -24,7 +32,22 @@ class BabyMilestonesApp extends ConsumerWidget {
               displayColor: Colors.grey.shade900,
             ),
       ),
-      home: const MilestoneHomePage(),
+      home: authState.when(
+        data: (user) => user != null ? const MilestoneHomePage() : const LoginScreen(),
+        loading: () => const _SplashScreen(),
+        error: (err, stack) => const LoginScreen(),
+      ),
+    );
+  }
+}
+
+class _SplashScreen extends StatelessWidget {
+  const _SplashScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: Center(child: CircularProgressIndicator()),
     );
   }
 }
