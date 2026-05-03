@@ -120,15 +120,15 @@
     "hash": "7f1cd7eb3f75a1dc85cd37753972a6e2"
   },
   "/Users/tibinthomas/my_app/android/build.gradle.kts": {
-    "mtime": 1777687427.3793461,
+    "mtime": 1777826457.9662757,
     "hash": "f11f360aed44d4f6871b398346af14f0"
   },
   "/Users/tibinthomas/my_app/android/settings.gradle.kts": {
-    "mtime": 1777799247.8960671,
+    "mtime": 1777826457.9658337,
     "hash": "de865c5f14c4c4d5c7c5692b78181c5b"
   },
   "/Users/tibinthomas/my_app/android/app/build.gradle.kts": {
-    "mtime": 1777823077.346329,
+    "mtime": 1777826457.9666302,
     "hash": "fd0d3b408c6619b9d255cfc44d0cec9b"
   },
   "/Users/tibinthomas/my_app/android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java": {
@@ -140,8 +140,8 @@
     "hash": "d3ed486aec6e0a110d1715cc7f586710"
   },
   "/Users/tibinthomas/my_app/lib/firebase_options.dart": {
-    "mtime": 1777802936.52266,
-    "hash": "193cf7b554648184fd8764a5eaceaf87"
+    "mtime": 1777826458.2208529,
+    "hash": "1336d54d90d35f50eee08f6e49027a1b"
   },
   "/Users/tibinthomas/my_app/lib/main.dart": {
     "mtime": 1777816191.3674297,
