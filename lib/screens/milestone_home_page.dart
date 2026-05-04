@@ -9,8 +9,10 @@ import '../models/attachment.dart';
 import '../models/external_link.dart';
 import '../models/milestone.dart';
 import '../providers/app_settings_provider.dart';
+import '../providers/backup_provider.dart';
 import '../providers/milestone_form_provider.dart';
 import '../providers/profiles_provider.dart';
+import '../services/local_storage_service.dart';
 import '../utils/attachment_helper.dart';
 import '../utils/chime.dart';
 import '../utils/date_formatter.dart';
@@ -47,10 +49,40 @@ class MilestoneHomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Initialise backup sync as soon as the home page is shown
+    ref.watch(backupSyncProvider);
+
     final theme = Theme.of(context);
     final profiles = ref.watch(profilesProvider);
+
+    if (profiles.isEmpty) {
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.child_care, size: 64, color: theme.colorScheme.primary),
+              const SizedBox(height: 16),
+              const Text('No profiles yet',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              const Text('Add your first kid profile to get started.',
+                  style: TextStyle(color: Colors.grey)),
+              const SizedBox(height: 24),
+              FilledButton.icon(
+                onPressed: () => _showAddProfileSheet(context),
+                icon: const Icon(Icons.person_add),
+                label: const Text('Add profile'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     final selectedIndex = ref.watch(selectedProfileIndexProvider);
-    final currentProfile = profiles[selectedIndex];
+    final safeIndex = selectedIndex.clamp(0, profiles.length - 1);
+    final currentProfile = profiles[safeIndex];
     final milestones = currentProfile.milestones;
 
     final gradient = LinearGradient(
@@ -464,9 +496,11 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
     for (final f in files) {
       final ext = f.path.split('.').last.toLowerCase();
       ref.read(addMilestoneFormProvider.notifier).addAttachment(Attachment(
+        id: '${DateTime.now().microsecondsSinceEpoch}_${files.indexOf(f)}',
         name: f.name,
-        path: f.path,
+        localPath: f.path,
         type: getAttachmentTypeFromExtension(ext),
+        sizeBytes: 0,
       ));
     }
   }
@@ -642,9 +676,11 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
                     if (result != null) {
                       for (final f in result.files.where((f) => f.path != null)) {
                         ref.read(addMilestoneFormProvider.notifier).addAttachment(Attachment(
+                          id: DateTime.now().microsecondsSinceEpoch.toString(),
                           name: f.name,
-                          path: f.path!,
+                          localPath: f.path!,
                           type: AttachmentType.audio,
+                          sizeBytes: 0,
                         ));
                       }
                     }
@@ -669,7 +705,7 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
                         ClipRRect(
                           borderRadius: BorderRadius.circular(12),
                           child: a.type == AttachmentType.image
-                              ? Image.file(File(a.path),
+                              ? Image.file(File(a.localPath),
                                   width: 84, height: 84, fit: BoxFit.cover)
                               : Container(
                                   width: 84,
@@ -789,7 +825,7 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
 
             // ── Save ───────────────────────────────────
             _SaveButton(
-              onSave: () {
+              onSave: () async {
                 final title = _titleController.text.trim();
                 final desc = _descController.text.trim();
                 if (title.isEmpty || desc.isEmpty) {
@@ -798,21 +834,52 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
                   );
                   return false;
                 }
+
                 final profileIndex = ref.read(selectedProfileIndexProvider);
-                final existingCount =
-                    ref.read(profilesProvider)[profileIndex].milestones.length;
-                ref.read(profilesProvider.notifier).prependMilestone(
+                final profile = ref.read(profilesProvider)[profileIndex];
+                final milestoneId =
+                    DateTime.now().microsecondsSinceEpoch.toString();
+
+                // Copy each file to permanent app storage (fast — no network).
+                final saved = <Attachment>[];
+                for (final a in form.attachments) {
+                  try {
+                    final filename =
+                        '${a.id}_${a.name.replaceAll(RegExp(r'[^\w.]'), '_')}';
+                    final permanentPath = await LocalStorageService
+                        .copyToAppStorage(a.localPath, filename);
+                    saved.add(Attachment(
+                      id: a.id,
+                      name: a.name,
+                      type: a.type,
+                      sizeBytes: a.sizeBytes,
+                      localPath: permanentPath,
+                      backupStatus: BackupStatus.queued,
+                    ));
+                  } catch (_) {
+                    // Keep original path if copy fails (e.g. same drive)
+                    saved.add(a);
+                  }
+                }
+
+                final existingCount = profile.milestones.length;
+                await ref.read(profilesProvider.notifier).prependMilestone(
                       profileIndex,
                       Milestone(
+                        id: milestoneId,
                         title: title,
                         description: desc,
                         date: form.date,
-                        color: Colors.primaries[existingCount % Colors.primaries.length]
-                            .shade300,
-                        attachments: List.from(form.attachments),
+                        color:
+                            Colors.primaries[existingCount % Colors.primaries.length]
+                                .shade300,
+                        attachments: saved,
                         externalLinks: List.from(form.links),
                       ),
                     );
+
+                // Trigger background Drive backup (non-blocking)
+                ref.read(backupSyncProvider.notifier).syncNow();
                 return true;
               },
               onDismiss: () => Navigator.of(context).pop(),
@@ -885,7 +952,7 @@ class _MediaOptionButton extends StatelessWidget {
 }
 
 class _SaveButton extends ConsumerStatefulWidget {
-  final bool Function() onSave;
+  final Future<bool> Function() onSave;
   final VoidCallback onDismiss;
 
   const _SaveButton({required this.onSave, required this.onDismiss});
@@ -899,6 +966,7 @@ class _SaveButtonState extends ConsumerState<_SaveButton>
   late final AnimationController _ctrl;
   late final Animation<double> _scale;
   bool _saved = false;
+  bool _uploading = false;
 
   @override
   void initState() {
@@ -925,8 +993,11 @@ class _SaveButtonState extends ConsumerState<_SaveButton>
       onTapCancel: () => _ctrl.reverse(),
       onTapUp: (_) async {
         await _ctrl.reverse();
-        if (_saved) return;
-        final ok = widget.onSave();
+        if (_saved || _uploading) return;
+        setState(() => _uploading = true);
+        final ok = await widget.onSave();
+        if (!mounted) return;
+        setState(() => _uploading = false);
         if (!ok) return;
         setState(() => _saved = true);
         final settings = ref.read(appSettingsProvider);
@@ -958,36 +1029,43 @@ class _SaveButtonState extends ConsumerState<_SaveButton>
               ),
             ],
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 250),
-                transitionBuilder: (child, anim) =>
-                    ScaleTransition(scale: anim, child: child),
-                child: Icon(
-                  _saved ? Icons.check_circle_outline : Icons.favorite,
-                  color: Colors.white,
-                  size: 20,
-                  key: ValueKey(_saved),
+          child: _uploading
+              ? const SizedBox(
+                  height: 22,
+                  width: 22,
+                  child: CircularProgressIndicator(
+                      color: Colors.white, strokeWidth: 2.5),
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 250),
+                      transitionBuilder: (child, anim) =>
+                          ScaleTransition(scale: anim, child: child),
+                      child: Icon(
+                        _saved ? Icons.check_circle_outline : Icons.favorite,
+                        color: Colors.white,
+                        size: 20,
+                        key: ValueKey(_saved),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 250),
+                      child: Text(
+                        _saved ? 'Saved!' : 'Save milestone',
+                        key: ValueKey(_saved),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(width: 10),
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 250),
-                child: Text(
-                  _saved ? 'Saved!' : 'Save milestone',
-                  key: ValueKey(_saved),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.3,
-                  ),
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );

@@ -6,6 +6,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/app_settings_provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/backup_provider.dart';
 import '../utils/chime.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -78,6 +79,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           _sectionHeader('About'),
           const SizedBox(height: 12),
           _aboutTile(theme),
+          const SizedBox(height: 32),
+
+          _sectionHeader('Drive Backup'),
+          const SizedBox(height: 12),
+          _backupTile(theme),
           const SizedBox(height: 32),
 
           _sectionHeader('Account'),
@@ -277,6 +283,196 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
         ),
       );
+
+  Widget _backupTile(ThemeData theme) {
+    final sync = ref.watch(backupSyncProvider);
+    final stats = ref.watch(backupStatsProvider);
+
+    String lastSyncText = 'Never';
+    if (sync.lastSyncedAt != null) {
+      final diff = DateTime.now().difference(sync.lastSyncedAt!);
+      if (diff.inMinutes < 1) {
+        lastSyncText = 'Just now';
+      } else if (diff.inHours < 1) {
+        lastSyncText = '${diff.inMinutes}m ago';
+      } else if (diff.inDays < 1) {
+        lastSyncText = '${diff.inHours}h ago';
+      } else {
+        lastSyncText = '${diff.inDays}d ago';
+      }
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: sync.quota?.isNearlyFull == true
+              ? Colors.orange.shade300
+              : Colors.grey.shade200,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header row
+          Row(
+            children: [
+              Icon(Icons.cloud_done_outlined,
+                  color: theme.colorScheme.primary, size: 22),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  sync.isSyncing
+                      ? 'Backing up${sync.currentUploadName != null ? ': ${sync.currentUploadName}' : '…'}'
+                      : stats.allDone
+                          ? 'All files backed up'
+                          : '${stats.backedUp} of ${stats.total} files backed up',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w600, fontSize: 15),
+                ),
+              ),
+              if (sync.isSyncing)
+                const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+            ],
+          ),
+
+          // Attachment progress bar
+          if (stats.total > 0) ...[
+            const SizedBox(height: 10),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: stats.total > 0 ? stats.backedUp / stats.total : 0,
+                minHeight: 6,
+                backgroundColor: Colors.grey.shade200,
+                valueColor: AlwaysStoppedAnimation(theme.colorScheme.primary),
+              ),
+            ),
+          ],
+
+          // Failed warning
+          if (stats.failed > 0) ...[
+            const SizedBox(height: 8),
+            Row(children: [
+              const Icon(Icons.warning_amber, size: 14, color: Colors.orange),
+              const SizedBox(width: 4),
+              Text(
+                '${stats.failed} file${stats.failed > 1 ? 's' : ''} failed — tap Sync to retry',
+                style:
+                    const TextStyle(fontSize: 12, color: Colors.orange),
+              ),
+            ]),
+          ],
+
+          const SizedBox(height: 12),
+          const Divider(height: 1),
+          const SizedBox(height: 12),
+
+          // Drive quota
+          if (!sync.driveAccessGranted) ...[
+            const Text(
+              'Grant Google Drive access to back up your photos, videos and audio.',
+              style: TextStyle(fontSize: 13, color: Colors.grey),
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: () =>
+                    ref.read(backupSyncProvider.notifier).grantAndSync(),
+                icon: const Icon(Icons.cloud_upload, size: 18),
+                label: const Text('Enable Drive Backup'),
+              ),
+            ),
+          ] else ...[
+            if (sync.quota != null) ...[
+              Row(
+                children: [
+                  const Icon(Icons.storage, size: 14, color: Colors.grey),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Google Drive: ${_fmtBytes(sync.quota!.usedBytes)}'
+                    '${sync.quota!.limitBytes != null ? ' of ${_fmtBytes(sync.quota!.limitBytes!)}' : ' used'}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: sync.quota!.isNearlyFull
+                          ? Colors.orange
+                          : Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              if (sync.quota!.limitBytes != null)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: sync.quota!.fraction.clamp(0.0, 1.0),
+                    minHeight: 5,
+                    backgroundColor: Colors.grey.shade200,
+                    valueColor: AlwaysStoppedAnimation(
+                      sync.quota!.isNearlyFull ? Colors.orange : Colors.blue,
+                    ),
+                  ),
+                ),
+              if (sync.quota!.isNearlyFull) ...[
+                const SizedBox(height: 6),
+                const Text(
+                  'Your Google Drive is almost full. Free up space to continue backups.',
+                  style: TextStyle(fontSize: 12, color: Colors.orange),
+                ),
+              ],
+              const SizedBox(height: 12),
+            ],
+            Row(
+              children: [
+                Icon(Icons.schedule, size: 13, color: Colors.grey.shade500),
+                const SizedBox(width: 4),
+                Text(
+                  'Last backup: $lastSyncText',
+                  style: TextStyle(
+                      fontSize: 12, color: Colors.grey.shade500),
+                ),
+                const Spacer(),
+                TextButton.icon(
+                  onPressed: sync.isSyncing
+                      ? null
+                      : () => ref
+                          .read(backupSyncProvider.notifier)
+                          .syncNow(),
+                  icon: const Icon(Icons.sync, size: 16),
+                  label: const Text('Sync Now'),
+                  style: TextButton.styleFrom(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8),
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  static String _fmtBytes(int bytes) {
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).round()} KB';
+    if (bytes < 1024 * 1024 * 1024) {
+      final mb = bytes / (1024 * 1024);
+      return mb >= 100
+          ? '${mb.round()} MB'
+          : '${mb.toStringAsFixed(1)} MB';
+    }
+    final gb = bytes / (1024 * 1024 * 1024);
+    return '${gb.toStringAsFixed(1)} GB';
+  }
 
   Widget _accountTile(ThemeData theme) {
     final user = FirebaseAuth.instance.currentUser;

@@ -1,0 +1,21 @@
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+
+class LocalStorageService {
+  static Future<String> copyToAppStorage(
+      String sourcePath, String filename) async {
+    final dir = await getApplicationDocumentsDirectory();
+    final attachmentsDir = Directory('${dir.path}/attachments');
+    await attachmentsDir.create(recursive: true);
+    final dest = File('${attachmentsDir.path}/$filename');
+    await File(sourcePath).copy(dest.path);
+    return dest.path;
+  }
+
+  static Future<void> delete(String filePath) async {
+    try {
+      final f = File(filePath);
+      if (await f.exists()) await f.delete();
+    } catch (_) {}
+  }
+}

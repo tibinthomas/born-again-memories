@@ -1,81 +1,91 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/attachment.dart';
 import '../models/kid_profile.dart';
 import '../models/milestone.dart';
+import '../services/firestore_service.dart';
+import 'auth_provider.dart';
 
 class ProfilesNotifier extends StateNotifier<List<KidProfile>> {
-  ProfilesNotifier()
-      : super([
-          KidProfile(
-            id: 'profile_1',
-            name: 'Emma',
-            dateOfBirth: DateTime.now().subtract(const Duration(days: 45)),
-            color: Colors.pinkAccent,
-            milestones: [
-              Milestone(
-                title: 'First smile',
-                description: 'A bright morning smile that warmed your heart.',
-                date: DateTime.now().subtract(const Duration(days: 16)),
-                color: Colors.amber,
-              ),
-              Milestone(
-                title: 'First hold',
-                description: 'Baby held your finger for the very first time.',
-                date: DateTime.now().subtract(const Duration(days: 10)),
-                color: Colors.lightBlue,
-              ),
-              Milestone(
-                title: 'Sleepy cuddle',
-                description: 'A calm evening full of soft cuddles and tiny yawns.',
-                date: DateTime.now().subtract(const Duration(days: 4)),
-                color: Colors.pinkAccent,
-              ),
-            ],
-          ),
-        ]);
+  final String uid;
 
-  void updateMilestones(int profileIndex, List<Milestone> milestones) {
-    final profile = state[profileIndex];
-    final updated = [...state];
-    updated[profileIndex] = KidProfile(
-      id: profile.id,
-      name: profile.name,
-      dateOfBirth: profile.dateOfBirth,
-      color: profile.color,
-      milestones: milestones,
+  ProfilesNotifier(this.uid) : super([]) {
+    if (uid.isNotEmpty) _load();
+  }
+
+  Future<void> _load() async {
+    final profiles = await FirestoreService.loadProfiles(uid);
+    if (mounted) state = profiles;
+  }
+
+  Future<void> addProfile(String name, DateTime dob, Color color) async {
+    final profile = KidProfile(
+      id: 'profile_${DateTime.now().microsecondsSinceEpoch}',
+      name: name,
+      dateOfBirth: dob,
+      color: color,
     );
-    state = updated;
+    state = [...state, profile];
+    await FirestoreService.saveProfile(uid, profile);
   }
 
-  void prependMilestone(int profileIndex, Milestone milestone) {
-    final profile = state[profileIndex];
-    updateMilestones(profileIndex, [milestone, ...profile.milestones]);
-  }
-
-  void addProfile(String name, DateTime dob, Color color) {
-    state = [
-      ...state,
-      KidProfile(
-        id: 'profile_${DateTime.now().millisecondsSinceEpoch}',
-        name: name,
-        dateOfBirth: dob,
-        color: color,
-        milestones: [],
-      ),
-    ];
-  }
-
-  void deleteProfile(int index) {
+  Future<void> deleteProfile(int index) async {
+    final profile = state[index];
     final list = [...state];
     list.removeAt(index);
     state = list;
+    await FirestoreService.deleteProfile(uid, profile.id);
+  }
+
+  void updateMilestones(int profileIndex, List<Milestone> milestones) {
+    final profile = state[profileIndex];
+    _setProfile(profileIndex, profile.copyWith(milestones: milestones));
+  }
+
+  Future<void> prependMilestone(int profileIndex, Milestone milestone) async {
+    final profile = state[profileIndex];
+    _setProfile(
+      profileIndex,
+      profile.copyWith(milestones: [milestone, ...profile.milestones]),
+    );
+    await FirestoreService.saveMilestone(uid, profile.id, milestone);
+  }
+
+  void _setProfile(int index, KidProfile profile) {
+    final list = [...state];
+    list[index] = profile;
+    state = list;
+  }
+
+  void updateAttachmentBackupStatus(
+    String profileId,
+    String milestoneId,
+    String attachmentId,
+    String? driveFileId,
+    BackupStatus status,
+  ) {
+    state = state.map((profile) {
+      if (profile.id != profileId) return profile;
+      return profile.copyWith(
+        milestones: profile.milestones.map((ms) {
+          if (ms.id != milestoneId) return ms;
+          return ms.copyWith(
+            attachments: ms.attachments.map((a) {
+              if (a.id != attachmentId) return a;
+              return a.copyWith(driveFileId: driveFileId, backupStatus: status);
+            }).toList(),
+          );
+        }).toList(),
+      );
+    }).toList();
   }
 }
 
 final profilesProvider =
-    StateNotifierProvider<ProfilesNotifier, List<KidProfile>>(
-  (ref) => ProfilesNotifier(),
-);
+    StateNotifierProvider<ProfilesNotifier, List<KidProfile>>((ref) {
+  final uid = ref.watch(authStateProvider).value?.uid ?? '';
+  return ProfilesNotifier(uid);
+});
 
 final selectedProfileIndexProvider = StateProvider<int>((ref) => 0);
 
