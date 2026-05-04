@@ -35,6 +35,16 @@ class AuthService {
   Future<UserCredential?> signInWithGoogle() async {
     final googleUser = await googleSignIn.signIn();
     if (googleUser == null) return null;
+
+    // Request Drive scope immediately after sign-in so it's part of the
+    // same consent flow. On Android/web the constructor scopes cover this;
+    // on iOS/macOS incremental auth may need the explicit call.
+    try {
+      await googleSignIn.requestScopes([DriveApi.driveFileScope]);
+    } catch (_) {
+      // Non-fatal — user can enable backup later from Settings.
+    }
+
     final googleAuth = await googleUser.authentication;
     final credential = GoogleAuthProvider.credential(
       accessToken: googleAuth.accessToken,

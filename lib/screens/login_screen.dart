@@ -79,11 +79,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ? CircularProgressIndicator(color: colorScheme.primary)
                   : _GoogleSignInButton(onPressed: _signInWithGoogle),
               const SizedBox(height: 16),
-              Text(
-                'Your memories, safe and private',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.cloud_done_outlined,
+                      size: 13, color: colorScheme.onSurfaceVariant),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Backs up your memories to your Google Drive',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
               ),
               const Spacer(),
             ],
