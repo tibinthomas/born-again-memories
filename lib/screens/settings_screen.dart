@@ -333,6 +333,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
             ),
           ),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            child: TextButton.icon(
+              onPressed: () => _confirmDeleteAccount(theme),
+              icon: const Icon(Icons.delete_forever, color: Colors.red),
+              label: const Text('Delete account', style: TextStyle(color: Colors.red)),
+            ),
+          ),
         ],
       ),
     );
@@ -359,6 +368,52 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ],
       ),
     );
+  }
+
+  void _confirmDeleteAccount(ThemeData theme) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete account?'),
+        content: const Text(
+          'This will permanently delete your account and all associated data. '
+          'You will be asked to sign in again to confirm.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              await _reauthAndDelete();
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _reauthAndDelete() async {
+    try {
+      await ref.read(authServiceProvider).reauthenticateAndDelete();
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      final msg = switch (e.code) {
+        'user-mismatch' => 'Account mismatch. Please sign in with the correct Google account.',
+        'user-not-found' => 'Account not found.',
+        'invalid-credential' => 'Re-authentication failed. Please try again.',
+        _ => e.message ?? 'Something went wrong. Please try again.',
+      };
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Re-authentication cancelled.')),
+      );
+    }
   }
 
   Widget _aboutTile(ThemeData theme) => Container(

@@ -45,4 +45,18 @@ class AuthService {
       _googleSignIn.signOut(),
     ]);
   }
+
+  Future<void> reauthenticateAndDelete() async {
+    final googleUser = await _googleSignIn.signIn();
+    if (googleUser == null) throw Exception('cancelled');
+    final googleAuth = await googleUser.authentication;
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
+    );
+    final user = _auth.currentUser!;
+    await user.reauthenticateWithCredential(credential);
+    await user.delete();
+    await _googleSignIn.signOut();
+  }
 }
