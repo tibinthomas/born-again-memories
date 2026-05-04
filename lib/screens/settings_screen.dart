@@ -377,17 +377,38 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           // Drive quota
           if (!sync.driveAccessGranted) ...[
             const Text(
-              'Grant Google Drive access to back up your photos, videos and audio.',
+              'Back up your photos, videos and audio to your own Google Drive.',
               style: TextStyle(fontSize: 13, color: Colors.grey),
             ),
+            if (sync.accessError != null) ...[
+              const SizedBox(height: 8),
+              Row(children: [
+                const Icon(Icons.error_outline, size: 14, color: Colors.red),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(sync.accessError!,
+                      style: const TextStyle(fontSize: 12, color: Colors.red)),
+                ),
+              ]),
+            ],
             const SizedBox(height: 10),
             SizedBox(
               width: double.infinity,
               child: FilledButton.icon(
-                onPressed: () =>
-                    ref.read(backupSyncProvider.notifier).grantAndSync(),
-                icon: const Icon(Icons.cloud_upload, size: 18),
-                label: const Text('Enable Drive Backup'),
+                onPressed: sync.isRequestingAccess
+                    ? null
+                    : () => ref.read(backupSyncProvider.notifier).grantAndSync(),
+                icon: sync.isRequestingAccess
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white),
+                      )
+                    : const Icon(Icons.cloud_upload, size: 18),
+                label: Text(sync.isRequestingAccess
+                    ? 'Requesting access…'
+                    : 'Enable Drive Backup'),
               ),
             ),
           ] else ...[

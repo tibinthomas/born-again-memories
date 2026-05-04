@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:googleapis/drive/v3.dart' show DriveApi;
 import '../models/attachment.dart';
 import '../services/drive_service.dart';
 import '../services/firestore_service.dart';
@@ -50,32 +51,41 @@ final backupStatsProvider = Provider<BackupStats>((ref) {
 
 class BackupSyncState {
   final bool isSyncing;
+  final bool isRequestingAccess;
   final bool driveAccessGranted;
   final String? currentUploadName;
+  final String? accessError;
   final DriveQuota? quota;
   final DateTime? lastSyncedAt;
 
   const BackupSyncState({
     this.isSyncing = false,
+    this.isRequestingAccess = false,
     this.driveAccessGranted = false,
     this.currentUploadName,
+    this.accessError,
     this.quota,
     this.lastSyncedAt,
   });
 
   BackupSyncState copyWith({
     bool? isSyncing,
+    bool? isRequestingAccess,
     bool? driveAccessGranted,
     String? currentUploadName,
+    String? accessError,
     DriveQuota? quota,
     DateTime? lastSyncedAt,
     bool clearCurrentUpload = false,
+    bool clearError = false,
   }) =>
       BackupSyncState(
         isSyncing: isSyncing ?? this.isSyncing,
+        isRequestingAccess: isRequestingAccess ?? this.isRequestingAccess,
         driveAccessGranted: driveAccessGranted ?? this.driveAccessGranted,
         currentUploadName:
             clearCurrentUpload ? null : currentUploadName ?? this.currentUploadName,
+        accessError: clearError ? null : accessError ?? this.accessError,
         quota: quota ?? this.quota,
         lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
       );
@@ -99,13 +109,62 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
     if (client != null) _runSync();
   }
 
-  // Called from settings to grant access and immediately sync.
+  // Called from settings — requests Drive scope, falls back to full re-auth.
   Future<void> grantAndSync() async {
-    final gs = _ref.read(authServiceProvider).googleSignIn;
-    final granted = await DriveService.requestDriveScope(gs);
     if (!mounted) return;
-    state = state.copyWith(driveAccessGranted: granted);
-    if (granted) await _runSync();
+    state = state.copyWith(isRequestingAccess: true, clearError: true);
+
+    try {
+      final gs = _ref.read(authServiceProvider).googleSignIn;
+
+      // Step 1: try lightweight scope request on existing session
+      bool granted = false;
+      try {
+        granted = await gs.requestScopes([DriveApi.driveFileScope]);
+      } catch (_) {}
+
+      // Step 2: if that didn't work, trigger a full sign-in — the constructor
+      //         scopes now include drive.file so the consent screen will show it.
+      if (!granted) {
+        try {
+          final account = await gs.signIn();
+          granted = account != null;
+        } catch (_) {}
+      }
+
+      if (!mounted) return;
+
+      if (!granted) {
+        state = state.copyWith(
+          isRequestingAccess: false,
+          accessError: 'Drive access was not granted. Please try again.',
+        );
+        return;
+      }
+
+      // Verify we can actually get an authenticated client
+      final client = await gs.authenticatedClient();
+      if (!mounted) return;
+
+      if (client == null) {
+        state = state.copyWith(
+          isRequestingAccess: false,
+          accessError: 'Could not connect to Drive. Sign out and sign in again.',
+        );
+        return;
+      }
+
+      state = state.copyWith(
+          driveAccessGranted: true, isRequestingAccess: false, clearError: true);
+      _runSync();
+    } catch (e) {
+      if (mounted) {
+        state = state.copyWith(
+          isRequestingAccess: false,
+          accessError: 'Something went wrong. Please try again.',
+        );
+      }
+    }
   }
 
   // Public entry point — safe to call multiple times.
