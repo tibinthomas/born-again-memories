@@ -46,21 +46,43 @@ class Milestone {
         'description': description,
         'date': date.toIso8601String(),
         'color': color.toARGB32(),
-        'attachments': attachments.map((a) => a.toJson()).toList(),
+        // Stored as map keyed by attachment id so individual items can be
+        // updated in Firebase Realtime Database without rewriting the whole list.
+        'attachments': {for (final a in attachments) a.id: a.toJson()},
         'externalLinks': externalLinks.map((l) => l.toJson()).toList(),
       };
 
-  factory Milestone.fromJson(Map<String, dynamic> j) => Milestone(
-        id: j['id'] as String,
-        title: j['title'] as String,
-        description: j['description'] as String,
-        date: DateTime.parse(j['date'] as String),
-        color: Color(j['color'] as int),
-        attachments: (j['attachments'] as List? ?? [])
-            .map((a) => Attachment.fromJson(a as Map<String, dynamic>))
-            .toList(),
-        externalLinks: (j['externalLinks'] as List? ?? [])
-            .map((l) => ExternalLink.fromJson(l as Map<String, dynamic>))
-            .toList(),
-      );
+  factory Milestone.fromJson(Map<String, dynamic> j) {
+    // Attachments: map (RTDB) or list (legacy) — handle both
+    List<Attachment> parseAttachments() {
+      final raw = j['attachments'];
+      if (raw == null) return [];
+      final items = raw is Map ? raw.values : (raw as List);
+      return items
+          .whereType<Map>()
+          .map((a) => Attachment.fromJson(Map<String, dynamic>.from(a)))
+          .toList();
+    }
+
+    // ExternalLinks: list or RTDB numeric-keyed map
+    List<ExternalLink> parseLinks() {
+      final raw = j['externalLinks'];
+      if (raw == null) return [];
+      final items = raw is Map ? raw.values : (raw as List);
+      return items
+          .whereType<Map>()
+          .map((l) => ExternalLink.fromJson(Map<String, dynamic>.from(l)))
+          .toList();
+    }
+
+    return Milestone(
+      id: j['id'] as String,
+      title: j['title'] as String,
+      description: j['description'] as String,
+      date: DateTime.parse(j['date'] as String),
+      color: Color(j['color'] as int),
+      attachments: parseAttachments(),
+      externalLinks: parseLinks(),
+    );
+  }
 }

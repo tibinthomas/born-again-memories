@@ -1,11 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:googleapis/drive/v3.dart' show DriveApi;
 import '../models/attachment.dart';
+import '../services/database_service.dart';
 import '../services/drive_service.dart';
-import '../services/firestore_service.dart';
 import 'auth_provider.dart';
 import 'profiles_provider.dart';
 
@@ -203,7 +202,7 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
                 type: attachment.type,
               );
 
-              await FirestoreService.updateAttachmentBackup(
+              await DatabaseService.updateAttachmentBackup(
                 uid: uid,
                 profileId: profile.id,
                 milestoneId: milestone.id,
@@ -227,7 +226,7 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
               }
               return;
             } catch (_) {
-              await FirestoreService.updateAttachmentBackup(
+              await DatabaseService.updateAttachmentBackup(
                 uid: uid,
                 profileId: profile.id,
                 milestoneId: milestone.id,
@@ -247,10 +246,10 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
           await DriveService.getQuota(authService.googleSignIn);
       final now = DateTime.now();
       if (quota != null) {
-        await FirestoreService.updateUserDoc(uid, {
+        await DatabaseService.updateDriveStats(uid, {
           'driveUsedBytes': quota.usedBytes,
           'driveLimitBytes': quota.limitBytes ?? 0,
-          'lastSyncedAt': Timestamp.fromDate(now),
+          'lastSyncedAt': now.millisecondsSinceEpoch,
         });
       }
       if (mounted) {
@@ -270,7 +269,7 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
   Future<void> _loadCachedState() async {
     final uid = _ref.read(authStateProvider).value?.uid;
     if (uid == null) return;
-    final data = await FirestoreService.getUserDoc(uid);
+    final data = await DatabaseService.getDriveStats(uid);
     if (data == null || !mounted) return;
 
     DriveQuota? quota;
@@ -282,8 +281,9 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
     }
 
     DateTime? lastSync;
-    if (data['lastSyncedAt'] != null) {
-      lastSync = (data['lastSyncedAt'] as Timestamp).toDate();
+    final ts = data['lastSyncedAt'];
+    if (ts != null) {
+      lastSync = DateTime.fromMillisecondsSinceEpoch((ts as num).toInt());
     }
 
     state = state.copyWith(quota: quota, lastSyncedAt: lastSync);

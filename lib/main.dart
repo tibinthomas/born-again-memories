@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'firebase_options.dart';
 import 'providers/app_settings_provider.dart';
 import 'providers/auth_provider.dart';
+import 'screens/app_shell.dart';
 import 'screens/login_screen.dart';
-import 'screens/milestone_home_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,7 +33,7 @@ class BabyMilestonesApp extends ConsumerWidget {
             ),
       ),
       home: authState.when(
-        data: (user) => user != null ? const MilestoneHomePage() : const LoginScreen(),
+        data: (user) => user != null ? const AppShell() : const LoginScreen(),
         loading: () => const _SplashScreen(),
         error: (err, stack) => const LoginScreen(),
       ),

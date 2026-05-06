@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/attachment.dart';
 import '../models/kid_profile.dart';
 import '../models/milestone.dart';
-import '../services/firestore_service.dart';
+import '../services/database_service.dart';
 import 'auth_provider.dart';
 
 class ProfilesNotifier extends StateNotifier<List<KidProfile>> {
@@ -14,7 +14,7 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>> {
   }
 
   Future<void> _load() async {
-    final profiles = await FirestoreService.loadProfiles(uid);
+    final profiles = await DatabaseService.loadProfiles(uid);
     if (mounted) state = profiles;
   }
 
@@ -26,7 +26,7 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>> {
       color: color,
     );
     state = [...state, profile];
-    await FirestoreService.saveProfile(uid, profile);
+    await DatabaseService.saveProfile(uid, profile);
   }
 
   Future<void> deleteProfile(int index) async {
@@ -34,7 +34,7 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>> {
     final list = [...state];
     list.removeAt(index);
     state = list;
-    await FirestoreService.deleteProfile(uid, profile.id);
+    await DatabaseService.deleteProfile(uid, profile.id);
   }
 
   void updateMilestones(int profileIndex, List<Milestone> milestones) {
@@ -48,7 +48,7 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>> {
       profileIndex,
       profile.copyWith(milestones: [milestone, ...profile.milestones]),
     );
-    await FirestoreService.saveMilestone(uid, profile.id, milestone);
+    await DatabaseService.saveMilestone(uid, profile.id, milestone);
   }
 
   void _setProfile(int index, KidProfile profile) {

@@ -314,7 +314,10 @@ class MilestoneHomePage extends ConsumerWidget {
                                 padding: const EdgeInsets.only(bottom: 24),
                                 itemCount: milestones.length,
                                 itemBuilder: (context, index) {
-                                  return MilestoneCard(milestone: milestones[index]);
+                                  return MilestoneCard(
+                                    milestone: milestones[index],
+                                    kidName: currentProfile.name,
+                                  );
                                 },
                               ),
                       ),

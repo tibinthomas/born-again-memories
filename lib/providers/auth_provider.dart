@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' show DriveApi;
+import '../services/connection_service.dart';
+import '../services/database_service.dart';
 
 final authStateProvider = StreamProvider<User?>((ref) {
   return FirebaseAuth.instance.authStateChanges();
@@ -50,7 +52,26 @@ class AuthService {
       accessToken: googleAuth.accessToken,
       idToken: googleAuth.idToken,
     );
-    return _auth.signInWithCredential(credential);
+    final result = await _auth.signInWithCredential(credential);
+
+    // Store/update user profile so other users can find them by email
+    final user = result.user!;
+    await DatabaseService.saveUserProfile(user.uid, {
+      'uid': user.uid,
+      'displayName': user.displayName ?? '',
+      'email': (user.email ?? '').toLowerCase(),
+      'photoUrl': user.photoURL ?? '',
+    });
+
+    // Link any pending connection invites that were sent to this email
+    await ConnectionService.claimPendingInvites(
+      uid: user.uid,
+      email: (user.email ?? '').toLowerCase(),
+      displayName: user.displayName ?? '',
+      photoUrl: user.photoURL ?? '',
+    );
+
+    return result;
   }
 
   Future<void> signOut() async {

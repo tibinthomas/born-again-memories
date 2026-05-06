@@ -111,4 +111,18 @@ class DriveService {
 
   static Future<bool> requestDriveScope(GoogleSignIn googleSignIn) =>
       googleSignIn.requestScopes([drive.DriveApi.driveFileScope]);
+
+  // Makes a Drive file viewable by anyone with the link.
+  // Returns the thumbnail URL suitable for Image.network display.
+  static Future<String> makeShareable(
+      GoogleSignIn googleSignIn, String fileId) async {
+    final api = await _api(googleSignIn);
+    await api.permissions.create(
+      drive.Permission()
+        ..role = 'reader'
+        ..type = 'anyone',
+      fileId,
+    );
+    return 'https://drive.google.com/thumbnail?id=$fileId&sz=w800';
+  }
 }
