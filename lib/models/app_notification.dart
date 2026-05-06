@@ -34,22 +34,25 @@ class AppNotification {
         'createdAt': createdAt.millisecondsSinceEpoch,
       };
 
-  factory AppNotification.fromMap(String id, Map<Object?, Object?> raw) {
-    final j = Map<String, dynamic>.from(raw);
-    return AppNotification(
-      id: id,
-      type: NotificationType.values.firstWhere(
-        (e) => e.name == (j['type'] as String?),
-        orElse: () => NotificationType.sharedMemory,
-      ),
-      fromUid: j['fromUid'] as String? ?? '',
-      fromName: j['fromName'] as String? ?? '',
-      fromPhotoUrl: j['fromPhotoUrl'] as String?,
-      memoryId: j['memoryId'] as String?,
-      connectionId: j['connectionId'] as String?,
-      isRead: j['isRead'] as bool? ?? false,
-      createdAt: DateTime.fromMillisecondsSinceEpoch(
-          (j['createdAt'] as int?) ?? 0),
-    );
+  factory AppNotification.fromMap(String id, Map<String, dynamic> j) =>
+      AppNotification(
+        id: id,
+        type: NotificationType.values.firstWhere(
+          (e) => e.name == (j['type'] as String?),
+          orElse: () => NotificationType.sharedMemory,
+        ),
+        fromUid: j['fromUid'] as String? ?? '',
+        fromName: j['fromName'] as String? ?? '',
+        fromPhotoUrl: j['fromPhotoUrl'] as String?,
+        memoryId: j['memoryId'] as String?,
+        connectionId: j['connectionId'] as String?,
+        isRead: j['isRead'] as bool? ?? false,
+        createdAt: _parseDate(j['createdAt']),
+      );
+
+  static DateTime _parseDate(dynamic v) {
+    if (v is int) return DateTime.fromMillisecondsSinceEpoch(v);
+    try { return (v as dynamic).toDate() as DateTime; } catch (_) {}
+    return DateTime.now();
   }
 }

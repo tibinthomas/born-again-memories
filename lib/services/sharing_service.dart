@@ -1,4 +1,4 @@
-import 'package:firebase_database/firebase_database.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../models/app_notification.dart';
@@ -9,7 +9,7 @@ import '../models/shared_memory.dart';
 import 'drive_service.dart';
 
 class SharingService {
-  static final _db = FirebaseDatabase.instance;
+  static final _db = FirebaseFirestore.instance;
 
   static Future<void> shareMemory({
     required GoogleSignIn googleSignIn,
@@ -24,6 +24,7 @@ class SharingService {
     required List<Attachment> attachments,
     required List<Connection> connections,
   }) async {
+    // Make each backed-up image/video publicly readable via Drive link
     final media = <Map<String, dynamic>>[];
     for (final a in attachments) {
       if (a.driveFileId == null) continue;
@@ -46,10 +47,10 @@ class SharingService {
         .where((uid) => uid.isNotEmpty)
         .toList();
 
+    final visibleTo = [fromUid, ...sharedWithUids];
     final now = DateTime.now().millisecondsSinceEpoch;
-    final ref = _db.ref('sharedMemories').push();
-    final memoryId = ref.key!;
 
+    final ref = _db.collection('shared_memories').doc();
     await ref.set({
       'fromUid': fromUid,
       'fromName': fromName,
@@ -60,29 +61,20 @@ class SharingService {
       'milestoneDate': milestoneDate.toIso8601String(),
       'milestoneColor': milestoneColor.toARGB32(),
       'media': media,
-      'likedBy': {},
+      'visibleTo': visibleTo,
+      'likedByUids': [],
       'commentCount': 0,
       'createdAt': now,
     });
 
-    // Fan-out: add to sender's feed + each recipient's feed
-    final feedEntry = {'createdAt': now};
-    final feedUpdates = <String, dynamic>{
-      'userFeed/$fromUid/$memoryId': feedEntry,
-    };
-    for (final uid in sharedWithUids) {
-      feedUpdates['userFeed/$uid/$memoryId'] = feedEntry;
-    }
-    await _db.ref().update(feedUpdates);
-
     // Notify each recipient
     for (final uid in sharedWithUids) {
-      await _db.ref('notifications/$uid').push().set({
+      await _db.collection('notifications/$uid/items').add({
         'type': NotificationType.sharedMemory.name,
         'fromUid': fromUid,
         'fromName': fromName,
         'fromPhotoUrl': fromPhotoUrl,
-        'memoryId': memoryId,
+        'memoryId': ref.id,
         'isRead': false,
         'createdAt': now,
       });
@@ -97,22 +89,21 @@ class SharingService {
     required bool currentlyLiked,
     required String ownerUid,
   }) async {
-    final likeRef = _db.ref('sharedMemories/$memoryId/likedBy/$uid');
-    if (currentlyLiked) {
-      await likeRef.remove();
-    } else {
-      await likeRef.set(true);
-      if (ownerUid != uid) {
-        await _db.ref('notifications/$ownerUid').push().set({
-          'type': NotificationType.like.name,
-          'fromUid': uid,
-          'fromName': fromName,
-          'fromPhotoUrl': fromPhotoUrl,
-          'memoryId': memoryId,
-          'isRead': false,
-          'createdAt': DateTime.now().millisecondsSinceEpoch,
-        });
-      }
+    await _db.doc('shared_memories/$memoryId').update({
+      'likedByUids': currentlyLiked
+          ? FieldValue.arrayRemove([uid])
+          : FieldValue.arrayUnion([uid]),
+    });
+    if (!currentlyLiked && ownerUid != uid) {
+      await _db.collection('notifications/$ownerUid/items').add({
+        'type': NotificationType.like.name,
+        'fromUid': uid,
+        'fromName': fromName,
+        'fromPhotoUrl': fromPhotoUrl,
+        'memoryId': memoryId,
+        'isRead': false,
+        'createdAt': DateTime.now().millisecondsSinceEpoch,
+      });
     }
   }
 
@@ -125,20 +116,23 @@ class SharingService {
     required String ownerUid,
   }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    await _db.ref('comments/$memoryId').push().set({
+    final batch = _db.batch();
+    final commentRef =
+        _db.collection('shared_memories/$memoryId/comments').doc();
+    batch.set(commentRef, {
       'fromUid': fromUid,
       'fromName': fromName,
       'fromPhotoUrl': fromPhotoUrl,
       'text': text,
       'createdAt': now,
     });
-    // Atomic increment
-    await _db
-        .ref('sharedMemories/$memoryId/commentCount')
-        .set(ServerValue.increment(1));
+    batch.update(_db.doc('shared_memories/$memoryId'), {
+      'commentCount': FieldValue.increment(1),
+    });
+    await batch.commit();
 
     if (ownerUid != fromUid) {
-      await _db.ref('notifications/$ownerUid').push().set({
+      await _db.collection('notifications/$ownerUid/items').add({
         'type': NotificationType.comment.name,
         'fromUid': fromUid,
         'fromName': fromName,
@@ -150,53 +144,34 @@ class SharingService {
     }
   }
 
-  static Stream<List<Comment>> commentsStream(String memoryId) =>
-      _db
-          .ref('comments/$memoryId')
-          .orderByChild('createdAt')
-          .onValue
-          .map((event) {
-        if (!event.snapshot.exists || event.snapshot.value == null) {
-          return [];
-        }
-        return event.snapshot.children
-            .map((c) => Comment.fromMap(c.key!, c.value as Map<Object?, Object?>))
-            .toList();
-      });
+  static Stream<List<Comment>> commentsStream(String memoryId) => _db
+      .collection('shared_memories/$memoryId/comments')
+      .orderBy('createdAt')
+      .snapshots()
+      .map((s) => s.docs
+          .map((d) => Comment.fromMap(d.id, d.data()))
+          .toList());
 
-  // Feed: sorted by createdAt desc via userFeed fan-out index
-  static Stream<List<SharedMemory>> feedStream(String uid) =>
-      _db
-          .ref('userFeed/$uid')
-          .orderByChild('createdAt')
-          .limitToLast(50)
-          .onValue
-          .asyncMap((event) async {
-        if (!event.snapshot.exists || event.snapshot.value == null) {
-          return [];
-        }
-        // children are in ascending order — reverse for newest-first
-        final memoryIds =
-            event.snapshot.children.map((c) => c.key!).toList().reversed;
-        final snaps = await Future.wait(
-            memoryIds.map((id) => _db.ref('sharedMemories/$id').get()));
-        return snaps
-            .where((s) => s.exists && s.value != null)
-            .map((s) => SharedMemory.fromMap(
-                s.key!, s.value as Map<Object?, Object?>))
-            .toList();
-      });
+  static Stream<List<SharedMemory>> feedStream(String uid) => _db
+      .collection('shared_memories')
+      .where('visibleTo', arrayContains: uid)
+      .orderBy('createdAt', descending: true)
+      .limit(50)
+      .snapshots()
+      .map((s) => s.docs
+          .map((d) => SharedMemory.fromMap(d.id, d.data()))
+          .toList());
 
   static Future<void> markNotificationsRead(String uid) async {
-    final snap = await _db.ref('notifications/$uid').get();
-    if (!snap.exists || snap.value == null) return;
-    final updates = <String, dynamic>{};
-    for (final child in snap.children) {
-      if (child.value is Map &&
-          (child.value as Map)['isRead'] == false) {
-        updates['notifications/$uid/${child.key}/isRead'] = true;
-      }
+    final snap = await _db
+        .collection('notifications/$uid/items')
+        .where('isRead', isEqualTo: false)
+        .get();
+    if (snap.docs.isEmpty) return;
+    final batch = _db.batch();
+    for (final doc in snap.docs) {
+      batch.update(doc.reference, {'isRead': true});
     }
-    if (updates.isNotEmpty) await _db.ref().update(updates);
+    await batch.commit();
   }
 }

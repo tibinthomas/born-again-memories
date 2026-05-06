@@ -15,16 +15,22 @@ service cloud.firestore {
 
     // ── Connections ────────────────────────────────────────────────────────────
     // Any authenticated user can create a connection.
-    // Only members of the connection can read/update/delete it.
+    // Members of the connection (or users whose email matches toEmail) can read.
     match /connections/{connectionId} {
       allow create: if request.auth != null
                     && request.resource.data.fromUid == request.auth.uid;
+      // members-based read supports arrayContains queries (myConnectionsStream).
+      // toEmail check lets claimPendingInvites() read docs sent to this email
+      // before the recipient's uid was known.
       allow read: if request.auth != null
-                  && (request.auth.uid == resource.data.fromUid
-                      || request.auth.uid == resource.data.toUid);
+                  && (request.auth.uid in resource.data.members
+                      || request.auth.uid == resource.data.fromUid
+                      || request.auth.uid == resource.data.toUid
+                      || resource.data.toEmail == request.auth.token.email);
       allow update: if request.auth != null
                     && (request.auth.uid == resource.data.fromUid
-                        || request.auth.uid == resource.data.toUid);
+                        || request.auth.uid == resource.data.toUid
+                        || resource.data.toEmail == request.auth.token.email);
       allow delete: if request.auth != null
                     && (request.auth.uid == resource.data.fromUid
                         || request.auth.uid == resource.data.toUid);

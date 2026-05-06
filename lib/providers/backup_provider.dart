@@ -3,8 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:googleapis/drive/v3.dart' show DriveApi;
 import '../models/attachment.dart';
-import '../services/database_service.dart';
 import '../services/drive_service.dart';
+import '../services/firestore_service.dart';
 import 'auth_provider.dart';
 import 'profiles_provider.dart';
 
@@ -27,7 +27,7 @@ class BackupStats {
 }
 
 final backupStatsProvider = Provider<BackupStats>((ref) {
-  final profiles = ref.watch(profilesProvider);
+  final profiles = ref.watch(profilesProvider) ?? [];
   int total = 0, backedUp = 0, failed = 0;
   for (final p in profiles) {
     for (final m in p.milestones) {
@@ -179,7 +179,7 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
 
     try {
       final authService = _ref.read(authServiceProvider);
-      final profiles = _ref.read(profilesProvider);
+      final profiles = _ref.read(profilesProvider) ?? [];
 
       for (final profile in profiles) {
         for (final milestone in profile.milestones) {
@@ -202,7 +202,7 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
                 type: attachment.type,
               );
 
-              await DatabaseService.updateAttachmentBackup(
+              await FirestoreService.updateAttachmentBackup(
                 uid: uid,
                 profileId: profile.id,
                 milestoneId: milestone.id,
@@ -226,7 +226,7 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
               }
               return;
             } catch (_) {
-              await DatabaseService.updateAttachmentBackup(
+              await FirestoreService.updateAttachmentBackup(
                 uid: uid,
                 profileId: profile.id,
                 milestoneId: milestone.id,
@@ -246,7 +246,7 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
           await DriveService.getQuota(authService.googleSignIn);
       final now = DateTime.now();
       if (quota != null) {
-        await DatabaseService.updateDriveStats(uid, {
+        await FirestoreService.updateUserDoc(uid, {
           'driveUsedBytes': quota.usedBytes,
           'driveLimitBytes': quota.limitBytes ?? 0,
           'lastSyncedAt': now.millisecondsSinceEpoch,
@@ -269,7 +269,7 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
   Future<void> _loadCachedState() async {
     final uid = _ref.read(authStateProvider).value?.uid;
     if (uid == null) return;
-    final data = await DatabaseService.getDriveStats(uid);
+    final data = await FirestoreService.getUserDoc(uid);
     if (data == null || !mounted) return;
 
     DriveQuota? quota;

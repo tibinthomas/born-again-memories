@@ -1,9 +1,10 @@
-import 'package:firebase_database/firebase_database.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/app_notification.dart';
 import '../models/connection.dart';
 
 class ConnectionService {
-  static final _db = FirebaseDatabase.instance;
+  static final _db = FirebaseFirestore.instance;
+  static final _col = _db.collection('connections');
 
   static Future<void> sendInvite({
     required String fromUid,
@@ -14,44 +15,39 @@ class ConnectionService {
     final email = toEmail.trim().toLowerCase();
     if (email.isEmpty) return;
 
-    // Guard: don't send to yourself
-    final self = await _db.ref('users/$fromUid').get();
-    final selfEmail =
-        (self.value as Map?)?['email'] as String? ?? '';
-    if (selfEmail == email) return;
+    // Guard: don't invite yourself
+    final selfDoc = await _db.doc('users/$fromUid').get();
+    if ((selfDoc.data()?['email'] as String? ?? '') == email) return;
 
-    // Guard: connection already exists (sent by this user to this email)
-    final existSnap = await _db
-        .ref('connections')
-        .orderByChild('fromUid_toEmail')
-        .equalTo('${fromUid}_$email')
+    // Guard: connection already exists
+    final existing = await _col
+        .where('fromUid', isEqualTo: fromUid)
+        .where('toEmail', isEqualTo: email)
+        .limit(1)
         .get();
-    if (existSnap.exists && existSnap.value != null) return;
+    if (existing.docs.isNotEmpty) return;
 
-    // Check if target is already a registered user
+    // Check if target user is already registered
     final userSnap = await _db
-        .ref('users')
-        .orderByChild('email')
-        .equalTo(email)
+        .collection('users')
+        .where('email', isEqualTo: email)
+        .limit(1)
         .get();
 
     String? toUid;
     String? toName;
     String? toPhotoUrl;
+    List<String> members = [fromUid];
 
-    if (userSnap.exists && userSnap.value != null) {
-      final users = userSnap.children.toList();
-      if (users.isNotEmpty) {
-        toUid = users.first.key;
-        final ud = Map<String, dynamic>.from(users.first.value as Map);
-        toName = ud['displayName'] as String?;
-        toPhotoUrl = ud['photoUrl'] as String?;
-      }
+    if (userSnap.docs.isNotEmpty) {
+      final data = userSnap.docs.first.data();
+      toUid = userSnap.docs.first.id;
+      toName = data['displayName'] as String?;
+      toPhotoUrl = data['photoUrl'] as String?;
+      members = [fromUid, toUid];
     }
 
-    // Write connection document
-    final ref = _db.ref('connections').push();
-    final connId = ref.key!;
+    final ref = _col.doc();
     await ref.set({
       'fromUid': fromUid,
       'fromName': fromName,
@@ -60,24 +56,19 @@ class ConnectionService {
       'toUid': toUid,
       'toName': toName,
       'toPhotoUrl': toPhotoUrl,
-      // Composite key for duplicate-check query
-      'fromUid_toEmail': '${fromUid}_$email',
+      'members': members,
       'status': ConnectionStatus.pending.name,
       'createdAt': DateTime.now().millisecondsSinceEpoch,
     });
 
-    // Fan-out: track in sender's sent list
-    await _db.ref('userSentRequests/$fromUid/$connId').set(true);
-
-    // If recipient is registered, add to their pending list + notify
+    // Notify the recipient if already registered
     if (toUid != null) {
-      await _db.ref('userPendingRequests/$toUid/$connId').set(true);
-      await _db.ref('notifications/$toUid').push().set({
+      await _db.collection('notifications/$toUid/items').add({
         'type': NotificationType.connectionRequest.name,
         'fromUid': fromUid,
         'fromName': fromName,
         'fromPhotoUrl': fromPhotoUrl,
-        'connectionId': connId,
+        'connectionId': ref.id,
         'isRead': false,
         'createdAt': DateTime.now().millisecondsSinceEpoch,
       });
@@ -90,30 +81,21 @@ class ConnectionService {
     required String toName,
     required String toPhotoUrl,
   }) async {
-    final snap = await _db.ref('connections/$connectionId').get();
-    if (!snap.exists || snap.value == null) return;
+    final ref = _col.doc(connectionId);
+    final doc = await ref.get();
+    if (!doc.exists) return;
 
-    final data = Map<String, dynamic>.from(snap.value as Map);
-    final fromUid = data['fromUid'] as String;
-
-    // Update connection doc
-    await _db.ref('connections/$connectionId').update({
+    final fromUid = doc.data()!['fromUid'] as String;
+    await ref.update({
       'toUid': toUid,
       'toName': toName,
       'toPhotoUrl': toPhotoUrl,
+      'members': [fromUid, toUid],
       'status': ConnectionStatus.accepted.name,
     });
 
-    // Fan-out: move from pending/sent lists to connected lists
-    await Future.wait([
-      _db.ref('userPendingRequests/$toUid/$connectionId').remove(),
-      _db.ref('userSentRequests/$fromUid/$connectionId').remove(),
-      _db.ref('userConnections/$fromUid/$connectionId').set(true),
-      _db.ref('userConnections/$toUid/$connectionId').set(true),
-    ]);
-
-    // Notify the sender
-    await _db.ref('notifications/$fromUid').push().set({
+    // Notify the original sender
+    await _db.collection('notifications/$fromUid/items').add({
       'type': NotificationType.connectionRequest.name,
       'fromUid': toUid,
       'fromName': toName,
@@ -124,121 +106,62 @@ class ConnectionService {
     });
   }
 
-  static Future<void> decline(String connectionId) async {
-    final snap = await _db.ref('connections/$connectionId').get();
-    if (!snap.exists || snap.value == null) return;
-    final data = Map<String, dynamic>.from(snap.value as Map);
-    final toUid = data['toUid'] as String?;
-    final fromUid = data['fromUid'] as String;
+  static Future<void> decline(String connectionId) =>
+      _col.doc(connectionId).update({'status': ConnectionStatus.declined.name});
 
-    await _db.ref('connections/$connectionId/status')
-        .set(ConnectionStatus.declined.name);
-    await Future.wait([
-      if (toUid != null)
-        _db.ref('userPendingRequests/$toUid/$connectionId').remove(),
-      _db.ref('userSentRequests/$fromUid/$connectionId').remove(),
-    ]);
-  }
+  static Future<void> remove(String connectionId) =>
+      _col.doc(connectionId).delete();
 
-  static Future<void> remove(String connectionId) async {
-    final snap = await _db.ref('connections/$connectionId').get();
-    if (!snap.exists || snap.value == null) return;
-    final data = Map<String, dynamic>.from(snap.value as Map);
-    final fromUid = data['fromUid'] as String;
-    final toUid = data['toUid'] as String?;
-
-    await Future.wait([
-      _db.ref('connections/$connectionId').remove(),
-      _db.ref('userConnections/$fromUid/$connectionId').remove(),
-      if (toUid != null)
-        _db.ref('userConnections/$toUid/$connectionId').remove(),
-    ]);
-  }
-
-  // Stream of accepted connections — fetches each connection doc on change
   static Stream<List<Connection>> myConnectionsStream(String uid) =>
-      _db.ref('userConnections/$uid').onValue.asyncMap((event) async {
-        if (!event.snapshot.exists || event.snapshot.value == null) {
-          return [];
-        }
-        final ids =
-            (event.snapshot.value as Map).keys.cast<String>().toList();
-        final snaps = await Future.wait(
-            ids.map((id) => _db.ref('connections/$id').get()));
-        return snaps
-            .where((s) => s.exists && s.value != null)
-            .map((s) => Connection.fromMap(
-                s.key!, s.value as Map<Object?, Object?>))
-            .toList();
-      });
+      _col
+          .where('members', arrayContains: uid)
+          .where('status', isEqualTo: ConnectionStatus.accepted.name)
+          .snapshots()
+          .map((s) => s.docs
+              .map((d) => Connection.fromMap(d.id, d.data()))
+              .toList());
 
-  // Stream of pending requests where the current user is the recipient
   static Stream<List<Connection>> receivedRequestsStream(String uid) =>
-      _db.ref('userPendingRequests/$uid').onValue.asyncMap((event) async {
-        if (!event.snapshot.exists || event.snapshot.value == null) {
-          return [];
-        }
-        final ids =
-            (event.snapshot.value as Map).keys.cast<String>().toList();
-        final snaps = await Future.wait(
-            ids.map((id) => _db.ref('connections/$id').get()));
-        return snaps
-            .where((s) => s.exists && s.value != null)
-            .map((s) => Connection.fromMap(
-                s.key!, s.value as Map<Object?, Object?>))
-            .toList();
-      });
+      _col
+          .where('toUid', isEqualTo: uid)
+          .where('status', isEqualTo: ConnectionStatus.pending.name)
+          .snapshots()
+          .map((s) => s.docs
+              .map((d) => Connection.fromMap(d.id, d.data()))
+              .toList());
 
-  // Stream of requests sent by the current user (still pending)
   static Stream<List<Connection>> sentRequestsStream(String uid) =>
-      _db.ref('userSentRequests/$uid').onValue.asyncMap((event) async {
-        if (!event.snapshot.exists || event.snapshot.value == null) {
-          return [];
-        }
-        final ids =
-            (event.snapshot.value as Map).keys.cast<String>().toList();
-        final snaps = await Future.wait(
-            ids.map((id) => _db.ref('connections/$id').get()));
-        return snaps
-            .where((s) => s.exists && s.value != null)
-            .map((s) => Connection.fromMap(
-                s.key!, s.value as Map<Object?, Object?>))
-            .toList();
-      });
+      _col
+          .where('fromUid', isEqualTo: uid)
+          .where('status', isEqualTo: ConnectionStatus.pending.name)
+          .snapshots()
+          .map((s) => s.docs
+              .map((d) => Connection.fromMap(d.id, d.data()))
+              .toList());
 
-  // Called on sign-in: link pending invites sent to this email to this uid
+  // Called on sign-in: link any pending invites sent to this email
   static Future<void> claimPendingInvites({
     required String uid,
     required String email,
     required String displayName,
     required String photoUrl,
   }) async {
-    final snap = await _db
-        .ref('connections')
-        .orderByChild('toEmail')
-        .equalTo(email.toLowerCase())
+    final snap = await _col
+        .where('toEmail', isEqualTo: email.toLowerCase())
+        .where('status', isEqualTo: ConnectionStatus.pending.name)
         .get();
-    if (!snap.exists || snap.value == null) return;
+    if (snap.docs.isEmpty) return;
 
-    final updates = <String, dynamic>{};
-    final pendingConnIds = <String>[];
-
-    for (final child in snap.children) {
-      final data = child.value as Map;
-      if (data['status'] != ConnectionStatus.pending.name) continue;
-      final connId = child.key!;
-      updates['connections/$connId/toUid'] = uid;
-      updates['connections/$connId/toName'] = displayName;
-      updates['connections/$connId/toPhotoUrl'] = photoUrl;
-      pendingConnIds.add(connId);
+    final batch = _db.batch();
+    for (final doc in snap.docs) {
+      final fromUid = doc.data()['fromUid'] as String;
+      batch.update(doc.reference, {
+        'toUid': uid,
+        'toName': displayName,
+        'toPhotoUrl': photoUrl,
+        'members': [fromUid, uid],
+      });
     }
-
-    if (updates.isEmpty) return;
-    await _db.ref().update(updates);
-
-    // Add each claimed invite to the new user's pending requests
-    for (final connId in pendingConnIds) {
-      await _db.ref('userPendingRequests/$uid/$connId').set(true);
-    }
+    await batch.commit();
   }
 }

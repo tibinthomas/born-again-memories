@@ -18,17 +18,15 @@ class SharedMemoryMedia {
         'type': type.name,
       };
 
-  factory SharedMemoryMedia.fromJson(Map<Object?, Object?> raw) {
-    final j = Map<String, dynamic>.from(raw);
-    return SharedMemoryMedia(
-      driveFileId: j['driveFileId'] as String? ?? '',
-      thumbnailUrl: j['thumbnailUrl'] as String? ?? '',
-      type: AttachmentType.values.firstWhere(
-        (e) => e.name == (j['type'] as String?),
-        orElse: () => AttachmentType.other,
-      ),
-    );
-  }
+  factory SharedMemoryMedia.fromJson(Map<String, dynamic> j) =>
+      SharedMemoryMedia(
+        driveFileId: j['driveFileId'] as String? ?? '',
+        thumbnailUrl: j['thumbnailUrl'] as String? ?? '',
+        type: AttachmentType.values.firstWhere(
+          (e) => e.name == (j['type'] as String?),
+          orElse: () => AttachmentType.other,
+        ),
+      );
 }
 
 class SharedMemory {
@@ -42,7 +40,8 @@ class SharedMemory {
   final DateTime milestoneDate;
   final Color milestoneColor;
   final List<SharedMemoryMedia> media;
-  // Stored as map {uid: true} in RTDB; exposed as list in Dart
+  // All UIDs that can see this post — used for arrayContains queries
+  final List<String> visibleTo;
   final List<String> likedByUids;
   final int commentCount;
   final DateTime createdAt;
@@ -58,6 +57,7 @@ class SharedMemory {
     required this.milestoneDate,
     required this.milestoneColor,
     this.media = const [],
+    required this.visibleTo,
     this.likedByUids = const [],
     this.commentCount = 0,
     required this.createdAt,
@@ -75,49 +75,39 @@ class SharedMemory {
         'milestoneDate': milestoneDate.toIso8601String(),
         'milestoneColor': milestoneColor.toARGB32(),
         'media': media.map((m) => m.toJson()).toList(),
-        'likedBy': {for (final uid in likedByUids) uid: true},
+        'visibleTo': visibleTo,
+        'likedByUids': likedByUids,
         'commentCount': commentCount,
         'createdAt': createdAt.millisecondsSinceEpoch,
       };
 
-  factory SharedMemory.fromMap(String id, Map<Object?, Object?> raw) {
-    final j = Map<String, dynamic>.from(raw);
+  factory SharedMemory.fromMap(String id, Map<String, dynamic> j) =>
+      SharedMemory(
+        id: id,
+        fromUid: j['fromUid'] as String? ?? '',
+        fromName: j['fromName'] as String? ?? '',
+        fromPhotoUrl: j['fromPhotoUrl'] as String? ?? '',
+        kidName: j['kidName'] as String? ?? '',
+        milestoneTitle: j['milestoneTitle'] as String? ?? '',
+        milestoneDescription: j['milestoneDescription'] as String? ?? '',
+        milestoneDate: j['milestoneDate'] != null
+            ? DateTime.parse(j['milestoneDate'] as String)
+            : DateTime.now(),
+        milestoneColor: Color(j['milestoneColor'] as int? ?? 0xFF9E9E9E),
+        media: (j['media'] as List? ?? [])
+            .whereType<Map>()
+            .map((m) =>
+                SharedMemoryMedia.fromJson(Map<String, dynamic>.from(m)))
+            .toList(),
+        visibleTo: List<String>.from(j['visibleTo'] as List? ?? []),
+        likedByUids: List<String>.from(j['likedByUids'] as List? ?? []),
+        commentCount: (j['commentCount'] as num?)?.toInt() ?? 0,
+        createdAt: _parseDate(j['createdAt']),
+      );
 
-    // media: stored as List or as RTDB numeric-keyed map
-    List<SharedMemoryMedia> parseMedia() {
-      final r = j['media'];
-      if (r == null) return [];
-      final items = r is List ? r : (r as Map).values.toList();
-      return items
-          .whereType<Map>()
-          .map((m) => SharedMemoryMedia.fromJson(m))
-          .toList();
-    }
-
-    // likedBy: stored as {uid: true} map
-    List<String> parseLiked() {
-      final r = j['likedBy'];
-      if (r == null) return [];
-      return (r as Map).keys.cast<String>().toList();
-    }
-
-    return SharedMemory(
-      id: id,
-      fromUid: j['fromUid'] as String? ?? '',
-      fromName: j['fromName'] as String? ?? '',
-      fromPhotoUrl: j['fromPhotoUrl'] as String? ?? '',
-      kidName: j['kidName'] as String? ?? '',
-      milestoneTitle: j['milestoneTitle'] as String? ?? '',
-      milestoneDescription: j['milestoneDescription'] as String? ?? '',
-      milestoneDate: j['milestoneDate'] != null
-          ? DateTime.parse(j['milestoneDate'] as String)
-          : DateTime.now(),
-      milestoneColor: Color(j['milestoneColor'] as int? ?? 0xFF9E9E9E),
-      media: parseMedia(),
-      likedByUids: parseLiked(),
-      commentCount: (j['commentCount'] as num?)?.toInt() ?? 0,
-      createdAt: DateTime.fromMillisecondsSinceEpoch(
-          (j['createdAt'] as int?) ?? 0),
-    );
+  static DateTime _parseDate(dynamic v) {
+    if (v is int) return DateTime.fromMillisecondsSinceEpoch(v);
+    try { return (v as dynamic).toDate() as DateTime; } catch (_) {}
+    return DateTime.now();
   }
 }

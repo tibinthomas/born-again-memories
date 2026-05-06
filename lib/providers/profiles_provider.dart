@@ -3,18 +3,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/attachment.dart';
 import '../models/kid_profile.dart';
 import '../models/milestone.dart';
-import '../services/database_service.dart';
+import '../services/firestore_service.dart';
 import 'auth_provider.dart';
 
-class ProfilesNotifier extends StateNotifier<List<KidProfile>> {
+class ProfilesNotifier extends StateNotifier<List<KidProfile>?> {
   final String uid;
 
-  ProfilesNotifier(this.uid) : super([]) {
+  // null = initial load in progress, [] = loaded/empty, [...] = loaded with data
+  ProfilesNotifier(this.uid) : super(uid.isNotEmpty ? null : []) {
     if (uid.isNotEmpty) _load();
   }
 
   Future<void> _load() async {
-    final profiles = await DatabaseService.loadProfiles(uid);
+    final profiles = await FirestoreService.loadProfiles(uid);
     if (mounted) state = profiles;
   }
 
@@ -25,34 +26,32 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>> {
       dateOfBirth: dob,
       color: color,
     );
-    state = [...state, profile];
-    await DatabaseService.saveProfile(uid, profile);
+    state = [...(state ?? []), profile];
+    await FirestoreService.saveProfile(uid, profile);
   }
 
   Future<void> deleteProfile(int index) async {
-    final profile = state[index];
-    final list = [...state];
-    list.removeAt(index);
-    state = list;
-    await DatabaseService.deleteProfile(uid, profile.id);
+    final list = state ?? [];
+    final profile = list[index];
+    final updated = [...list]..removeAt(index);
+    state = updated;
+    await FirestoreService.deleteProfile(uid, profile.id);
   }
 
-  void updateMilestones(int profileIndex, List<Milestone> milestones) {
-    final profile = state[profileIndex];
-    _setProfile(profileIndex, profile.copyWith(milestones: milestones));
-  }
+  void updateMilestones(int profileIndex, List<Milestone> milestones) =>
+      _setProfile(profileIndex,
+          (state ?? [])[profileIndex].copyWith(milestones: milestones));
 
   Future<void> prependMilestone(int profileIndex, Milestone milestone) async {
-    final profile = state[profileIndex];
-    _setProfile(
-      profileIndex,
-      profile.copyWith(milestones: [milestone, ...profile.milestones]),
-    );
-    await DatabaseService.saveMilestone(uid, profile.id, milestone);
+    final list = state ?? [];
+    final profile = list[profileIndex];
+    _setProfile(profileIndex,
+        profile.copyWith(milestones: [milestone, ...profile.milestones]));
+    await FirestoreService.saveMilestone(uid, profile.id, milestone);
   }
 
   void _setProfile(int index, KidProfile profile) {
-    final list = [...state];
+    final list = [...(state ?? [])];
     list[index] = profile;
     state = list;
   }
@@ -64,7 +63,7 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>> {
     String? driveFileId,
     BackupStatus status,
   ) {
-    state = state.map((profile) {
+    state = (state ?? []).map((profile) {
       if (profile.id != profileId) return profile;
       return profile.copyWith(
         milestones: profile.milestones.map((ms) {
@@ -82,14 +81,12 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>> {
 }
 
 final profilesProvider =
-    StateNotifierProvider<ProfilesNotifier, List<KidProfile>>((ref) {
+    StateNotifierProvider<ProfilesNotifier, List<KidProfile>?>((ref) {
   final uid = ref.watch(authStateProvider).value?.uid ?? '';
   return ProfilesNotifier(uid);
 });
 
 final selectedProfileIndexProvider = StateProvider<int>((ref) => 0);
-
-// ── Add-profile form state ─────────────────────────────────────────────────────
 
 class AddProfileFormState {
   final DateTime dob;

@@ -53,7 +53,13 @@ class MilestoneHomePage extends ConsumerWidget {
     ref.watch(backupSyncProvider);
 
     final theme = Theme.of(context);
-    final profiles = ref.watch(profilesProvider);
+    final profilesAsync = ref.watch(profilesProvider);
+
+    if (profilesAsync == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    final profiles = profilesAsync;
 
     if (profiles.isEmpty) {
       return Scaffold(
@@ -455,7 +461,7 @@ class _AddProfileSheetState extends ConsumerState<_AddProfileSheet> {
               }
               ref.read(profilesProvider.notifier).addProfile(name, form.dob, form.color);
               ref.read(selectedProfileIndexProvider.notifier).state =
-                  ref.read(profilesProvider).length - 1;
+                  (ref.read(profilesProvider)?.length ?? 1) - 1;
               Navigator.of(context).pop();
             },
             style: ElevatedButton.styleFrom(
@@ -839,7 +845,7 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
                 }
 
                 final profileIndex = ref.read(selectedProfileIndexProvider);
-                final profile = ref.read(profilesProvider)[profileIndex];
+                final profile = (ref.read(profilesProvider) ?? [])[profileIndex];
                 final milestoneId =
                     DateTime.now().microsecondsSinceEpoch.toString();
 

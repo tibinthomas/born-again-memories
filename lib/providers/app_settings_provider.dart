@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/app_settings.dart';
-import '../services/database_service.dart';
+import '../services/firestore_service.dart';
 import 'auth_provider.dart';
 
 class AppSettingsNotifier extends StateNotifier<AppSettings> {
@@ -11,15 +11,13 @@ class AppSettingsNotifier extends StateNotifier<AppSettings> {
   }
 
   Future<void> _load() async {
-    final settings = await DatabaseService.loadSettings(uid);
+    final settings = await FirestoreService.loadSettings(uid);
     if (mounted) state = settings;
   }
 
   Future<void> update(AppSettings newSettings) async {
     state = newSettings;
-    if (uid.isNotEmpty) {
-      await DatabaseService.saveSettings(uid, newSettings);
-    }
+    if (uid.isNotEmpty) await FirestoreService.saveSettings(uid, newSettings);
   }
 }
 

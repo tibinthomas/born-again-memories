@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' show DriveApi;
 import '../services/connection_service.dart';
-import '../services/database_service.dart';
+import '../services/firestore_service.dart';
 
 final authStateProvider = StreamProvider<User?>((ref) {
   return FirebaseAuth.instance.authStateChanges();
@@ -56,7 +56,7 @@ class AuthService {
 
     // Store/update user profile so other users can find them by email
     final user = result.user!;
-    await DatabaseService.saveUserProfile(user.uid, {
+    await FirestoreService.saveUserProfile(user.uid, {
       'uid': user.uid,
       'displayName': user.displayName ?? '',
       'email': (user.email ?? '').toLowerCase(),

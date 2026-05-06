@@ -15,16 +15,18 @@ class Comment {
     required this.createdAt,
   });
 
-  factory Comment.fromMap(String id, Map<Object?, Object?> raw) {
-    final j = Map<String, dynamic>.from(raw);
-    return Comment(
-      id: id,
-      fromUid: j['fromUid'] as String? ?? '',
-      fromName: j['fromName'] as String? ?? '',
-      fromPhotoUrl: j['fromPhotoUrl'] as String?,
-      text: j['text'] as String? ?? '',
-      createdAt: DateTime.fromMillisecondsSinceEpoch(
-          (j['createdAt'] as int?) ?? 0),
-    );
+  factory Comment.fromMap(String id, Map<String, dynamic> j) => Comment(
+        id: id,
+        fromUid: j['fromUid'] as String? ?? '',
+        fromName: j['fromName'] as String? ?? '',
+        fromPhotoUrl: j['fromPhotoUrl'] as String?,
+        text: j['text'] as String? ?? '',
+        createdAt: _parseDate(j['createdAt']),
+      );
+
+  static DateTime _parseDate(dynamic v) {
+    if (v is int) return DateTime.fromMillisecondsSinceEpoch(v);
+    try { return (v as dynamic).toDate() as DateTime; } catch (_) {}
+    return DateTime.now();
   }
 }
