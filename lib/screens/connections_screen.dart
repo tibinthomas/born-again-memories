@@ -1,5 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/connection.dart';
 import '../providers/auth_provider.dart';
 import '../providers/connections_provider.dart';
@@ -28,7 +31,99 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen>
     super.dispose();
   }
 
-  void _showInviteDialog() {
+  Future<void> _pickContactAndInvite() async {
+    // Contacts not available on desktop/web
+    if (kIsWeb || defaultTargetPlatform == TargetPlatform.macOS ||
+        defaultTargetPlatform == TargetPlatform.windows ||
+        defaultTargetPlatform == TargetPlatform.linux) {
+      _showEmailFallbackDialog();
+      return;
+    }
+
+    final granted = await FlutterContacts.requestPermission(readonly: true);
+    if (!granted) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Contacts permission is required to invite friends.'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+      return;
+    }
+
+    final contact = await FlutterContacts.openExternalPick();
+    if (contact == null || !mounted) return;
+
+    final full = await FlutterContacts.getContact(
+      contact.id,
+      withProperties: true,
+    );
+    if (full == null || !mounted) return;
+
+    final rawPhone = full.phones.firstOrNull?.normalizedNumber.isNotEmpty == true
+        ? full.phones.first.normalizedNumber
+        : full.phones.firstOrNull?.number ?? '';
+
+    if (rawPhone.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${full.displayName} has no phone number.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    final email = full.emails.firstOrNull?.address ?? '';
+    await _sendInvite(
+      phone: rawPhone,
+      name: full.displayName,
+      email: email,
+    );
+  }
+
+  Future<void> _sendInvite({
+    required String phone,
+    required String name,
+    required String email,
+  }) async {
+    final user = ref.read(authServiceProvider).currentUser;
+    if (user == null) return;
+
+    final senderName = user.displayName ?? 'A friend';
+    final text = '$senderName is inviting you to Born Again Memories — '
+        'an app to capture and share your kids\' special milestones. '
+        'Download and join them! 🌟';
+
+    // Strip everything except digits and leading +
+    final cleanPhone = phone.replaceAll(RegExp(r'[^\d+]'), '');
+
+    final waUri = Uri.parse(
+        'whatsapp://send?phone=$cleanPhone&text=${Uri.encodeComponent(text)}');
+    final smsUri = Uri.parse('sms:$cleanPhone?body=${Uri.encodeComponent(text)}');
+
+    if (await canLaunchUrl(waUri)) {
+      await launchUrl(waUri);
+    } else {
+      await launchUrl(smsUri);
+    }
+
+    // If we have their email, create a Firestore invite so they get an
+    // in-app notification when they sign up.
+    if (email.isNotEmpty) {
+      await ConnectionService.sendInvite(
+        fromUid: user.uid,
+        fromName: user.displayName ?? '',
+        fromPhotoUrl: user.photoURL ?? '',
+        toEmail: email,
+      );
+    }
+  }
+
+  // Fallback for desktop/web where contacts are unavailable
+  void _showEmailFallbackDialog() {
     final emailCtrl = TextEditingController();
     showDialog(
       context: context,
@@ -53,8 +148,7 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen>
               final email = emailCtrl.text.trim();
               if (email.isEmpty) return;
               Navigator.pop(ctx);
-              final user =
-                  ref.read(authServiceProvider).currentUser;
+              final user = ref.read(authServiceProvider).currentUser;
               if (user == null) return;
               await ConnectionService.sendInvite(
                 fromUid: user.uid,
@@ -101,7 +195,7 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen>
                     ),
                   ),
                   FilledButton.icon(
-                    onPressed: _showInviteDialog,
+                    onPressed: _pickContactAndInvite,
                     icon: const Icon(Icons.person_add, size: 18),
                     label: const Text('Invite'),
                   ),
