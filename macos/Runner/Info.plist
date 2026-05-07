@@ -28,6 +28,8 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Used to record voice memos for your memories.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

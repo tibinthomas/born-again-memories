@@ -55,14 +55,10 @@
 	<string>Used to pick photos and videos for milestones.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Used to record videos for milestones.</string>
-	<key>NSContactsUsageDescription</key>
-	<string>Used to invite friends to Born Again Memories.</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>https</string>
 		<string>http</string>
-		<string>whatsapp</string>
-		<string>sms</string>
 	</array>
 	<key>CFBundleURLTypes</key>
 	<array>

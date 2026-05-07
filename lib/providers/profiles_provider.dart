@@ -10,7 +10,7 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>?> {
   final String uid;
 
   // null = initial load in progress, [] = loaded/empty, [...] = loaded with data
-  ProfilesNotifier(this.uid) : super(uid.isNotEmpty ? null : []) {
+  ProfilesNotifier(this.uid) : super(uid.isNotEmpty ? null : <KidProfile>[]) {
     if (uid.isNotEmpty) _load();
   }
 
@@ -26,24 +26,23 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>?> {
       dateOfBirth: dob,
       color: color,
     );
-    state = [...(state ?? []), profile];
+    state = <KidProfile>[...(state ?? []), profile];
     await FirestoreService.saveProfile(uid, profile);
   }
 
   Future<void> deleteProfile(int index) async {
-    final list = state ?? [];
+    final list = state ?? <KidProfile>[];
     final profile = list[index];
-    final updated = [...list]..removeAt(index);
-    state = updated;
+    state = <KidProfile>[...list]..removeAt(index);
     await FirestoreService.deleteProfile(uid, profile.id);
   }
 
   void updateMilestones(int profileIndex, List<Milestone> milestones) =>
       _setProfile(profileIndex,
-          (state ?? [])[profileIndex].copyWith(milestones: milestones));
+          (state ?? <KidProfile>[])[profileIndex].copyWith(milestones: milestones));
 
   Future<void> prependMilestone(int profileIndex, Milestone milestone) async {
-    final list = state ?? [];
+    final list = state ?? <KidProfile>[];
     final profile = list[profileIndex];
     _setProfile(profileIndex,
         profile.copyWith(milestones: [milestone, ...profile.milestones]));
@@ -51,7 +50,7 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>?> {
   }
 
   void _setProfile(int index, KidProfile profile) {
-    final list = [...(state ?? [])];
+    final list = <KidProfile>[...(state ?? [])];
     list[index] = profile;
     state = list;
   }
@@ -63,7 +62,7 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>?> {
     String? driveFileId,
     BackupStatus status,
   ) {
-    state = (state ?? []).map((profile) {
+    state = (state ?? <KidProfile>[]).map((profile) {
       if (profile.id != profileId) return profile;
       return profile.copyWith(
         milestones: profile.milestones.map((ms) {

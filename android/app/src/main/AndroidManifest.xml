@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <application
         android:label="Born Again Memories"
         android:name="${applicationName}"
@@ -50,15 +50,5 @@
             <action android:name="android.intent.action.VIEW"/>
             <data android:scheme="http"/>
         </intent>
-        <intent>
-            <action android:name="android.intent.action.VIEW"/>
-            <data android:scheme="whatsapp"/>
-        </intent>
-        <intent>
-            <action android:name="android.intent.action.VIEW"/>
-            <data android:scheme="sms"/>
-        </intent>
-        <package android:name="com.whatsapp"/>
-        <package android:name="com.whatsapp.w4b"/>
     </queries>
 </manifest>

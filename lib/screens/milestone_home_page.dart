@@ -5,8 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:record/record.dart';
 import '../models/attachment.dart';
-import '../models/external_link.dart';
 import '../models/milestone.dart';
 import '../providers/app_settings_provider.dart';
 import '../providers/backup_provider.dart';
@@ -322,7 +323,6 @@ class MilestoneHomePage extends ConsumerWidget {
                                 itemBuilder: (context, index) {
                                   return MilestoneCard(
                                     milestone: milestones[index],
-                                    kidName: currentProfile.name,
                                   );
                                 },
                               ),
@@ -488,23 +488,37 @@ class _AddMilestoneSheet extends ConsumerStatefulWidget {
 class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
   final _titleController = TextEditingController();
   final _descController = TextEditingController();
-  final _linkController = TextEditingController();
-  final _linkLabelController = TextEditingController();
   final _picker = ImagePicker();
+  // label controller per attachment id
+  final _labelControllers = <String, TextEditingController>{};
+  String? _titleError;
+  String? _descError;
 
   @override
   void dispose() {
     _titleController.dispose();
     _descController.dispose();
-    _linkController.dispose();
-    _linkLabelController.dispose();
+    for (final c in _labelControllers.values) {
+      c.dispose();
+    }
     super.dispose();
+  }
+
+  void _addAttachment(Attachment a) {
+    _labelControllers[a.id] = TextEditingController();
+    ref.read(addMilestoneFormProvider.notifier).addAttachment(a);
+  }
+
+  void _removeAttachment(int index, String id) {
+    _labelControllers[id]?.dispose();
+    _labelControllers.remove(id);
+    ref.read(addMilestoneFormProvider.notifier).removeAttachment(index);
   }
 
   void _addXFiles(List<XFile> files) {
     for (final f in files) {
       final ext = f.path.split('.').last.toLowerCase();
-      ref.read(addMilestoneFormProvider.notifier).addAttachment(Attachment(
+      _addAttachment(Attachment(
         id: '${DateTime.now().microsecondsSinceEpoch}_${files.indexOf(f)}',
         name: f.name,
         localPath: f.path,
@@ -514,16 +528,28 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
     }
   }
 
-  void _addLink() {
-    final raw = _linkController.text.trim();
-    if (raw.isEmpty) return;
-    final url = raw.startsWith('http') ? raw : 'https://$raw';
-    final lbl = _linkLabelController.text.trim();
-    ref.read(addMilestoneFormProvider.notifier).addLink(
-          ExternalLink(url: url, label: lbl.isEmpty ? null : lbl),
-        );
-    _linkController.clear();
-    _linkLabelController.clear();
+  Future<void> _startLiveRecording() async {
+    final tempDir = await getTemporaryDirectory();
+    final path =
+        '${tempDir.path}/rec_${DateTime.now().microsecondsSinceEpoch}.m4a';
+    final now = TimeOfDay.now();
+    final filePath = await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => _RecordingDialog(savePath: path),
+    );
+    if (filePath == null || !mounted) return;
+    final id = DateTime.now().microsecondsSinceEpoch.toString();
+    // ignore: use_build_context_synchronously
+    final label = now.format(context);
+    _addAttachment(Attachment(
+      id: id,
+      name: 'Voice memo $label',
+      localPath: filePath,
+      type: AttachmentType.audio,
+      sizeBytes: 0,
+    ));
+    setState(() {});
   }
 
   @override
@@ -546,6 +572,14 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(color: theme.colorScheme.primary, width: 1.5),
       ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.red, width: 1.2),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.red, width: 1.5),
+      ),
     );
 
     return Padding(
@@ -553,7 +587,7 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
         left: 20,
         right: 20,
         top: 14,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
       ),
       child: SingleChildScrollView(
         child: Column(
@@ -588,7 +622,7 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
                     final picked = await showDatePicker(
                       context: context,
                       initialDate: form.date,
-                      firstDate: DateTime.now().subtract(const Duration(days: 365 * 5)),
+                      firstDate: DateTime.now().subtract(const Duration(days: 365 * 10)),
                       lastDate: DateTime.now(),
                     );
                     if (picked != null) {
@@ -622,10 +656,16 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
             ),
             const SizedBox(height: 16),
 
-            // Milestone name
+            // Milestone title
             TextField(
               controller: _titleController,
-              decoration: inputDeco.copyWith(labelText: 'Milestone name'),
+              maxLength: 100,
+              onChanged: (_) { if (_titleError != null) setState(() => _titleError = null); },
+              decoration: inputDeco.copyWith(
+                labelText: 'Milestone title *',
+                errorText: _titleError,
+                counterText: '',
+              ),
             ),
             const SizedBox(height: 10),
 
@@ -633,7 +673,13 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
             TextField(
               controller: _descController,
               maxLines: 3,
-              decoration: inputDeco.copyWith(labelText: 'Why this moment matters'),
+              maxLength: 500,
+              onChanged: (_) { if (_descError != null) setState(() => _descError = null); },
+              decoration: inputDeco.copyWith(
+                labelText: 'Why this moment matters *',
+                errorText: _descError,
+                counterText: '',
+              ),
             ),
             const SizedBox(height: 18),
 
@@ -642,38 +688,61 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
             const SizedBox(height: 8),
             Row(
               children: [
-                _MediaOptionButton(
-                  icon: Icons.camera_alt,
-                  label: 'Photo',
-                  color: Colors.blue,
-                  onTap: () async {
-                    final f = await _picker.pickImage(source: ImageSource.camera);
-                    if (f != null) _addXFiles([f]);
-                  },
-                ),
-                const SizedBox(width: 8),
-                _MediaOptionButton(
-                  icon: Icons.videocam,
-                  label: 'Video',
-                  color: Colors.red,
-                  onTap: () async {
-                    final f = await _picker.pickVideo(source: ImageSource.camera);
-                    if (f != null) _addXFiles([f]);
-                  },
-                ),
-                const SizedBox(width: 8),
-                _MediaOptionButton(
-                  icon: Icons.photo_library,
+                // Camera-only features: hidden on desktop
+                if (Platform.isIOS || Platform.isAndroid) ...[
+                  _MediaBtn(
+                    icon: Icons.camera_alt_outlined,
+                    label: 'Photo',
+                    color: Colors.blue,
+                    onTap: () async {
+                      final f = await _picker.pickImage(source: ImageSource.camera);
+                      if (f != null) _addXFiles([f]);
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                  _MediaBtn(
+                    icon: Icons.videocam_outlined,
+                    label: 'Video',
+                    color: Colors.red,
+                    onTap: () async {
+                      final f = await _picker.pickVideo(source: ImageSource.camera);
+                      if (f != null) _addXFiles([f]);
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                ],
+                _MediaBtn(
+                  icon: Icons.photo_library_outlined,
                   label: 'Gallery',
                   color: Colors.purple,
                   onTap: () async {
-                    final files = await _picker.pickMultipleMedia();
-                    if (files.isNotEmpty) _addXFiles(files);
+                    if (Platform.isIOS || Platform.isAndroid) {
+                      final files = await _picker.pickMultipleMedia();
+                      if (files.isNotEmpty) _addXFiles(files);
+                    } else {
+                      final result = await FilePicker.platform.pickFiles(
+                        allowMultiple: true,
+                        type: FileType.media,
+                      );
+                      if (result != null) {
+                        for (final f in result.files.where((f) => f.path != null)) {
+                          final ext = f.extension?.toLowerCase() ?? '';
+                          _addAttachment(Attachment(
+                            id: DateTime.now().microsecondsSinceEpoch.toString(),
+                            name: f.name,
+                            localPath: f.path!,
+                            type: getAttachmentTypeFromExtension(ext),
+                            sizeBytes: f.size,
+                          ));
+                        }
+                      }
+                    }
+                    setState(() {});
                   },
                 ),
                 const SizedBox(width: 8),
-                _MediaOptionButton(
-                  icon: Icons.audiotrack,
+                _MediaBtn(
+                  icon: Icons.audio_file_outlined,
                   label: 'Audio',
                   color: Colors.orange,
                   onTap: () async {
@@ -684,7 +753,7 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
                     );
                     if (result != null) {
                       for (final f in result.files.where((f) => f.path != null)) {
-                        ref.read(addMilestoneFormProvider.notifier).addAttachment(Attachment(
+                        _addAttachment(Attachment(
                           id: DateTime.now().microsecondsSinceEpoch.toString(),
                           name: f.name,
                           localPath: f.path!,
@@ -693,181 +762,175 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
                         ));
                       }
                     }
+                    setState(() {});
                   },
+                ),
+                const SizedBox(width: 8),
+                _MediaBtn(
+                  icon: Icons.mic_outlined,
+                  label: 'Record',
+                  color: Colors.teal,
+                  onTap: _startLiveRecording,
                 ),
               ],
             ),
 
-            // Thumbnail strip
+            // Attachment strip with labels
             if (form.attachments.isNotEmpty) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
               SizedBox(
-                height: 84,
+                height: 128,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: form.attachments.length,
-                  separatorBuilder: (context, i) => const SizedBox(width: 8),
+                  separatorBuilder: (_, _i) => const SizedBox(width: 10),
                   itemBuilder: (_, i) {
                     final a = form.attachments[i];
-                    return Stack(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: a.type == AttachmentType.image
-                              ? Image.file(File(a.localPath),
-                                  width: 84, height: 84, fit: BoxFit.cover)
-                              : Container(
-                                  width: 84,
-                                  height: 84,
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey.shade200,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        a.type == AttachmentType.video
-                                            ? Icons.videocam
-                                            : Icons.audiotrack,
-                                        size: 26,
-                                        color: Colors.grey.shade600,
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                                        child: Text(
-                                          a.name,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(fontSize: 9),
+                    final labelCtrl = _labelControllers[a.id] ??
+                        (_labelControllers[a.id] = TextEditingController());
+                    return SizedBox(
+                      width: 90,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Stack(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: a.type == AttachmentType.image
+                                    ? Image.file(File(a.localPath),
+                                        width: 90, height: 90, fit: BoxFit.cover)
+                                    : Container(
+                                        width: 90,
+                                        height: 90,
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey.shade100,
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              a.type == AttachmentType.video
+                                                  ? Icons.videocam
+                                                  : Icons.mic,
+                                              size: 28,
+                                              color: Colors.grey.shade500,
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Padding(
+                                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                                              child: Text(
+                                                a.name,
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                                textAlign: TextAlign.center,
+                                                style: const TextStyle(fontSize: 9),
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                    ],
+                              ),
+                              Positioned(
+                                top: 3,
+                                right: 3,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    setState(() => _removeAttachment(i, a.id));
+                                  },
+                                  child: Container(
+                                    width: 20,
+                                    height: 20,
+                                    decoration: const BoxDecoration(
+                                      color: Colors.black54,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(Icons.close, size: 12, color: Colors.white),
                                   ),
                                 ),
-                        ),
-                        Positioned(
-                          top: 3,
-                          right: 3,
-                          child: GestureDetector(
-                            onTap: () => ref
-                                .read(addMilestoneFormProvider.notifier)
-                                .removeAttachment(i),
-                            child: Container(
-                              width: 20,
-                              height: 20,
-                              decoration: const BoxDecoration(
-                                color: Colors.black54,
-                                shape: BoxShape.circle,
                               ),
-                              child: const Icon(Icons.close, size: 12, color: Colors.white),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          TextField(
+                            controller: labelCtrl,
+                            maxLength: 40,
+                            style: const TextStyle(fontSize: 11),
+                            decoration: InputDecoration(
+                              hintText: 'Add label…',
+                              hintStyle: TextStyle(fontSize: 11, color: Colors.grey.shade400),
+                              isDense: true,
+                              counterText: '',
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(6),
+                                borderSide: BorderSide(color: Colors.grey.shade300),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(6),
+                                borderSide: BorderSide(color: Colors.grey.shade300),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(6),
+                                borderSide: BorderSide(color: theme.colorScheme.primary),
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     );
                   },
                 ),
               ),
             ],
-            const SizedBox(height: 18),
-
-            // ── Links ──────────────────────────────────
-            _sectionLabel('Links'),
-            const SizedBox(height: 8),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: TextField(
-                    controller: _linkController,
-                    keyboardType: TextInputType.url,
-                    decoration: inputDeco.copyWith(
-                      labelText: 'Link URL',
-                      isDense: true,
-                      prefixIcon: const Icon(Icons.link, size: 18),
-                    ),
-                    onSubmitted: (_) => _addLink(),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  flex: 1,
-                  child: TextField(
-                    controller: _linkLabelController,
-                    decoration: inputDeco.copyWith(labelText: 'Label', isDense: true),
-                    onSubmitted: (_) => _addLink(),
-                  ),
-                ),
-                const SizedBox(width: 4),
-                IconButton(
-                  icon: const Icon(Icons.add_circle_outline),
-                  tooltip: 'Add link',
-                  onPressed: _addLink,
-                ),
-              ],
-            ),
-            if (form.links.isNotEmpty) ...[
-              const SizedBox(height: 10),
-              Wrap(
-                spacing: 8,
-                runSpacing: 4,
-                children: form.links.asMap().entries.map((e) {
-                  final lbl = e.value.label?.isNotEmpty == true
-                      ? e.value.label!
-                      : (Uri.tryParse(e.value.url)?.host ?? e.value.url);
-                  return Chip(
-                    avatar: const Icon(Icons.link, size: 14),
-                    label: Text(lbl, style: const TextStyle(fontSize: 12)),
-                    deleteIcon: const Icon(Icons.close, size: 14),
-                    onDeleted: () =>
-                        ref.read(addMilestoneFormProvider.notifier).removeLink(e.key),
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    visualDensity: VisualDensity.compact,
-                  );
-                }).toList(),
-              ),
-            ],
             const SizedBox(height: 24),
 
             // ── Save ───────────────────────────────────
-            _SaveButton(
+            _SaveBtn(
               onSave: () async {
                 final title = _titleController.text.trim();
                 final desc = _descController.text.trim();
-                if (title.isEmpty || desc.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Please add a title and a note.')),
-                  );
-                  return false;
+                bool valid = true;
+                if (title.isEmpty) {
+                  setState(() => _titleError = 'Title is required');
+                  valid = false;
+                } else if (title.length < 2) {
+                  setState(() => _titleError = 'Title must be at least 2 characters');
+                  valid = false;
                 }
+                if (desc.isEmpty) {
+                  setState(() => _descError = 'Please write why this moment matters');
+                  valid = false;
+                } else if (desc.length < 5) {
+                  setState(() => _descError = 'Description is too short');
+                  valid = false;
+                }
+                if (!valid) return false;
 
                 final profileIndex = ref.read(selectedProfileIndexProvider);
                 final profile = (ref.read(profilesProvider) ?? [])[profileIndex];
-                final milestoneId =
-                    DateTime.now().microsecondsSinceEpoch.toString();
+                final milestoneId = DateTime.now().microsecondsSinceEpoch.toString();
 
-                // Copy each file to permanent app storage (fast — no network).
                 final saved = <Attachment>[];
                 for (final a in form.attachments) {
+                  final labelText = _labelControllers[a.id]?.text.trim();
                   try {
                     final filename =
                         '${a.id}_${a.name.replaceAll(RegExp(r'[^\w.]'), '_')}';
-                    final permanentPath = await LocalStorageService
-                        .copyToAppStorage(a.localPath, filename);
+                    final permanentPath =
+                        await LocalStorageService.copyToAppStorage(a.localPath, filename);
                     saved.add(Attachment(
                       id: a.id,
                       name: a.name,
+                      label: labelText?.isEmpty == true ? null : labelText,
                       type: a.type,
                       sizeBytes: a.sizeBytes,
                       localPath: permanentPath,
                       backupStatus: BackupStatus.queued,
                     ));
                   } catch (_) {
-                    // Keep original path if copy fails (e.g. same drive)
-                    saved.add(a);
+                    saved.add(a.copyWith(label: labelText?.isEmpty == true ? null : labelText));
                   }
                 }
 
@@ -879,15 +942,10 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
                         title: title,
                         description: desc,
                         date: form.date,
-                        color:
-                            Colors.primaries[existingCount % Colors.primaries.length]
-                                .shade300,
+                        color: Colors.primaries[existingCount % Colors.primaries.length].shade300,
                         attachments: saved,
-                        externalLinks: List.from(form.links),
                       ),
                     );
-
-                // Trigger background Drive backup (non-blocking)
                 ref.read(backupSyncProvider.notifier).syncNow();
                 return true;
               },
@@ -896,6 +954,96 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
           ],
         ),
       ),
+    );
+  }
+}
+
+// ── Recording dialog ───────────────────────────────────────────────────────────
+
+class _RecordingDialog extends StatefulWidget {
+  final String savePath;
+  const _RecordingDialog({required this.savePath});
+
+  @override
+  State<_RecordingDialog> createState() => _RecordingDialogState();
+}
+
+class _RecordingDialogState extends State<_RecordingDialog> {
+  final _recorder = AudioRecorder();
+  bool _started = false;
+  Duration _elapsed = Duration.zero;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _start();
+  }
+
+  Future<void> _start() async {
+    if (!await _recorder.hasPermission()) {
+      if (mounted) Navigator.pop(context, null);
+      return;
+    }
+    await _recorder.start(
+      const RecordConfig(encoder: AudioEncoder.aacLc),
+      path: widget.savePath,
+    );
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() => _elapsed += const Duration(seconds: 1));
+    });
+    if (mounted) setState(() => _started = true);
+  }
+
+  Future<void> _stop() async {
+    _timer?.cancel();
+    final path = await _recorder.stop();
+    if (mounted) Navigator.pop(context, path);
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _recorder.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final mins = (_elapsed.inMinutes).toString().padLeft(2, '0');
+    final secs = (_elapsed.inSeconds % 60).toString().padLeft(2, '0');
+    return AlertDialog(
+      title: const Text('Recording'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.mic, size: 48, color: _started ? Colors.red : Colors.grey),
+          const SizedBox(height: 12),
+          Text(
+            '$mins:$secs',
+            style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, letterSpacing: 2),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            _started ? 'Recording…' : 'Starting…',
+            style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () async {
+            _timer?.cancel();
+            await _recorder.cancel();
+            if (mounted) Navigator.pop(context, null);
+          },
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: _started ? _stop : null,
+          child: const Text('Stop & Save'),
+        ),
+      ],
     );
   }
 }
@@ -912,15 +1060,13 @@ Widget _sectionLabel(String text) => Text(
       ),
     );
 
-// ── Private widgets ────────────────────────────────────────────────────────────
-
-class _MediaOptionButton extends StatelessWidget {
+class _MediaBtn extends StatelessWidget {
   final IconData icon;
   final String label;
   final Color color;
   final VoidCallback onTap;
 
-  const _MediaOptionButton({
+  const _MediaBtn({
     required this.icon,
     required this.label,
     required this.color,
@@ -930,27 +1076,24 @@ class _MediaOptionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: GestureDetector(
+      child: InkWell(
         onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
+          padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: color.withAlpha(20),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: color.withAlpha(55)),
+            color: color.withAlpha(18),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: color.withAlpha(50)),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 22, color: color),
-              const SizedBox(height: 4),
+              Icon(icon, size: 20, color: color),
+              const SizedBox(height: 3),
               Text(
                 label,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  color: color,
-                ),
+                style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: color),
               ),
             ],
           ),
@@ -960,123 +1103,65 @@ class _MediaOptionButton extends StatelessWidget {
   }
 }
 
-class _SaveButton extends ConsumerStatefulWidget {
+class _SaveBtn extends ConsumerStatefulWidget {
   final Future<bool> Function() onSave;
   final VoidCallback onDismiss;
-
-  const _SaveButton({required this.onSave, required this.onDismiss});
+  const _SaveBtn({required this.onSave, required this.onDismiss});
 
   @override
-  ConsumerState<_SaveButton> createState() => _SaveButtonState();
+  ConsumerState<_SaveBtn> createState() => _SaveBtnState();
 }
 
-class _SaveButtonState extends ConsumerState<_SaveButton>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl;
-  late final Animation<double> _scale;
+class _SaveBtnState extends ConsumerState<_SaveBtn> {
+  bool _saving = false;
   bool _saved = false;
-  bool _uploading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 120),
-    );
-    _scale = Tween<double>(begin: 1.0, end: 0.95).animate(
-      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => _ctrl.forward(),
-      onTapCancel: () => _ctrl.reverse(),
-      onTapUp: (_) async {
-        await _ctrl.reverse();
-        if (_saved || _uploading) return;
-        setState(() => _uploading = true);
-        final ok = await widget.onSave();
-        if (!mounted) return;
-        setState(() => _uploading = false);
-        if (!ok) return;
-        setState(() => _saved = true);
-        final settings = ref.read(appSettingsProvider);
-        if (settings.hapticEnabled) HapticFeedback.mediumImpact();
-        if (settings.soundEnabled) unawaited(playChime(volume: settings.soundVolume));
-        await Future.delayed(const Duration(milliseconds: 700));
-        widget.onDismiss();
-      },
-      child: AnimatedBuilder(
-        animation: _ctrl,
-        builder: (_, child) => Transform.scale(scale: _scale.value, child: child),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          padding: const EdgeInsets.symmetric(vertical: 18),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: _saved
-                  ? [Colors.green.shade400, Colors.teal.shade500]
-                  : [Colors.pinkAccent.shade200, Colors.deepPurple.shade400],
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-            ),
-            borderRadius: BorderRadius.circular(22),
-            boxShadow: [
-              BoxShadow(
-                color: (_saved ? Colors.green : Colors.pinkAccent).withValues(alpha: 0.45),
-                blurRadius: 18,
-                offset: const Offset(0, 7),
-              ),
-            ],
-          ),
-          child: _uploading
-              ? const SizedBox(
-                  height: 22,
-                  width: 22,
-                  child: CircularProgressIndicator(
-                      color: Colors.white, strokeWidth: 2.5),
-                )
-              : Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 250),
-                      transitionBuilder: (child, anim) =>
-                          ScaleTransition(scale: anim, child: child),
-                      child: Icon(
-                        _saved ? Icons.check_circle_outline : Icons.favorite,
-                        color: Colors.white,
-                        size: 20,
-                        key: ValueKey(_saved),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 250),
-                      child: Text(
-                        _saved ? 'Saved!' : 'Save milestone',
-                        key: ValueKey(_saved),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.3,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-        ),
+    final theme = Theme.of(context);
+    return FilledButton(
+      onPressed: (_saving || _saved) ? null : _handleSave,
+      style: FilledButton.styleFrom(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        backgroundColor: theme.colorScheme.primary,
+        disabledBackgroundColor: _saved
+            ? Colors.green.shade400
+            : theme.colorScheme.primary.withAlpha(100),
       ),
+      child: _saving
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+            )
+          : Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(_saved ? Icons.check : Icons.save_outlined,
+                    size: 18, color: Colors.white),
+                const SizedBox(width: 8),
+                Text(
+                  _saved ? 'Saved!' : 'Save milestone',
+                  style: const TextStyle(
+                      fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white),
+                ),
+              ],
+            ),
     );
+  }
+
+  Future<void> _handleSave() async {
+    setState(() => _saving = true);
+    final ok = await widget.onSave();
+    if (!mounted) return;
+    setState(() => _saving = false);
+    if (!ok) return;
+    setState(() => _saved = true);
+    final s = ref.read(appSettingsProvider);
+    if (s.hapticEnabled) HapticFeedback.mediumImpact();
+    if (s.soundEnabled) unawaited(playChime(volume: s.soundVolume));
+    await Future.delayed(const Duration(milliseconds: 600));
+    widget.onDismiss();
   }
 }

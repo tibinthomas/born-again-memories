@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/app_settings_provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/backup_provider.dart';
+import '../providers/sharing_provider.dart';
 import '../utils/chime.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -45,6 +46,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final settings = ref.watch(appSettingsProvider);
+    final sync = ref.watch(backupSyncProvider);
+    final stats = ref.watch(backupStatsProvider);
+    final emails = ref.watch(sharedEmailsProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -54,344 +58,277 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         backgroundColor: Colors.transparent,
       ),
       body: ListView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
         children: [
-          _sectionHeader('App Icon'),
-          const SizedBox(height: 12),
-          _iconPickerTile(theme, settings),
-          const SizedBox(height: 32),
+          // ── App Icon ──────────────────────────────────────────────
+          _label('App Icon'),
+          _card([
+            _iconRow(theme, settings),
+          ]),
 
-          _sectionHeader('Sound'),
-          const SizedBox(height: 12),
-          _soundTile(theme, settings),
-          const SizedBox(height: 32),
+          // ── Appearance ────────────────────────────────────────────
+          _label('Appearance'),
+          _card([
+            _colorPicker(theme, settings),
+          ]),
 
-          _sectionHeader('Appearance'),
-          const SizedBox(height: 12),
-          _appearanceTile(theme, settings),
-          const SizedBox(height: 32),
+          // ── Sound & Haptics ───────────────────────────────────────
+          _label('Sound & Haptics'),
+          _card([
+            SwitchListTile(
+              dense: true,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+              title: const Text('Sound effects'),
+              value: settings.soundEnabled,
+              onChanged: (v) => ref.read(appSettingsProvider.notifier)
+                  .update(settings.copyWith(soundEnabled: v)),
+            ),
+            if (settings.soundEnabled) ...[
+              _divider(),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+                child: Row(
+                  children: [
+                    const Icon(Icons.volume_down, size: 18, color: Colors.grey),
+                    Expanded(
+                      child: Slider(
+                        value: settings.soundVolume,
+                        min: 0,
+                        max: 1,
+                        divisions: 10,
+                        onChanged: (v) => ref.read(appSettingsProvider.notifier)
+                            .update(settings.copyWith(soundVolume: v)),
+                      ),
+                    ),
+                    const Icon(Icons.volume_up, size: 18, color: Colors.grey),
+                    const SizedBox(width: 8),
+                    GestureDetector(
+                      onTap: _testingSound ? null : _playTestSound,
+                      child: Icon(
+                        _testingSound ? Icons.volume_up : Icons.play_circle_outline,
+                        color: theme.colorScheme.primary,
+                        size: 28,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                ),
+              ),
+            ],
+            _divider(),
+            SwitchListTile(
+              dense: true,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+              title: const Text('Haptic feedback'),
+              value: settings.hapticEnabled,
+              onChanged: (v) => ref.read(appSettingsProvider.notifier)
+                  .update(settings.copyWith(hapticEnabled: v)),
+            ),
+          ]),
 
-          _sectionHeader('Haptics'),
-          const SizedBox(height: 12),
-          _hapticsTile(theme, settings),
-          const SizedBox(height: 32),
+          // ── Drive Backup ──────────────────────────────────────────
+          _label('Drive Backup'),
+          _card([_backupContent(theme, sync, stats)]),
 
-          _sectionHeader('About'),
-          const SizedBox(height: 12),
-          _aboutTile(theme),
-          const SizedBox(height: 32),
+          // ── Share Memories With ───────────────────────────────────
+          _label('Share Memories With'),
+          _card([_sharingContent(theme, emails)]),
 
-          _sectionHeader('Drive Backup'),
-          const SizedBox(height: 12),
-          _backupTile(theme),
-          const SizedBox(height: 32),
+          // ── Account ───────────────────────────────────────────────
+          _label('Account'),
+          _card([_accountContent(theme)]),
 
-          _sectionHeader('Account'),
-          const SizedBox(height: 12),
-          _accountTile(theme),
-          const SizedBox(height: 32),
+          // ── About (bottom) ────────────────────────────────────────
+          const SizedBox(height: 8),
+          _aboutContent(theme),
+          const SizedBox(height: 16),
         ],
       ),
     );
   }
 
-  Widget _sectionHeader(String title) => Text(
-        title.toUpperCase(),
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-          color: Colors.grey.shade500,
-          letterSpacing: 1.0,
+  // ── Helpers ────────────────────────────────────────────────────────────────
+
+  Widget _label(String text) => Padding(
+        padding: const EdgeInsets.fromLTRB(4, 20, 0, 6),
+        child: Text(
+          text.toUpperCase(),
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: Colors.grey.shade500,
+            letterSpacing: 0.8,
+          ),
         ),
       );
 
-  Widget _iconPickerTile(ThemeData theme, settings) => Container(
-        padding: const EdgeInsets.all(16),
+  Widget _card(List<Widget> children) => Container(
         decoration: BoxDecoration(
           color: Colors.grey.shade50,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(color: Colors.grey.shade200),
         ),
+        clipBehavior: Clip.antiAlias,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: children,
+        ),
+      );
+
+  Widget _divider() => Divider(height: 1, thickness: 1, color: Colors.grey.shade200);
+
+  // ── Icon picker ────────────────────────────────────────────────────────────
+
+  Widget _iconRow(ThemeData theme, settings) => Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
           children: [
-            Row(
-              children: [
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(14),
-                    image: settings.customIcon != null
-                        ? DecorationImage(
-                            image: FileImage(File(settings.customIcon!)),
-                            fit: BoxFit.cover,
-                          )
-                        : null,
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(12),
+                image: settings.customIcon != null
+                    ? DecorationImage(
+                        image: FileImage(File(settings.customIcon!)),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
+              ),
+              child: settings.customIcon == null
+                  ? Icon(Icons.child_care, size: 26, color: theme.colorScheme.primary)
+                  : null,
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                settings.customIcon != null ? 'Custom icon set' : 'Default icon',
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              ),
+            ),
+            if (settings.customIcon != null)
+              IconButton(
+                icon: const Icon(Icons.close, size: 20),
+                tooltip: 'Remove',
+                onPressed: () => ref.read(appSettingsProvider.notifier)
+                    .update(settings.copyWith(customIcon: null)),
+              ),
+            TextButton(onPressed: _pickIcon, child: const Text('Change')),
+          ],
+        ),
+      );
+
+  // ── Color picker ───────────────────────────────────────────────────────────
+
+  Widget _colorPicker(ThemeData theme, settings) => Padding(
+        padding: const EdgeInsets.all(12),
+        child: Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: Colors.primaries.map((color) {
+            final selected = settings.themeColor.toARGB32() == color.toARGB32();
+            return GestureDetector(
+              onTap: () => ref.read(appSettingsProvider.notifier)
+                  .update(settings.copyWith(themeColor: color)),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: color,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: selected ? Colors.black : Colors.transparent,
+                    width: 2.5,
                   ),
-                  child: settings.customIcon == null
-                      ? Icon(Icons.child_care, size: 28, color: theme.colorScheme.primary)
+                  boxShadow: selected
+                      ? [BoxShadow(color: color.withAlpha(120), blurRadius: 6)]
                       : null,
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        settings.customIcon != null ? 'Custom icon set' : 'Default icon',
-                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Tap to change app icon',
-                        style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
-                      ),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  onPressed: _pickIcon,
-                  icon: const Icon(Icons.image),
-                  tooltip: 'Choose icon',
-                ),
-                if (settings.customIcon != null)
-                  IconButton(
-                    onPressed: () => ref.read(appSettingsProvider.notifier).update(
-                          settings.copyWith(customIcon: null),
-                        ),
-                    icon: const Icon(Icons.close),
-                    tooltip: 'Remove',
-                  ),
-              ],
-            ),
-          ],
+                child: selected
+                    ? const Icon(Icons.check, color: Colors.white, size: 18)
+                    : null,
+              ),
+            );
+          }).toList(),
         ),
       );
 
-  Widget _soundTile(ThemeData theme, settings) => Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.grey.shade50,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade200),
-        ),
-        child: Column(
-          children: [
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Sound effects'),
-              subtitle: Text(settings.soundEnabled ? 'On' : 'Off'),
-              value: settings.soundEnabled,
-              onChanged: (v) => ref.read(appSettingsProvider.notifier).update(
-                    settings.copyWith(soundEnabled: v),
-                  ),
-            ),
-            if (settings.soundEnabled) ...[
-              const Divider(),
-              Row(
-                children: [
-                  const Text('Volume'),
-                  const Spacer(),
-                  Text('${(settings.soundVolume * 100).round()}%'),
-                ],
-              ),
-              Slider(
-                value: settings.soundVolume,
-                min: 0.0,
-                max: 1.0,
-                divisions: 10,
-                onChanged: (v) => ref.read(appSettingsProvider.notifier).update(
-                      settings.copyWith(soundVolume: v),
-                    ),
-              ),
-              const SizedBox(height: 8),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: _testingSound ? null : _playTestSound,
-                  icon: Icon(_testingSound ? Icons.volume_up : Icons.play_arrow),
-                  label: Text(_testingSound ? 'Playing...' : 'Test sound'),
-                ),
-              ),
-            ],
-          ],
-        ),
-      );
+  // ── Backup ─────────────────────────────────────────────────────────────────
 
-  Widget _appearanceTile(ThemeData theme, settings) => Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.grey.shade50,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade200),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Theme color'),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: Colors.primaries.map((color) {
-                final isSelected = settings.themeColor.toARGB32() == color.toARGB32();
-                return GestureDetector(
-                  onTap: () => ref.read(appSettingsProvider.notifier).update(
-                        settings.copyWith(themeColor: color),
-                      ),
-                  child: Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: color,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: isSelected ? Colors.black : Colors.transparent,
-                        width: 3,
-                      ),
-                      boxShadow: isSelected
-                          ? [BoxShadow(color: color.withAlpha(128), blurRadius: 8)]
-                          : null,
-                    ),
-                    child: isSelected
-                        ? const Icon(Icons.check, color: Colors.white, size: 20)
-                        : null,
-                  ),
-                );
-              }).toList(),
-            ),
-          ],
-        ),
-      );
-
-  Widget _hapticsTile(ThemeData theme, settings) => Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.grey.shade50,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade200),
-        ),
-        child: SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          title: const Text('Haptic feedback'),
-          subtitle: Text(settings.hapticEnabled ? 'On' : 'Off'),
-          value: settings.hapticEnabled,
-          onChanged: (v) => ref.read(appSettingsProvider.notifier).update(
-                settings.copyWith(hapticEnabled: v),
-              ),
-        ),
-      );
-
-  Widget _backupTile(ThemeData theme) {
-    final sync = ref.watch(backupSyncProvider);
-    final stats = ref.watch(backupStatsProvider);
-
-    String lastSyncText = 'Never';
+  Widget _backupContent(ThemeData theme, BackupSyncState sync, BackupStats stats) {
+    String lastSync = 'Never';
     if (sync.lastSyncedAt != null) {
-      final diff = DateTime.now().difference(sync.lastSyncedAt!);
-      if (diff.inMinutes < 1) {
-        lastSyncText = 'Just now';
-      } else if (diff.inHours < 1) {
-        lastSyncText = '${diff.inMinutes}m ago';
-      } else if (diff.inDays < 1) {
-        lastSyncText = '${diff.inHours}h ago';
-      } else {
-        lastSyncText = '${diff.inDays}d ago';
-      }
+      final d = DateTime.now().difference(sync.lastSyncedAt!);
+      if (d.inMinutes < 1) lastSync = 'Just now';
+      else if (d.inHours < 1) lastSync = '${d.inMinutes}m ago';
+      else if (d.inDays < 1) lastSync = '${d.inHours}h ago';
+      else lastSync = '${d.inDays}d ago';
     }
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: sync.quota?.isNearlyFull == true
-              ? Colors.orange.shade300
-              : Colors.grey.shade200,
-        ),
-      ),
+    return Padding(
+      padding: const EdgeInsets.all(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header row
           Row(
             children: [
               Icon(Icons.cloud_done_outlined,
-                  color: theme.colorScheme.primary, size: 22),
-              const SizedBox(width: 10),
+                  color: theme.colorScheme.primary, size: 20),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   sync.isSyncing
                       ? 'Backing up${sync.currentUploadName != null ? ': ${sync.currentUploadName}' : '…'}'
                       : stats.allDone
                           ? 'All files backed up'
-                          : '${stats.backedUp} of ${stats.total} files backed up',
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w600, fontSize: 15),
+                          : '${stats.backedUp} of ${stats.total} backed up',
+                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
                 ),
               ),
               if (sync.isSyncing)
                 const SizedBox(
-                  width: 16,
-                  height: 16,
+                  width: 14,
+                  height: 14,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 ),
             ],
           ),
-
-          // Attachment progress bar
           if (stats.total > 0) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             ClipRRect(
               borderRadius: BorderRadius.circular(4),
               child: LinearProgressIndicator(
-                value: stats.total > 0 ? stats.backedUp / stats.total : 0,
-                minHeight: 6,
+                value: stats.backedUp / stats.total,
+                minHeight: 5,
                 backgroundColor: Colors.grey.shade200,
                 valueColor: AlwaysStoppedAnimation(theme.colorScheme.primary),
               ),
             ),
           ],
-
-          // Failed warning
           if (stats.failed > 0) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Row(children: [
-              const Icon(Icons.warning_amber, size: 14, color: Colors.orange),
+              const Icon(Icons.warning_amber, size: 13, color: Colors.orange),
               const SizedBox(width: 4),
-              Text(
-                '${stats.failed} file${stats.failed > 1 ? 's' : ''} failed — tap Sync to retry',
-                style:
-                    const TextStyle(fontSize: 12, color: Colors.orange),
-              ),
+              Text('${stats.failed} failed — tap Sync to retry',
+                  style: const TextStyle(fontSize: 12, color: Colors.orange)),
             ]),
           ],
-
-          const SizedBox(height: 12),
-          const Divider(height: 1),
-          const SizedBox(height: 12),
-
-          // Drive quota
+          const SizedBox(height: 10),
           if (!sync.driveAccessGranted) ...[
-            const Text(
-              'Back up your photos, videos and audio to your own Google Drive.',
-              style: TextStyle(fontSize: 13, color: Colors.grey),
+            Text(
+              'Back up your media to Google Drive.',
+              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
             ),
             if (sync.accessError != null) ...[
-              const SizedBox(height: 8),
-              Row(children: [
-                const Icon(Icons.error_outline, size: 14, color: Colors.red),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Text(sync.accessError!,
-                      style: const TextStyle(fontSize: 12, color: Colors.red)),
-                ),
-              ]),
+              const SizedBox(height: 4),
+              Text(sync.accessError!,
+                  style: const TextStyle(fontSize: 12, color: Colors.red)),
             ],
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             SizedBox(
               width: double.infinity,
               child: FilledButton.icon(
@@ -400,83 +337,61 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     : () => ref.read(backupSyncProvider.notifier).grantAndSync(),
                 icon: sync.isRequestingAccess
                     ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Colors.white),
-                      )
-                    : const Icon(Icons.cloud_upload, size: 18),
+                        width: 14, height: 14,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : const Icon(Icons.cloud_upload, size: 16),
                 label: Text(sync.isRequestingAccess
-                    ? 'Requesting access…'
+                    ? 'Requesting…'
                     : 'Enable Drive Backup'),
               ),
             ),
           ] else ...[
             if (sync.quota != null) ...[
-              Row(
-                children: [
-                  const Icon(Icons.storage, size: 14, color: Colors.grey),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Google Drive: ${_fmtBytes(sync.quota!.usedBytes)}'
-                    '${sync.quota!.limitBytes != null ? ' of ${_fmtBytes(sync.quota!.limitBytes!)}' : ' used'}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: sync.quota!.isNearlyFull
-                          ? Colors.orange
-                          : Colors.grey.shade600,
-                    ),
+              Row(children: [
+                const Icon(Icons.storage, size: 13, color: Colors.grey),
+                const SizedBox(width: 5),
+                Text(
+                  'Drive: ${_fmtBytes(sync.quota!.usedBytes)}'
+                  '${sync.quota!.limitBytes != null ? ' / ${_fmtBytes(sync.quota!.limitBytes!)}' : ''}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: sync.quota!.isNearlyFull ? Colors.orange : Colors.grey.shade600,
                   ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              if (sync.quota!.limitBytes != null)
+                ),
+              ]),
+              if (sync.quota!.limitBytes != null) ...[
+                const SizedBox(height: 5),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(4),
                   child: LinearProgressIndicator(
                     value: sync.quota!.fraction.clamp(0.0, 1.0),
-                    minHeight: 5,
+                    minHeight: 4,
                     backgroundColor: Colors.grey.shade200,
                     valueColor: AlwaysStoppedAnimation(
-                      sync.quota!.isNearlyFull ? Colors.orange : Colors.blue,
-                    ),
+                        sync.quota!.isNearlyFull ? Colors.orange : Colors.blue),
                   ),
                 ),
-              if (sync.quota!.isNearlyFull) ...[
-                const SizedBox(height: 6),
-                const Text(
-                  'Your Google Drive is almost full. Free up space to continue backups.',
-                  style: TextStyle(fontSize: 12, color: Colors.orange),
-                ),
               ],
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
             ],
-            Row(
-              children: [
-                Icon(Icons.schedule, size: 13, color: Colors.grey.shade500),
-                const SizedBox(width: 4),
-                Text(
-                  'Last backup: $lastSyncText',
-                  style: TextStyle(
-                      fontSize: 12, color: Colors.grey.shade500),
+            Row(children: [
+              Icon(Icons.schedule, size: 12, color: Colors.grey.shade500),
+              const SizedBox(width: 4),
+              Text('Last backup: $lastSync',
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+              const Spacer(),
+              TextButton.icon(
+                onPressed: sync.isSyncing
+                    ? null
+                    : () => ref.read(backupSyncProvider.notifier).syncNow(),
+                icon: const Icon(Icons.sync, size: 15),
+                label: const Text('Sync Now'),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  visualDensity: VisualDensity.compact,
                 ),
-                const Spacer(),
-                TextButton.icon(
-                  onPressed: sync.isSyncing
-                      ? null
-                      : () => ref
-                          .read(backupSyncProvider.notifier)
-                          .syncNow(),
-                  icon: const Icon(Icons.sync, size: 16),
-                  label: const Text('Sync Now'),
-                  style: TextButton.styleFrom(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8),
-                    visualDensity: VisualDensity.compact,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ]),
           ],
         ],
       ),
@@ -487,80 +402,131 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     if (bytes < 1024 * 1024) return '${(bytes / 1024).round()} KB';
     if (bytes < 1024 * 1024 * 1024) {
       final mb = bytes / (1024 * 1024);
-      return mb >= 100
-          ? '${mb.round()} MB'
-          : '${mb.toStringAsFixed(1)} MB';
+      return mb >= 100 ? '${mb.round()} MB' : '${mb.toStringAsFixed(1)} MB';
     }
-    final gb = bytes / (1024 * 1024 * 1024);
-    return '${gb.toStringAsFixed(1)} GB';
+    return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
   }
 
-  Widget _accountTile(ThemeData theme) {
-    final user = FirebaseAuth.instance.currentUser;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Column(
+  // ── Sharing ────────────────────────────────────────────────────────────────
+
+  Widget _sharingContent(ThemeData theme, List<String> emails) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 22,
-                backgroundImage: user?.photoURL != null
-                    ? NetworkImage(user!.photoURL!)
-                    : null,
-                backgroundColor: theme.colorScheme.primaryContainer,
-                child: user?.photoURL == null
-                    ? Icon(Icons.person, color: theme.colorScheme.onPrimaryContainer)
-                    : null,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          if (emails.isEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
+              child: Text('No one added yet.',
+                  style: TextStyle(fontSize: 13, color: Colors.grey.shade500)),
+            )
+          else
+            ...emails.map((email) => Column(
                   children: [
-                    Text(
-                      user?.displayName ?? 'Unknown',
-                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                    ListTile(
+                      dense: true,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                      leading: const Icon(Icons.person_outline, size: 20),
+                      title: Text(email, style: const TextStyle(fontSize: 13)),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.remove_circle_outline,
+                            size: 20, color: Colors.red),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        onPressed: () =>
+                            ref.read(sharedEmailsProvider.notifier).remove(email),
+                      ),
                     ),
-                    Text(
-                      user?.email ?? '',
-                      style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
-                    ),
+                    _divider(),
                   ],
-                ),
-              ),
-            ],
+                )),
+          ListTile(
+            dense: true,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+            leading: Icon(Icons.add_circle_outline,
+                size: 20, color: theme.colorScheme.primary),
+            title: Text('Add Gmail address',
+                style: TextStyle(
+                    fontSize: 13,
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.w500)),
+            onTap: () => _showAddEmailDialog(theme),
           ),
-          const SizedBox(height: 12),
-          const Divider(),
-          const SizedBox(height: 4),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () => _confirmSignOut(theme),
-              icon: const Icon(Icons.logout, color: Colors.red),
-              label: const Text('Sign out', style: TextStyle(color: Colors.red)),
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Colors.red),
-              ),
-            ),
+        ],
+      );
+
+  void _showAddEmailDialog(ThemeData theme) {
+    final ctrl = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Add Gmail address'),
+        content: TextField(
+          controller: ctrl,
+          keyboardType: TextInputType.emailAddress,
+          autofocus: true,
+          decoration: const InputDecoration(
+            labelText: 'Gmail address',
+            hintText: 'example@gmail.com',
+            border: OutlineInputBorder(),
           ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: double.infinity,
-            child: TextButton.icon(
-              onPressed: () => _confirmDeleteAccount(theme),
-              icon: const Icon(Icons.delete_forever, color: Colors.red),
-              label: const Text('Delete account', style: TextStyle(color: Colors.red)),
-            ),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          FilledButton(
+            onPressed: () {
+              final email = ctrl.text.trim().toLowerCase();
+              if (email.isEmpty) return;
+              Navigator.pop(ctx);
+              ref.read(sharedEmailsProvider.notifier).add(email);
+            },
+            child: const Text('Add'),
           ),
         ],
       ),
+    );
+  }
+
+  // ── Account ────────────────────────────────────────────────────────────────
+
+  Widget _accountContent(ThemeData theme) {
+    final user = FirebaseAuth.instance.currentUser;
+    return Column(
+      children: [
+        ListTile(
+          contentPadding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+          leading: CircleAvatar(
+            radius: 20,
+            backgroundImage:
+                user?.photoURL != null ? NetworkImage(user!.photoURL!) : null,
+            backgroundColor: theme.colorScheme.primaryContainer,
+            child: user?.photoURL == null
+                ? Icon(Icons.person, color: theme.colorScheme.onPrimaryContainer)
+                : null,
+          ),
+          title: Text(user?.displayName ?? 'Unknown',
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+          subtitle: Text(user?.email ?? '',
+              style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+        ),
+        _divider(),
+        ListTile(
+          dense: true,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+          leading: const Icon(Icons.logout, color: Colors.red, size: 20),
+          title: const Text('Sign out',
+              style: TextStyle(color: Colors.red, fontSize: 14)),
+          onTap: () => _confirmSignOut(theme),
+        ),
+        _divider(),
+        ListTile(
+          dense: true,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+          leading: const Icon(Icons.delete_forever, color: Colors.red, size: 20),
+          title: const Text('Delete account',
+              style: TextStyle(color: Colors.red, fontSize: 14)),
+          onTap: () => _confirmDeleteAccount(theme),
+        ),
+      ],
     );
   }
 
@@ -572,9 +538,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         content: const Text('You will be returned to the login screen.'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           TextButton(
             onPressed: () async {
               Navigator.pop(ctx);
@@ -593,14 +557,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       builder: (ctx) => AlertDialog(
         title: const Text('Delete account?'),
         content: const Text(
-          'This will permanently delete your account and all associated data. '
+          'This will permanently delete your account and all data. '
           'You will be asked to sign in again to confirm.',
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           TextButton(
             onPressed: () async {
               Navigator.pop(ctx);
@@ -619,55 +581,36 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
       final msg = switch (e.code) {
-        'user-mismatch' => 'Account mismatch. Please sign in with the correct Google account.',
+        'user-mismatch' => 'Account mismatch.',
         'user-not-found' => 'Account not found.',
-        'invalid-credential' => 'Re-authentication failed. Please try again.',
-        _ => e.message ?? 'Something went wrong. Please try again.',
+        'invalid-credential' => 'Re-authentication failed. Try again.',
+        _ => e.message ?? 'Something went wrong.',
       };
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
-    } catch (e) {
+    } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Re-authentication cancelled.')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Re-authentication cancelled.')));
     }
   }
 
-  Widget _aboutTile(ThemeData theme) => Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.grey.shade50,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade200),
-        ),
+  // ── About (pinned to bottom) ───────────────────────────────────────────────
+
+  Widget _aboutContent(ThemeData theme) => Center(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                const Icon(Icons.child_care, size: 28, color: Colors.pinkAccent),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Born Again Memories',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                      ),
-                      Text(
-                        'Version 1.0.0',
-                        style: TextStyle(color: Colors.grey, fontSize: 13),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
+            const Icon(Icons.child_care, size: 32, color: Colors.pinkAccent),
+            const SizedBox(height: 6),
+            const Text('Born Again Memories',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+            const SizedBox(height: 2),
+            Text('Version 1.0.0',
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+            const SizedBox(height: 4),
             Text(
               'Capture and cherish your child\'s precious moments.',
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
             ),
           ],
         ),
