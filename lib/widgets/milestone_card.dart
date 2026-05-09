@@ -10,6 +10,7 @@ class MilestoneCard extends StatelessWidget {
   final Gender gender;
   final bool isFirst;
   final bool isLast;
+  final VoidCallback? onTap;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
 
@@ -19,6 +20,7 @@ class MilestoneCard extends StatelessWidget {
     this.gender = Gender.neutral,
     this.isFirst = false,
     this.isLast = false,
+    this.onTap,
     this.onEdit,
     this.onDelete,
   });
@@ -36,11 +38,14 @@ class MilestoneCard extends StatelessWidget {
           Expanded(
             child: Padding(
               padding: const EdgeInsets.only(bottom: 20),
-              child: _CardBody(
-                milestone: milestone,
-                theme: theme,
-                onEdit: onEdit,
-                onDelete: onDelete,
+              child: GestureDetector(
+                onTap: onTap,
+                child: _CardBody(
+                  milestone: milestone,
+                  theme: theme,
+                  onEdit: onEdit,
+                  onDelete: onDelete,
+                ),
               ),
             ),
           ),

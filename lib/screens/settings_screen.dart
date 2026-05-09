@@ -270,10 +270,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     String lastSync = 'Never';
     if (sync.lastSyncedAt != null) {
       final d = DateTime.now().difference(sync.lastSyncedAt!);
-      if (d.inMinutes < 1) lastSync = 'Just now';
-      else if (d.inHours < 1) lastSync = '${d.inMinutes}m ago';
-      else if (d.inDays < 1) lastSync = '${d.inHours}h ago';
-      else lastSync = '${d.inDays}d ago';
+      if (d.inMinutes < 1) {
+        lastSync = 'Just now';
+      } else if (d.inHours < 1) {
+        lastSync = '${d.inMinutes}m ago';
+      } else if (d.inDays < 1) {
+        lastSync = '${d.inHours}h ago';
+      } else {
+        lastSync = '${d.inDays}d ago';
+      }
     }
 
     return Padding(

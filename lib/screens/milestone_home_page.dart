@@ -24,6 +24,7 @@ import '../utils/profile_theme.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/milestone_card.dart';
 import '../widgets/overview_chip.dart';
+import 'milestone_detail_page.dart';
 import 'settings_screen.dart';
 
 // ── Home page ──────────────────────────────────────────────────────────────────
@@ -333,6 +334,16 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                                   gender: currentProfile.gender,
                                   isFirst: index == 0,
                                   isLast: index == filtered.length - 1,
+                                  onTap: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => MilestoneDetailPage(
+                                        milestones: filtered,
+                                        initialIndex: index,
+                                        profile: currentProfile,
+                                      ),
+                                    ),
+                                  ),
                                   onEdit: () => _showEditMilestoneSheet(milestone),
                                   onDelete: () =>
                                       _confirmDeleteMilestone(safeIndex, milestone),
@@ -1154,6 +1165,7 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
     final path =
         '${tempDir.path}/rec_${DateTime.now().microsecondsSinceEpoch}.m4a';
     final now = TimeOfDay.now();
+    if (!mounted) return;
     final filePath = await showDialog<String>(
       context: context,
       barrierDismissible: false,
@@ -1161,7 +1173,6 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
     );
     if (filePath == null || !mounted) return;
     final id = DateTime.now().microsecondsSinceEpoch.toString();
-    // ignore: use_build_context_synchronously
     final label = now.format(context);
     _addAttachment(Attachment(
       id: id,
@@ -1543,7 +1554,7 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: form.attachments.length,
-              separatorBuilder: (_, _i) => const SizedBox(width: 10),
+              separatorBuilder: (context, index) => const SizedBox(width: 10),
               itemBuilder: (_, i) {
                 final a = form.attachments[i];
                 final labelCtrl = _labelControllers[a.id] ??
@@ -1855,9 +1866,10 @@ class _RecordingDialogState extends State<_RecordingDialog> {
       actions: [
         TextButton(
           onPressed: () async {
+            final navigator = Navigator.of(context);
             _timer?.cancel();
             await _recorder.cancel();
-            if (mounted) Navigator.pop(context, null);
+            if (mounted) navigator.pop(null);
           },
           child: const Text('Cancel'),
         ),
