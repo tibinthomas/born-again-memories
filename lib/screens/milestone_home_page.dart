@@ -24,10 +24,10 @@ import '../utils/milestone_templates.dart';
 import '../utils/profile_theme.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/milestone_card.dart';
-import '../widgets/overview_chip.dart';
 import '../utils/memory_sharer.dart';
 import 'documents_screen.dart';
 import 'milestone_detail_page.dart';
+import 'shared_feed_screen.dart';
 import 'video_recorder_screen.dart';
 import 'reminders_screen.dart';
 import 'settings_screen.dart';
@@ -200,6 +200,13 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
               MaterialPageRoute(builder: (_) => const SettingsScreen()),
             ),
             onSwitchProfile: () => _showProfileSwitcher(profiles, safeIndex),
+            onSharedFeed: () => SharedFeedScreen.push(context),
+            onDocuments: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => DocumentsScreen(profileIndex: safeIndex),
+              ),
+            ),
           ),
 
           // ── Milestone list ───────────────────────────
@@ -546,6 +553,8 @@ class _ProfileHeader extends StatelessWidget {
   final int profileIndex;
   final VoidCallback onSettings;
   final VoidCallback onSwitchProfile;
+  final VoidCallback onSharedFeed;
+  final VoidCallback onDocuments;
 
   const _ProfileHeader({
     required this.profile,
@@ -555,6 +564,8 @@ class _ProfileHeader extends StatelessWidget {
     required this.profileIndex,
     required this.onSettings,
     required this.onSwitchProfile,
+    required this.onSharedFeed,
+    required this.onDocuments,
   });
 
   @override
@@ -602,47 +613,86 @@ class _ProfileHeader extends StatelessWidget {
               ),
               // Decorative bubbles
               Positioned(
-                right: -30,
-                top: 10,
+                right: -28,
+                top: -18,
                 child: Container(
-                  width: 100,
-                  height: 100,
+                  width: 110,
+                  height: 110,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withAlpha(20),
+                    color: Colors.white.withAlpha(18),
                   ),
                 ),
               ),
               Positioned(
-                left: -20,
-                top: 60,
+                right: 60,
+                bottom: -22,
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withAlpha(14),
+                  ),
+                ),
+              ),
+              Positioned(
+                left: -22,
+                top: 30,
                 child: Container(
                   width: 70,
                   height: 70,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withAlpha(15),
+                    color: Colors.white.withAlpha(12),
+                  ),
+                ),
+              ),
+              Positioned(
+                left: 80,
+                bottom: 8,
+                child: Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withAlpha(22),
+                  ),
+                ),
+              ),
+              Positioned(
+                right: 24,
+                top: 48,
+                child: Container(
+                  width: 16,
+                  height: 16,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withAlpha(30),
                   ),
                 ),
               ),
               // Content
               SafeArea(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 12, 20),
+                  padding: const EdgeInsets.fromLTRB(16, 4, 12, 14),
                   child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Top action row
+                      // ── Action row ──────────────────────────────
                       Row(
                         children: [
-                          // Switch profile button (only when multiple profiles)
                           if (hasMultipleProfiles)
                             _SwitchProfileButton(onTap: onSwitchProfile)
                           else
-                            const SizedBox(width: 48),
+                            const SizedBox(width: 44),
                           const Spacer(),
-                          // Documents button
-                          _DocumentsButton(profileIndex: profileIndex),
-                          // Reminders bell with badge
+                          IconButton(
+                            onPressed: onSharedFeed,
+                            icon: const Icon(Icons.people_outline_rounded,
+                                color: Colors.white70, size: 22),
+                            tooltip: 'Shared with me',
+                          ),
                           _RemindersButton(
                             profile: profile,
                             profileIndex: profileIndex,
@@ -655,63 +705,95 @@ class _ProfileHeader extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 4),
-                      // Avatar + name + age
-                      Container(
-                        width: 72,
-                        height: 72,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white.withAlpha(30),
-                          border: Border.all(color: Colors.white, width: 2.5),
-                        ),
-                        child: Center(
-                          child: Text(profileTheme.decalEmoji,
-                              style: const TextStyle(fontSize: 34)),
-                        ),
-                      ),
                       const SizedBox(height: 10),
-                      Text(
-                        profile.name,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.3,
-                          shadows: [Shadow(color: Colors.black45, blurRadius: 4)],
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Container(
-                        padding:
-                            const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withAlpha(40),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          profile.ageText,
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      // Overview chips
+
+                      // ── Profile row ─────────────────────────────
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          OverviewChip(
-                            label: 'Milestones',
-                            value: milestoneCount.toString(),
-                            icon: Icons.flag,
+                          // Avatar
+                          Container(
+                            width: 54,
+                            height: 54,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white.withAlpha(30),
+                              border: Border.all(color: Colors.white, width: 2),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withAlpha(30),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Center(
+                              child: Text(profileTheme.decalEmoji,
+                                  style: const TextStyle(fontSize: 26)),
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+
+                          // Name + age
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  profile.name,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 0.2,
+                                    shadows: [
+                                      Shadow(
+                                          color: Colors.black38,
+                                          blurRadius: 4),
+                                    ],
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 4),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 9, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withAlpha(35),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Text(
+                                    profile.ageText,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                           const SizedBox(width: 12),
-                          const OverviewChip(
-                            label: 'Memories',
-                            value: 'Forever',
-                            icon: Icons.cloud,
+
+                          // Stats
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _StatBlock(
+                                value: milestoneCount.toString(),
+                                label: 'Moments',
+                                icon: Icons.auto_awesome,
+                              ),
+                              const SizedBox(width: 10),
+                              _StatBlock(
+                                value: profile.documents.length.toString(),
+                                label: 'Docs',
+                                icon: Icons.folder_outlined,
+                                onTap: onDocuments,
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -726,6 +808,65 @@ class _ProfileHeader extends StatelessWidget {
     );
   }
 }
+
+// ── Compact stat block ────────────────────────────────────────────────────────
+
+class _StatBlock extends StatelessWidget {
+  final String value;
+  final String label;
+  final IconData icon;
+  final VoidCallback? onTap;
+
+  const _StatBlock({
+    required this.value,
+    required this.label,
+    required this.icon,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white.withAlpha(onTap != null ? 38 : 28),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+              color: Colors.white.withAlpha(onTap != null ? 60 : 40), width: 1),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: Colors.white, size: 14),
+            const SizedBox(height: 3),
+            Text(
+              value,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 15,
+                fontWeight: FontWeight.w800,
+                height: 1,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: TextStyle(
+                color: Colors.white.withAlpha(180),
+                fontSize: 10,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Switch profile button ─────────────────────────────────────────────────────
 
 class _SwitchProfileButton extends StatelessWidget {
   final VoidCallback onTap;
@@ -810,68 +951,6 @@ class _RemindersButton extends StatelessWidget {
                     fontSize: 9,
                     fontWeight: FontWeight.w800,
                     color: overdue > 0 ? Colors.white : Colors.grey.shade800,
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Documents button ──────────────────────────────────────────────────────────
-
-class _DocumentsButton extends ConsumerWidget {
-  final int profileIndex;
-
-  const _DocumentsButton({required this.profileIndex});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final profiles = ref.watch(profilesProvider) ?? [];
-    final count = (profiles.isEmpty || profileIndex >= profiles.length)
-        ? 0
-        : profiles[profileIndex].documents.length;
-
-    return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => DocumentsScreen(profileIndex: profileIndex),
-        ),
-      ),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withAlpha(35),
-              border: Border.all(color: Colors.white.withAlpha(60)),
-            ),
-            child: const Icon(Icons.folder_outlined,
-                color: Colors.white70, size: 20),
-          ),
-          if (count > 0)
-            Positioned(
-              top: -4,
-              right: -4,
-              child: Container(
-                padding: const EdgeInsets.all(3),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 1.5),
-                ),
-                child: Text(
-                  count > 9 ? '9+' : '$count',
-                  style: TextStyle(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.grey.shade800,
                   ),
                 ),
               ),
@@ -1334,7 +1413,7 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
 
   void _addTag(String raw) {
     final tag = raw.trim().toLowerCase();
-    if (tag.isEmpty || _tags.contains(tag) || _tags.length >= 5) {
+    if (tag.isEmpty || _tags.contains(tag) || _tags.length >= 20) {
       _tagController.clear();
       return;
     }
@@ -1559,6 +1638,19 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
     final theme = Theme.of(context);
     final form = ref.watch(addMilestoneFormProvider); // only used for form.date
 
+    // Collect all tags used across every profile (excluding tags already added)
+    final profiles = ref.read(profilesProvider);
+    final List<String> tagSuggestions;
+    if (profiles != null && profiles.isNotEmpty) {
+      final all = {
+        for (final p in profiles)
+          for (final m in p.milestones) ...m.tags
+      };
+      tagSuggestions = (all.difference(_tags.toSet()).toList())..sort();
+    } else {
+      tagSuggestions = const [];
+    }
+
     final inputDeco = InputDecoration(
       filled: true,
       fillColor: Colors.grey.shade50,
@@ -1713,7 +1805,7 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
                   padding: const EdgeInsets.symmetric(horizontal: 2),
                   visualDensity: VisualDensity.compact,
                 )),
-            if (_tags.length < 5)
+            if (_tags.length < 20)
               SizedBox(
                 width: 130,
                 child: TextField(
@@ -1735,6 +1827,36 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
               ),
           ],
         ),
+        // Existing tags as suggestions
+        if (tagSuggestions.isNotEmpty && _tags.length < 20) ...[
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: tagSuggestions
+                .map((tag) => GestureDetector(
+                      onTap: () => _addTag(tag),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                              color: pTheme.accent.withAlpha(70), width: 1),
+                        ),
+                        child: Text(
+                          '#$tag',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: pTheme.accent.withAlpha(180),
+                          ),
+                        ),
+                      ),
+                    ))
+                .toList(),
+          ),
+        ],
         const SizedBox(height: 18),
 
         // Media

@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/attachment.dart';
@@ -19,6 +20,10 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>?> {
   }
 
   Future<void> _load() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user?.email != null) {
+      FirestoreService.saveUserMeta(uid, user!.email!, user.displayName);
+    }
     final profiles = await FirestoreService.loadProfiles(uid);
     if (mounted) state = profiles;
   }

@@ -5,6 +5,7 @@ import '../models/baby_document.dart';
 import '../models/kid_profile.dart';
 import '../models/milestone.dart';
 import '../models/reminder.dart';
+import '../models/shared_feed.dart';
 
 class FirestoreService {
   static final _db = FirebaseFirestore.instance;
@@ -13,6 +14,19 @@ class FirestoreService {
 
   static Future<void> saveUserProfile(String uid, Map<String, dynamic> data) =>
       _db.doc('users/$uid').set(data, SetOptions(merge: true));
+
+  /// Persists display name + email so other users can identify this account in
+  /// their shared feed. Called once per login session.
+  static Future<void> saveUserMeta(
+      String uid, String email, String? displayName) =>
+      _db.doc('users/$uid').set(
+        {
+          'email': email,
+          if (displayName != null && displayName.isNotEmpty)
+            'displayName': displayName,
+        },
+        SetOptions(merge: true),
+      );
 
   static Future<Map<String, dynamic>?> getUserDoc(String uid) async {
     final doc = await _db.doc('users/$uid').get();
@@ -135,6 +149,54 @@ class FirestoreService {
       _db
           .doc('users/$uid/profiles/$profileId/reminders/$reminderId')
           .delete();
+
+  // ── Shared feed ────────────────────────────────────────────────────────────
+
+  /// Returns all milestones from users who have added [myEmail] to their
+  /// sharedWithEmails list, grouped by sender.
+  static Future<List<SharedSenderGroup>> loadSharedFeed(String myEmail) async {
+    final snap = await _db
+        .collection('users')
+        .where('sharedWithEmails', arrayContains: myEmail)
+        .get();
+
+    final groups = <SharedSenderGroup>[];
+    for (final doc in snap.docs) {
+      final uid = doc.id;
+      final data = doc.data();
+      final displayName =
+          data['displayName'] as String? ?? data['email'] as String? ?? uid;
+      final email = data['email'] as String? ?? '';
+
+      final profilesSnap =
+          await _db.collection('users/$uid/profiles').get();
+      final entries = <SharedMilestoneEntry>[];
+
+      await Future.wait(profilesSnap.docs.map((pDoc) async {
+        final profile = KidProfile.fromJson(pDoc.data());
+        final msSnap = await _db
+            .collection('users/$uid/profiles/${profile.id}/milestones')
+            .orderBy('date', descending: true)
+            .get();
+        for (final msDoc in msSnap.docs) {
+          entries.add(SharedMilestoneEntry(
+            milestone: Milestone.fromJson(msDoc.data()),
+            babyName: profile.name,
+            babyGender: profile.gender,
+          ));
+        }
+      }));
+
+      entries.sort((a, b) => b.milestone.date.compareTo(a.milestone.date));
+      groups.add(SharedSenderGroup(
+        uid: uid,
+        displayName: displayName,
+        email: email,
+        milestones: entries,
+      ));
+    }
+    return groups;
+  }
 
   // Atomic partial update — no full doc read required because attachments are
   // stored as a keyed map and Firestore supports dot-notation field paths.
