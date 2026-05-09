@@ -837,7 +837,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
       floatingActionButton: Container(
         decoration: BoxDecoration(
           gradient: profileTheme.headerGradient,
-          borderRadius: BorderRadius.circular(32),
+          borderRadius: BorderRadius.circular(26),
           border: Border.all(color: Colors.white.withAlpha(80), width: 1),
           boxShadow: [
             BoxShadow(
@@ -849,22 +849,22 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
         ),
         child: Material(
           color: Colors.transparent,
-          borderRadius: BorderRadius.circular(32),
+          borderRadius: BorderRadius.circular(26),
           child: InkWell(
-            borderRadius: BorderRadius.circular(32),
+            borderRadius: BorderRadius.circular(26),
             onTap: _showAddMilestoneSheet,
             child: const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 22, vertical: 15),
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 11),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.auto_awesome, color: Colors.white, size: 18),
-                  SizedBox(width: 8),
+                  Icon(Icons.auto_awesome, color: Colors.white, size: 15),
+                  SizedBox(width: 6),
                   Text('New memory',
                       style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w700,
-                          fontSize: 14,
+                          fontSize: 13,
                           letterSpacing: 0.2)),
                 ],
               ),
