@@ -161,8 +161,7 @@ class _SharedFeedScreenState extends ConsumerState<SharedFeedScreen> {
                                     final entry = filtered[index];
                                     return _FeedItem(
                                       entry: entry,
-                                      isFirst: index == 0,
-                                      isLast: index == filtered.length - 1,
+                                      animIndex: index,
                                       showSender: _selectedUid == null,
                                     );
                                   },
@@ -202,14 +201,12 @@ class _Sender {
 
 class _FeedItem extends StatelessWidget {
   final _FeedEntry entry;
-  final bool isFirst;
-  final bool isLast;
+  final int animIndex;
   final bool showSender;
 
   const _FeedItem({
     required this.entry,
-    required this.isFirst,
-    required this.isLast,
+    required this.animIndex,
     required this.showSender,
   });
 
@@ -261,9 +258,7 @@ class _FeedItem extends StatelessWidget {
         MilestoneCard(
           milestone: entry.milestone,
           gender: entry.babyGender,
-          isFirst: isFirst,
-          isLast: isLast,
-          // read-only: no edit / delete / share callbacks
+          animIndex: animIndex,
         ),
       ],
     );

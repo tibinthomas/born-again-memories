@@ -16,6 +16,7 @@ class KidProfile {
   final Gender gender;
   final String? avatarImagePath; // device-local only, not synced to cloud
   final String? backgroundImagePath; // device-local only, not synced to cloud
+  final String? themePresetId;
   final List<Milestone> milestones;
   final List<Reminder> reminders;
   final List<BabyDocument> documents;
@@ -31,6 +32,7 @@ class KidProfile {
     this.gender = Gender.neutral,
     this.avatarImagePath,
     this.backgroundImagePath,
+    this.themePresetId,
     this.milestones = const [],
     this.reminders = const [],
     this.documents = const [],
@@ -66,6 +68,8 @@ class KidProfile {
     bool clearAvatar = false,
     String? backgroundImagePath,
     bool clearBackground = false,
+    String? themePresetId,
+    bool clearThemePreset = false,
     List<Milestone>? milestones,
     List<Reminder>? reminders,
     List<BabyDocument>? documents,
@@ -82,6 +86,7 @@ class KidProfile {
         avatarImagePath: clearAvatar ? null : (avatarImagePath ?? this.avatarImagePath),
         backgroundImagePath:
             clearBackground ? null : (backgroundImagePath ?? this.backgroundImagePath),
+        themePresetId: clearThemePreset ? null : (themePresetId ?? this.themePresetId),
         milestones: milestones ?? this.milestones,
         reminders: reminders ?? this.reminders,
         documents: documents ?? this.documents,
@@ -97,6 +102,7 @@ class KidProfile {
         'timeOfBirth': timeOfBirth?.toIso8601String(),
         'color': color.toARGB32(),
         'gender': gender.name,
+        if (themePresetId != null) 'themePresetId': themePresetId,
       };
 
   factory KidProfile.fromJson(Map<String, dynamic> j) => KidProfile(
@@ -110,5 +116,6 @@ class KidProfile {
           (g) => g.name == (j['gender'] as String? ?? 'neutral'),
           orElse: () => Gender.neutral,
         ),
+        themePresetId: j['themePresetId'] as String?,
       );
 }

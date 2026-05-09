@@ -23,6 +23,7 @@ import '../utils/chime.dart';
 import '../utils/date_formatter.dart';
 import '../utils/milestone_templates.dart';
 import '../utils/profile_theme.dart';
+import '../utils/theme_preset.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/milestone_card.dart';
 import '../utils/memory_sharer.dart';
@@ -52,11 +53,13 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
   bool _showFavoritesOnly = false;
   final _searchController = TextEditingController();
   final _searchFocusNode = FocusNode();
+  final _listScrollController = ScrollController();
 
   @override
   void dispose() {
     _searchController.dispose();
     _searchFocusNode.dispose();
+    _listScrollController.dispose();
     super.dispose();
   }
 
@@ -154,9 +157,10 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
     final nicknameController = TextEditingController(text: profile.nickname ?? '');
     DateTime selectedDob = profile.dateOfBirth;
     DateTime? selectedTob = profile.timeOfBirth;
-    Color selectedColor = profile.color;
     Gender selectedGender = profile.gender;
     String? avatarPath = profile.avatarImagePath;
+    String selectedPresetId = profile.themePresetId ??
+        ThemePreset.defaultIdForGender(profile.gender.name);
 
     showModalBottomSheet(
       context: context,
@@ -165,7 +169,8 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setState) {
           final theme = Theme.of(context);
-          final pTheme = ProfileTheme.forGender(selectedGender);
+          final selectedPreset = ThemePreset.findById(selectedPresetId)!;
+          final pTheme = ProfileTheme.fromPreset(selectedPreset);
           final hasAvatar = avatarPath != null &&
               avatarPath!.isNotEmpty &&
               !kIsWeb &&
@@ -196,6 +201,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                       const Spacer(),
                       TextButton(
                         onPressed: () {
+                          final savePreset = ThemePreset.findById(selectedPresetId)!;
                           final updated = profile.copyWith(
                             name: nameController.text.trim(),
                             nickname: nicknameController.text.trim().isEmpty ? null : nicknameController.text.trim(),
@@ -203,7 +209,8 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                             dateOfBirth: selectedDob,
                             timeOfBirth: selectedTob,
                             clearTimeOfBirth: selectedTob == null && profile.timeOfBirth != null,
-                            color: selectedColor,
+                            color: savePreset.accent,
+                            themePresetId: selectedPresetId,
                             gender: selectedGender,
                             avatarImagePath: avatarPath,
                             clearAvatar: avatarPath == null && profile.avatarImagePath != null,
@@ -312,7 +319,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                               child: GestureDetector(
                                 onTap: () => setState(() {
                                   selectedGender = g;
-                                  selectedColor = gTheme.accent;
+                                  selectedPresetId = ThemePreset.defaultIdForGender(g.name);
                                 }),
                                 child: AnimatedContainer(
                                   duration: const Duration(milliseconds: 200),
@@ -429,36 +436,11 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                           ),
                         ),
                       const SizedBox(height: 16),
-                      Text('Theme Color', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey.shade700)),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: Colors.primaries.map((color) {
-                          final selected = selectedColor.toARGB32() == color.toARGB32();
-                          return GestureDetector(
-                            onTap: () => setState(() => selectedColor = color),
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 150),
-                              width: 36,
-                              height: 36,
-                              decoration: BoxDecoration(
-                                color: color,
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: selected ? Colors.black : Colors.transparent,
-                                  width: 2.5,
-                                ),
-                                boxShadow: selected
-                                    ? [BoxShadow(color: color.withAlpha(120), blurRadius: 6)]
-                                    : null,
-                              ),
-                              child: selected
-                                  ? const Icon(Icons.check, color: Colors.white, size: 18)
-                                  : null,
-                            ),
-                          );
-                        }).toList(),
+                      Text('Theme', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey.shade700)),
+                      const SizedBox(height: 10),
+                      _ThemePresetPicker(
+                        selectedId: selectedPresetId,
+                        onSelect: (id) => setState(() => selectedPresetId = id),
                       ),
                     ],
                   ),
@@ -775,40 +757,76 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                                 ],
                               ),
                             )
-                          : ListView.builder(
-                              padding: const EdgeInsets.fromLTRB(20, 4, 20, 100),
-                              itemCount: filtered.length,
-                              itemBuilder: (context, index) {
-                                final milestone = filtered[index];
-                                return MilestoneCard(
-                                  milestone: milestone,
-                                  gender: currentProfile.gender,
-                                  isFirst: index == 0,
-                                  isLast: index == filtered.length - 1,
-                                  onTap: () => Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => MilestoneDetailPage(
-                                        milestones: filtered,
-                                        initialIndex: index,
-                                        profile: currentProfile,
-                                      ),
+                          : AnimatedBuilder(
+                              animation: _listScrollController,
+                              builder: (context, child) {
+                                final offset = _listScrollController.hasClients
+                                    ? _listScrollController.offset
+                                    : 0.0;
+                                final t = (offset / 500).clamp(0.0, 1.0);
+                                return DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: [
+                                        Color.lerp(
+                                          profileTheme.soft.withAlpha(180),
+                                          const Color(0xFFF2F2F7),
+                                          t,
+                                        )!,
+                                        const Color(0xFFF2F2F7),
+                                        Color.lerp(
+                                          profileTheme.cardBg.withAlpha(160),
+                                          const Color(0xFFF2F2F7),
+                                          t,
+                                        )!,
+                                      ],
                                     ),
                                   ),
-                                  onEdit: () => _showEditMilestoneSheet(milestone),
-                                  onDelete: () =>
-                                      _confirmDeleteMilestone(safeIndex, milestone),
-                                  onFavorite: () => ref
-                                      .read(profilesProvider.notifier)
-                                      .toggleMilestoneFavorite(safeIndex, milestone.id),
-                                  onShare: () => MemorySharer.show(
-                                    context,
-                                    milestone,
-                                    currentProfile.name,
-                                    currentProfile.gender,
-                                  ),
+                                  child: child,
                                 );
                               },
+                              child: ListView.builder(
+                                controller: _listScrollController,
+                                padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+                                itemCount: filtered.length,
+                                itemBuilder: (context, index) {
+                                  final milestone = filtered[index];
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 14),
+                                    child: MilestoneCard(
+                                      milestone: milestone,
+                                      gender: currentProfile.gender,
+                                      animIndex: index,
+                                      onTap: () => Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => MilestoneDetailPage(
+                                            milestones: filtered,
+                                            initialIndex: index,
+                                            profile: currentProfile,
+                                          ),
+                                        ),
+                                      ),
+                                      onEdit: () =>
+                                          _showEditMilestoneSheet(milestone),
+                                      onDelete: () => _confirmDeleteMilestone(
+                                          safeIndex, milestone),
+                                      onFavorite: () => ref
+                                          .read(profilesProvider.notifier)
+                                          .toggleMilestoneFavorite(
+                                              safeIndex, milestone.id),
+                                      onShare: () => MemorySharer.show(
+                                        context,
+                                        milestone,
+                                        currentProfile.name,
+                                        currentProfile.gender,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
                 ),
               ],
@@ -3009,5 +3027,196 @@ class _SaveBtnState extends ConsumerState<_SaveBtn> {
     if (s.soundEnabled) unawaited(playChime(volume: s.soundVolume));
     await Future.delayed(const Duration(milliseconds: 600));
     widget.onDismiss();
+  }
+}
+
+// ── Theme preset picker ───────────────────────────────────────────────────────
+
+class _ThemePresetPicker extends StatefulWidget {
+  final String selectedId;
+  final ValueChanged<String> onSelect;
+
+  const _ThemePresetPicker({required this.selectedId, required this.onSelect});
+
+  @override
+  State<_ThemePresetPicker> createState() => _ThemePresetPickerState();
+}
+
+class _ThemePresetPickerState extends State<_ThemePresetPicker> {
+  late bool _show3Color;
+
+  @override
+  void initState() {
+    super.initState();
+    final preset = ThemePreset.findById(widget.selectedId);
+    _show3Color = preset?.isThreeColor ?? false;
+  }
+
+  @override
+  void didUpdateWidget(covariant _ThemePresetPicker oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.selectedId != widget.selectedId) {
+      final preset = ThemePreset.findById(widget.selectedId);
+      if (preset != null) setState(() => _show3Color = preset.isThreeColor);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final presets = _show3Color ? ThemePreset.threeColor : ThemePreset.twoColor;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Compact inline toggle + scroll row
+        Row(
+          children: [
+            // Pill toggle
+            Container(
+              height: 28,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _MiniTab(
+                    label: '2-Color',
+                    selected: !_show3Color,
+                    onTap: () => setState(() => _show3Color = false),
+                  ),
+                  _MiniTab(
+                    label: '3-Color',
+                    selected: _show3Color,
+                    onTap: () => setState(() => _show3Color = true),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+
+        // Horizontally scrolling preset chips
+        SizedBox(
+          height: 36,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: presets.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            itemBuilder: (_, i) {
+              final preset = presets[i];
+              final isSelected = preset.id == widget.selectedId;
+              return GestureDetector(
+                onTap: () => widget.onSelect(preset.id),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 160),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? Color.lerp(Colors.white, preset.accent, 0.10)
+                        : Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: isSelected ? preset.accent : Colors.grey.shade200,
+                      width: isSelected ? 1.5 : 1,
+                    ),
+                    boxShadow: isSelected
+                        ? [BoxShadow(color: preset.accent.withAlpha(40), blurRadius: 6, offset: const Offset(0, 2))]
+                        : [BoxShadow(color: Colors.black.withAlpha(6), blurRadius: 3)],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _ColorDot(color: preset.accent, size: 11),
+                      const SizedBox(width: 3),
+                      _ColorDot(color: preset.secondary, size: 11),
+                      if (preset.tertiary != null) ...[
+                        const SizedBox(width: 3),
+                        _ColorDot(color: preset.tertiary!, size: 11),
+                      ],
+                      const SizedBox(width: 7),
+                      Text(
+                        preset.name,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: isSelected ? preset.accent : const Color(0xFF444444),
+                        ),
+                      ),
+                      if (isSelected) ...[
+                        const SizedBox(width: 4),
+                        Icon(Icons.check_rounded, size: 12, color: preset.accent),
+                      ],
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MiniTab extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _MiniTab({required this.label, required this.selected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 160),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: selected ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(6),
+          boxShadow: selected
+              ? [BoxShadow(color: Colors.black.withAlpha(15), blurRadius: 4, offset: const Offset(0, 1))]
+              : null,
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: selected ? const Color(0xFF1A1A2E) : Colors.grey.shade500,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ColorDot extends StatelessWidget {
+  final Color color;
+  final double size;
+
+  const _ColorDot({required this.color, this.size = 16});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: color.withAlpha(80),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+    );
   }
 }
