@@ -1,6 +1,6 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import '../models/attachment.dart';
+import '../utils/attachment_helper.dart';
 
 class AttachmentPreview extends StatelessWidget {
   final Attachment attachment;
@@ -11,15 +11,10 @@ class AttachmentPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     Widget content;
 
-    if (attachment.type == AttachmentType.image && attachment.localExists) {
+    if (attachment.webBytes != null || (attachment.type == AttachmentType.image && attachment.localExists)) {
       content = ClipRRect(
         borderRadius: BorderRadius.circular(12),
-        child: Image.file(
-          File(attachment.localPath),
-          width: 90,
-          height: 90,
-          fit: BoxFit.cover,
-        ),
+        child: attachmentImageWidget(attachment, width: 90, height: 90),
       );
     } else {
       final icon = switch (attachment.type) {

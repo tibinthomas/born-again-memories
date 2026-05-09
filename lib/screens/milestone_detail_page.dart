@@ -9,6 +9,7 @@ import 'package:video_player/video_player.dart';
 import '../models/attachment.dart';
 import '../models/kid_profile.dart';
 import '../models/milestone.dart';
+import '../utils/attachment_helper.dart';
 import '../utils/date_formatter.dart';
 import '../utils/profile_theme.dart';
 
@@ -248,18 +249,16 @@ class _MilestoneView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pTheme = ProfileTheme.forProfile(profile);
-    final firstPhoto = !kIsWeb
-        ? milestone.attachments
-            .where((a) => a.type == AttachmentType.image)
-            .where((a) => File(a.localPath).existsSync())
-            .firstOrNull
-        : null;
+    final firstPhoto = milestone.attachments
+        .where((a) => a.type == AttachmentType.image)
+        .where((a) => a.isViewable)
+        .firstOrNull;
 
     return Stack(
       fit: StackFit.expand,
       children: [
         // Background
-        _Background(imagePath: firstPhoto?.localPath, gradient: pTheme.headerGradient),
+        _Background(bgAttachment: firstPhoto, gradient: pTheme.headerGradient),
 
         // Slideshow: just the cinematic overlay with title
         if (isSlideshow)
@@ -281,19 +280,19 @@ class _MilestoneView extends StatelessWidget {
 // ── Background (blurred photo or gradient) ─────────────────────────────────────
 
 class _Background extends StatelessWidget {
-  final String? imagePath;
+  final Attachment? bgAttachment;
   final LinearGradient gradient;
 
-  const _Background({this.imagePath, required this.gradient});
+  const _Background({this.bgAttachment, required this.gradient});
 
   @override
   Widget build(BuildContext context) {
-    final hasImage = imagePath != null;
+    final hasImage = bgAttachment != null;
     return Stack(
       fit: StackFit.expand,
       children: [
         if (hasImage)
-          Image.file(File(imagePath!), fit: BoxFit.cover)
+          attachmentImageWidget(bgAttachment!, fit: BoxFit.cover)
         else
           DecoratedBox(decoration: BoxDecoration(gradient: gradient)),
 
@@ -613,7 +612,7 @@ class _PhotoThumbnail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (kIsWeb || !File(attachment.localPath).existsSync()) {
+    if (!attachment.isViewable) {
       return const SizedBox(width: 140, height: 200);
     }
     return GestureDetector(
@@ -633,12 +632,7 @@ class _PhotoThumbnail extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           child: Stack(
             children: [
-              Image.file(
-                File(attachment.localPath),
-                width: 140,
-                height: 200,
-                fit: BoxFit.cover,
-              ),
+              attachmentImageWidget(attachment, width: 140, height: 200),
               // Label overlay
               if (attachment.label != null && attachment.label!.isNotEmpty)
                 Positioned(
@@ -733,7 +727,7 @@ class _FullScreenPhotoViewerState extends State<_FullScreenPhotoViewer> {
             onPageChanged: (i) => setState(() => _index = i),
             itemBuilder: (_, i) {
               final a = widget.photos[i];
-              if (kIsWeb || !File(a.localPath).existsSync()) {
+              if (!a.isViewable) {
                 return const Center(
                     child: Icon(Icons.broken_image, color: Colors.white54));
               }
@@ -743,7 +737,7 @@ class _FullScreenPhotoViewerState extends State<_FullScreenPhotoViewer> {
                 child: Center(
                   child: Hero(
                     tag: 'photo_${a.id}',
-                    child: Image.file(File(a.localPath), fit: BoxFit.contain),
+                    child: attachmentImageWidget(a, fit: BoxFit.contain),
                   ),
                 ),
               );

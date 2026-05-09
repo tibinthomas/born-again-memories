@@ -1083,6 +1083,8 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
   final _descController = TextEditingController();
   final _picker = ImagePicker();
   final _labelControllers = <String, TextEditingController>{};
+  // Attachments stored in local state so webBytes survive async gaps + autoDispose
+  final List<Attachment> _attachments = [];
   String? _titleError;
   String? _descError;
   Set<String> _existingAttachmentIds = {};
@@ -1102,15 +1104,14 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
       _titleController.text = initial.title;
       _descController.text = initial.description;
       _existingAttachmentIds = {for (final a in initial.attachments) a.id};
+      _attachments.addAll(initial.attachments);
       for (final a in initial.attachments) {
         _labelControllers[a.id] = TextEditingController(text: a.label ?? '');
       }
-      _showingTemplates = false; // skip template picker in edit mode
+      _showingTemplates = false;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        ref
-            .read(addMilestoneFormProvider.notifier)
-            .initialize(initial.date, initial.attachments);
+        ref.read(addMilestoneFormProvider.notifier).setDate(initial.date);
       });
     }
   }
@@ -1137,27 +1138,41 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
   }
 
   void _addAttachment(Attachment a) {
-    _labelControllers[a.id] = TextEditingController();
-    ref.read(addMilestoneFormProvider.notifier).addAttachment(a);
+    setState(() {
+      _attachments.add(a);
+      _labelControllers[a.id] = TextEditingController();
+    });
   }
 
   void _removeAttachment(int index, String id) {
-    _labelControllers[id]?.dispose();
-    _labelControllers.remove(id);
-    ref.read(addMilestoneFormProvider.notifier).removeAttachment(index);
+    setState(() {
+      _labelControllers[id]?.dispose();
+      _labelControllers.remove(id);
+      _attachments.removeAt(index);
+    });
   }
 
-  void _addXFiles(List<XFile> files) {
-    for (final f in files) {
-      final ext = f.path.split('.').last.toLowerCase();
+  Future<void> _addXFiles(List<XFile> files) async {
+    for (int i = 0; i < files.length; i++) {
+      final f = files[i];
+      final ext = f.name.contains('.') ? f.name.split('.').last.toLowerCase() : '';
+      final bytes = kIsWeb ? await f.readAsBytes() : null;
       _addAttachment(Attachment(
-        id: '${DateTime.now().microsecondsSinceEpoch}_${files.indexOf(f)}',
+        id: '${DateTime.now().microsecondsSinceEpoch}_$i',
         name: f.name,
-        localPath: f.path,
+        localPath: kIsWeb ? '' : f.path,
         type: getAttachmentTypeFromExtension(ext),
-        sizeBytes: 0,
+        sizeBytes: kIsWeb ? bytes!.length : 0,
+        webBytes: bytes,
       ));
     }
+  }
+
+  // Extracts file extension reliably — f.extension is null on web.
+  static String _extOf(PlatformFile f) {
+    if (f.extension != null && f.extension!.isNotEmpty) return f.extension!.toLowerCase();
+    final dot = f.name.lastIndexOf('.');
+    return dot != -1 ? f.name.substring(dot + 1).toLowerCase() : '';
   }
 
   Future<void> _startLiveRecording() async {
@@ -1313,7 +1328,7 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
 
   Widget _buildForm(BuildContext context, ProfileTheme pTheme) {
     final theme = Theme.of(context);
-    final form = ref.watch(addMilestoneFormProvider);
+    final form = ref.watch(addMilestoneFormProvider); // only used for form.date
 
     final inputDeco = InputDecoration(
       filled: true,
@@ -1485,18 +1500,22 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
               label: 'Gallery',
               color: Colors.purple,
               onTap: () async {
-                if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
+                if (kIsWeb) {
+                  // image_picker on web reliably returns XFile with readable bytes
+                  final files = await _picker.pickMultiImage();
+                  if (files.isNotEmpty) await _addXFiles(files);
+                } else if (Platform.isIOS || Platform.isAndroid) {
                   final files = await _picker.pickMultipleMedia();
-                  if (files.isNotEmpty) _addXFiles(files);
+                  if (files.isNotEmpty) await _addXFiles(files);
                 } else {
+                  // Desktop: use file_picker (has real file paths)
                   final result = await FilePicker.platform.pickFiles(
                     allowMultiple: true,
                     type: FileType.media,
                   );
                   if (result != null) {
-                    for (final f
-                        in result.files.where((f) => f.path != null)) {
-                      final ext = f.extension?.toLowerCase() ?? '';
+                    for (final f in result.files.where((f) => f.path != null)) {
+                      final ext = _extOf(f);
                       _addAttachment(Attachment(
                         id: DateTime.now().microsecondsSinceEpoch.toString(),
                         name: f.name,
@@ -1507,7 +1526,6 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
                     }
                   }
                 }
-                setState(() {});
               },
             ),
             const SizedBox(width: 8),
@@ -1520,16 +1538,17 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
                   allowMultiple: true,
                   type: FileType.custom,
                   allowedExtensions: ['wav', 'mp3', 'm4a', 'aac'],
+                  withData: true,
                 );
                 if (result != null) {
-                  for (final f
-                      in result.files.where((f) => f.path != null)) {
+                  for (final f in result.files) {
                     _addAttachment(Attachment(
                       id: DateTime.now().microsecondsSinceEpoch.toString(),
                       name: f.name,
-                      localPath: f.path!,
+                      localPath: f.path ?? '',
                       type: AttachmentType.audio,
-                      sizeBytes: 0,
+                      sizeBytes: f.size,
+                      webBytes: f.bytes,
                     ));
                   }
                 }
@@ -1547,16 +1566,16 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
         ),
 
         // Attachment strip
-        if (form.attachments.isNotEmpty) ...[
+        if (_attachments.isNotEmpty) ...[
           const SizedBox(height: 14),
           SizedBox(
             height: 128,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
-              itemCount: form.attachments.length,
+              itemCount: _attachments.length,
               separatorBuilder: (context, index) => const SizedBox(width: 10),
               itemBuilder: (_, i) {
-                final a = form.attachments[i];
+                final a = _attachments[i];
                 final labelCtrl = _labelControllers[a.id] ??
                     (_labelControllers[a.id] = TextEditingController());
                 return SizedBox(
@@ -1568,9 +1587,9 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
                         children: [
                           ClipRRect(
                             borderRadius: BorderRadius.circular(10),
-                            child: a.type == AttachmentType.image && !kIsWeb
-                                ? Image.file(File(a.localPath),
-                                    width: 90, height: 90, fit: BoxFit.cover)
+                            child: a.webBytes != null || (a.type == AttachmentType.image && a.localExists)
+                                ? attachmentImageWidget(a,
+                                    width: 90, height: 90)
                                 : Container(
                                     width: 90,
                                     height: 90,
@@ -1585,7 +1604,9 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
                                         Icon(
                                           a.type == AttachmentType.video
                                               ? Icons.videocam
-                                              : Icons.mic,
+                                              : a.type == AttachmentType.image
+                                                  ? Icons.image_not_supported_outlined
+                                                  : Icons.mic,
                                           size: 28,
                                           color: Colors.grey.shade500,
                                         ),
@@ -1694,11 +1715,14 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
                 (ref.read(profilesProvider) ?? [])[profileIndex];
 
             final saved = <Attachment>[];
-            for (final a in form.attachments) {
+            for (final a in _attachments) {
               final labelText = _labelControllers[a.id]?.text.trim();
               final label =
                   labelText?.isEmpty == true ? null : labelText;
               if (_existingAttachmentIds.contains(a.id)) {
+                saved.add(a.copyWith(label: label));
+              } else if (kIsWeb) {
+                // On web there is no local filesystem — keep webBytes in-memory
                 saved.add(a.copyWith(label: label));
               } else {
                 try {

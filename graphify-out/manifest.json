@@ -48764,16 +48764,16 @@
     "hash": "c150737a7c13440def6ed24fa4ea911c"
   },
   "/Users/tibinthomas/my_app/lib/utils/attachment_helper.dart": {
-    "mtime": 1777697363.7778068,
-    "hash": "591368349c8ca16378778430bc81ac3a"
+    "mtime": 1778311335.7715247,
+    "hash": "ce67b9ef8e703b3e8104f1a46155b08a"
   },
   "/Users/tibinthomas/my_app/lib/models/app_settings.dart": {
     "mtime": 1777866904.00508,
     "hash": "22599676fbed0b0dabbd3fdbd9df3011"
   },
   "/Users/tibinthomas/my_app/lib/models/attachment.dart": {
-    "mtime": 1778292522.9544084,
-    "hash": "6da4b4231ebf57cc2be4e4b83378fe0f"
+    "mtime": 1778309957.9289885,
+    "hash": "e8aa6fb9bbca6b16dd521ceec6cb5b12"
   },
   "/Users/tibinthomas/my_app/lib/models/kid_profile.dart": {
     "mtime": 1778295156.4885063,
@@ -48784,16 +48784,16 @@
     "hash": "5706ca8cd8fe39b54fcf157da7ccf16c"
   },
   "/Users/tibinthomas/my_app/lib/screens/milestone_home_page.dart": {
-    "mtime": 1778309423.6704123,
-    "hash": "850a3fbfb22e87a802be30fa9693a8ed"
+    "mtime": 1778311949.401529,
+    "hash": "39047e5b51e13dbfadaa6880bd050619"
   },
   "/Users/tibinthomas/my_app/lib/screens/settings_screen.dart": {
     "mtime": 1778309331.3023229,
     "hash": "bf0247b524a409b0383f149f0d295457"
   },
   "/Users/tibinthomas/my_app/lib/screens/milestone_detail_page.dart": {
-    "mtime": 1778309405.3328395,
-    "hash": "da700402a00c474f1582cb6deed00fcd"
+    "mtime": 1778309934.24921,
+    "hash": "6305b513fe92b311ac20b20f5c281181"
   },
   "/Users/tibinthomas/my_app/lib/screens/login_screen.dart": {
     "mtime": 1778295467.412463,
@@ -48820,8 +48820,8 @@
     "hash": "4caca5871d557e808ff36ba055e2765e"
   },
   "/Users/tibinthomas/my_app/lib/widgets/attachment_preview.dart": {
-    "mtime": 1777869003.1782358,
-    "hash": "6cd4244824248b7b546039d0b9b92ff4"
+    "mtime": 1778311312.1500106,
+    "hash": "cda5aa6ef7ab2a39b8a5aba133abe692"
   },
   "/Users/tibinthomas/my_app/lib/widgets/overview_chip.dart": {
     "mtime": 1777697363.7843137,

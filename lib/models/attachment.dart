@@ -8,12 +8,14 @@ enum BackupStatus { queued, uploading, backedUp, failed }
 class Attachment {
   final String id;
   final String name;
-  final String? label;       // optional user caption
+  final String? label;
   final AttachmentType type;
   final int sizeBytes;
   final String localPath;
   final String? driveFileId;
   final BackupStatus backupStatus;
+  // In-memory bytes for web (not serialized — only lives within the session)
+  final Uint8List? webBytes;
 
   Attachment({
     required this.id,
@@ -24,9 +26,13 @@ class Attachment {
     required this.localPath,
     this.driveFileId,
     this.backupStatus = BackupStatus.queued,
+    this.webBytes,
   });
 
-  bool get localExists => !kIsWeb && localPath.isNotEmpty && File(localPath).existsSync();
+  bool get localExists =>
+      !kIsWeb && localPath.isNotEmpty && File(localPath).existsSync();
+
+  bool get isViewable => webBytes != null || localExists;
 
   Attachment copyWith({
     String? label,
@@ -44,6 +50,7 @@ class Attachment {
         localPath: localPath,
         driveFileId: clearDriveFileId ? null : driveFileId ?? this.driveFileId,
         backupStatus: backupStatus ?? this.backupStatus,
+        webBytes: webBytes,
       );
 
   Map<String, dynamic> toJson() => {
@@ -55,6 +62,7 @@ class Attachment {
         'localPath': localPath,
         'driveFileId': driveFileId,
         'backupStatus': backupStatus.name,
+        // webBytes intentionally excluded — too large for Firestore
       };
 
   factory Attachment.fromJson(Map<String, dynamic> j) => Attachment(
