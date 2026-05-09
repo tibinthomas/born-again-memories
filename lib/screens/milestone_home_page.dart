@@ -25,6 +25,7 @@ import '../widgets/empty_state.dart';
 import '../widgets/milestone_card.dart';
 import '../widgets/overview_chip.dart';
 import 'milestone_detail_page.dart';
+import 'reminders_screen.dart';
 import 'settings_screen.dart';
 
 // ── Home page ──────────────────────────────────────────────────────────────────
@@ -180,6 +181,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
             profileTheme: profileTheme,
             milestoneCount: allMilestones.length,
             hasMultipleProfiles: profiles.length > 1,
+            profileIndex: safeIndex,
             onSettings: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const SettingsScreen()),
@@ -478,6 +480,7 @@ class _ProfileHeader extends StatelessWidget {
   final ProfileTheme profileTheme;
   final int milestoneCount;
   final bool hasMultipleProfiles;
+  final int profileIndex;
   final VoidCallback onSettings;
   final VoidCallback onSwitchProfile;
 
@@ -486,6 +489,7 @@ class _ProfileHeader extends StatelessWidget {
     required this.profileTheme,
     required this.milestoneCount,
     required this.hasMultipleProfiles,
+    required this.profileIndex,
     required this.onSettings,
     required this.onSwitchProfile,
   });
@@ -573,6 +577,11 @@ class _ProfileHeader extends StatelessWidget {
                           else
                             const SizedBox(width: 48),
                           const Spacer(),
+                          // Reminders bell with badge
+                          _RemindersButton(
+                            profile: profile,
+                            profileIndex: profileIndex,
+                          ),
                           IconButton(
                             onPressed: onSettings,
                             icon: const Icon(Icons.settings_outlined,
@@ -676,6 +685,71 @@ class _SwitchProfileButton extends StatelessWidget {
             Text('Switch', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ── Reminders bell button ──────────────────────────────────────────────────────
+
+class _RemindersButton extends StatelessWidget {
+  final KidProfile profile;
+  final int profileIndex;
+
+  const _RemindersButton({required this.profile, required this.profileIndex});
+
+  @override
+  Widget build(BuildContext context) {
+    final upcoming = profile.reminders.where((r) => r.isUpcoming).length;
+    final overdue = profile.reminders.where((r) => r.isOverdue).length;
+    final badgeCount = upcoming + overdue;
+
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => RemindersScreen(profileIndex: profileIndex),
+        ),
+      ),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withAlpha(overdue > 0 ? 60 : 35),
+              border: Border.all(color: Colors.white.withAlpha(overdue > 0 ? 120 : 60)),
+            ),
+            child: Icon(
+              overdue > 0 ? Icons.alarm_outlined : Icons.notifications_outlined,
+              color: overdue > 0 ? Colors.orange.shade200 : Colors.white70,
+              size: 20,
+            ),
+          ),
+          if (badgeCount > 0)
+            Positioned(
+              top: -4,
+              right: -4,
+              child: Container(
+                padding: const EdgeInsets.all(3),
+                decoration: BoxDecoration(
+                  color: overdue > 0 ? Colors.orange.shade400 : Colors.white,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 1.5),
+                ),
+                child: Text(
+                  badgeCount > 9 ? '9+' : '$badgeCount',
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w800,
+                    color: overdue > 0 ? Colors.white : Colors.grey.shade800,
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'milestone.dart';
+import 'reminder.dart';
 
 enum Gender { boy, girl, neutral }
 
@@ -11,6 +12,7 @@ class KidProfile {
   final Gender gender;
   final String? backgroundImagePath; // device-local only, not synced to cloud
   final List<Milestone> milestones;
+  final List<Reminder> reminders;
 
   KidProfile({
     required this.id,
@@ -20,6 +22,7 @@ class KidProfile {
     this.gender = Gender.neutral,
     this.backgroundImagePath,
     this.milestones = const [],
+    this.reminders = const [],
   });
 
   String get ageText {
@@ -46,6 +49,7 @@ class KidProfile {
     String? backgroundImagePath,
     bool clearBackground = false,
     List<Milestone>? milestones,
+    List<Reminder>? reminders,
   }) =>
       KidProfile(
         id: id ?? this.id,
@@ -53,11 +57,13 @@ class KidProfile {
         dateOfBirth: dateOfBirth ?? this.dateOfBirth,
         color: color ?? this.color,
         gender: gender ?? this.gender,
-        backgroundImagePath: clearBackground ? null : (backgroundImagePath ?? this.backgroundImagePath),
+        backgroundImagePath:
+            clearBackground ? null : (backgroundImagePath ?? this.backgroundImagePath),
         milestones: milestones ?? this.milestones,
+        reminders: reminders ?? this.reminders,
       );
 
-  // milestones stored in subcollection; backgroundImagePath is device-local
+  // milestones + reminders stored in subcollections; backgroundImagePath is device-local
   Map<String, dynamic> toJson() => {
         'id': id,
         'name': name,

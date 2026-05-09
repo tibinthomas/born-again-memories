@@ -3,6 +3,7 @@ import '../models/app_settings.dart';
 import '../models/attachment.dart';
 import '../models/kid_profile.dart';
 import '../models/milestone.dart';
+import '../models/reminder.dart';
 
 class FirestoreService {
   static final _db = FirebaseFirestore.instance;
@@ -38,8 +39,11 @@ class FirestoreService {
     final profiles = <KidProfile>[];
     for (final doc in snap.docs) {
       final profile = KidProfile.fromJson(doc.data());
-      final milestones = await _loadMilestones(uid, profile.id);
-      profiles.add(profile.copyWith(milestones: milestones));
+      final (milestones, reminders) = await (
+        _loadMilestones(uid, profile.id),
+        _loadReminders(uid, profile.id),
+      ).wait;
+      profiles.add(profile.copyWith(milestones: milestones, reminders: reminders));
     }
     return profiles;
   }
@@ -51,6 +55,15 @@ class FirestoreService {
         .orderBy('date', descending: true)
         .get();
     return snap.docs.map((d) => Milestone.fromJson(d.data())).toList();
+  }
+
+  static Future<List<Reminder>> _loadReminders(
+      String uid, String profileId) async {
+    final snap = await _db
+        .collection('users/$uid/profiles/$profileId/reminders')
+        .orderBy('dateTime')
+        .get();
+    return snap.docs.map((d) => Reminder.fromJson(d.data())).toList();
   }
 
   static Future<void> saveProfile(String uid, KidProfile profile) =>
@@ -78,6 +91,20 @@ class FirestoreService {
           String uid, String profileId, String milestoneId) =>
       _db
           .doc('users/$uid/profiles/$profileId/milestones/$milestoneId')
+          .delete();
+
+  // ── Reminders ──────────────────────────────────────────────────────────────
+
+  static Future<void> saveReminder(
+          String uid, String profileId, Reminder reminder) =>
+      _db
+          .doc('users/$uid/profiles/$profileId/reminders/${reminder.id}')
+          .set(reminder.toJson());
+
+  static Future<void> deleteReminder(
+          String uid, String profileId, String reminderId) =>
+      _db
+          .doc('users/$uid/profiles/$profileId/reminders/$reminderId')
           .delete();
 
   // Atomic partial update — no full doc read required because attachments are

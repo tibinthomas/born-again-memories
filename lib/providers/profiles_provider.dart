@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/attachment.dart';
 import '../models/kid_profile.dart';
 import '../models/milestone.dart';
+import '../models/reminder.dart';
 import '../services/firestore_service.dart';
+import '../services/notification_service.dart';
 import 'auth_provider.dart';
 import '../utils/profile_theme.dart';
 
@@ -80,6 +82,50 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>?> {
         profile.milestones.where((m) => m.id != milestoneId).toList();
     _setProfile(profileIndex, profile.copyWith(milestones: milestones));
     await FirestoreService.deleteMilestone(uid, profile.id, milestoneId);
+  }
+
+  // ── Reminders ────────────────────────────────────────────────────────────
+
+  Future<void> addReminder(int profileIndex, Reminder reminder) async {
+    final profile = (state ?? <KidProfile>[])[profileIndex];
+    final updated = profile.copyWith(reminders: [...profile.reminders, reminder]);
+    _setProfile(profileIndex, updated);
+    await FirestoreService.saveReminder(uid, profile.id, reminder);
+    await NotificationService.scheduleReminder(reminder, profile.name);
+  }
+
+  Future<void> updateReminder(int profileIndex, Reminder reminder) async {
+    final profile = (state ?? <KidProfile>[])[profileIndex];
+    final reminders = profile.reminders
+        .map((r) => r.id == reminder.id ? reminder : r)
+        .toList();
+    _setProfile(profileIndex, profile.copyWith(reminders: reminders));
+    await FirestoreService.saveReminder(uid, profile.id, reminder);
+    await NotificationService.cancelReminder(reminder.id);
+    await NotificationService.scheduleReminder(reminder, profile.name);
+  }
+
+  Future<void> deleteReminder(int profileIndex, String reminderId) async {
+    final profile = (state ?? <KidProfile>[])[profileIndex];
+    final reminders = profile.reminders.where((r) => r.id != reminderId).toList();
+    _setProfile(profileIndex, profile.copyWith(reminders: reminders));
+    await FirestoreService.deleteReminder(uid, profile.id, reminderId);
+    await NotificationService.cancelReminder(reminderId);
+  }
+
+  Future<void> markReminderDone(int profileIndex, String reminderId, bool done) async {
+    final profile = (state ?? <KidProfile>[])[profileIndex];
+    final reminders = profile.reminders
+        .map((r) => r.id == reminderId ? r.copyWith(isDone: done) : r)
+        .toList();
+    _setProfile(profileIndex, profile.copyWith(reminders: reminders));
+    final reminder = reminders.firstWhere((r) => r.id == reminderId);
+    await FirestoreService.saveReminder(uid, profile.id, reminder);
+    if (done) {
+      await NotificationService.cancelReminder(reminderId);
+    } else {
+      await NotificationService.scheduleReminder(reminder, profile.name);
+    }
   }
 
   void _setProfile(int index, KidProfile profile) {
