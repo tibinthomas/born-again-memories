@@ -5,8 +5,15 @@ import 'attachment_preview.dart';
 
 class MilestoneCard extends StatelessWidget {
   final Milestone milestone;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
-  const MilestoneCard({super.key, required this.milestone});
+  const MilestoneCard({
+    super.key,
+    required this.milestone,
+    this.onEdit,
+    this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -31,9 +38,35 @@ class MilestoneCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  milestone.title,
-                  style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        milestone.title,
+                        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    if (onEdit != null || onDelete != null)
+                      PopupMenuButton<String>(
+                        icon: Icon(Icons.more_vert, size: 18, color: Colors.grey.shade500),
+                        padding: EdgeInsets.zero,
+                        itemBuilder: (_) => [
+                          if (onEdit != null)
+                            const PopupMenuItem(value: 'edit', child: Row(
+                              children: [Icon(Icons.edit_outlined, size: 18), SizedBox(width: 10), Text('Edit')],
+                            )),
+                          if (onDelete != null)
+                            const PopupMenuItem(value: 'delete', child: Row(
+                              children: [Icon(Icons.delete_outline, size: 18, color: Colors.red), SizedBox(width: 10), Text('Delete', style: TextStyle(color: Colors.red))],
+                            )),
+                        ],
+                        onSelected: (v) {
+                          if (v == 'edit') onEdit?.call();
+                          if (v == 'delete') onDelete?.call();
+                        },
+                      ),
+                  ],
                 ),
                 const SizedBox(height: 6),
                 Text(

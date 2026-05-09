@@ -49,6 +49,43 @@ class MilestoneHomePage extends ConsumerWidget {
     );
   }
 
+  void _showEditMilestoneSheet(BuildContext context, Milestone milestone) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (_) => _AddMilestoneSheet(initialMilestone: milestone),
+    );
+  }
+
+  void _confirmDeleteMilestone(
+      BuildContext context, WidgetRef ref, int profileIndex, Milestone milestone) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete memory?'),
+        content: Text('Delete "${milestone.title}"? This cannot be undone.'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel')),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              ref
+                  .read(profilesProvider.notifier)
+                  .deleteMilestone(profileIndex, milestone.id);
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Initialise backup sync as soon as the home page is shown
@@ -322,8 +359,11 @@ class MilestoneHomePage extends ConsumerWidget {
                                 padding: const EdgeInsets.only(bottom: 24),
                                 itemCount: milestones.length,
                                 itemBuilder: (context, index) {
+                                  final milestone = milestones[index];
                                   return MilestoneCard(
-                                    milestone: milestones[index],
+                                    milestone: milestone,
+                                    onEdit: () => _showEditMilestoneSheet(context, milestone),
+                                    onDelete: () => _confirmDeleteMilestone(context, ref, safeIndex, milestone),
                                   );
                                 },
                               ),
@@ -480,7 +520,8 @@ class _AddProfileSheetState extends ConsumerState<_AddProfileSheet> {
 // ── Add-milestone sheet ────────────────────────────────────────────────────────
 
 class _AddMilestoneSheet extends ConsumerStatefulWidget {
-  const _AddMilestoneSheet();
+  final Milestone? initialMilestone;
+  const _AddMilestoneSheet({this.initialMilestone});
 
   @override
   ConsumerState<_AddMilestoneSheet> createState() => _AddMilestoneSheetState();
@@ -490,10 +531,31 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
   final _titleController = TextEditingController();
   final _descController = TextEditingController();
   final _picker = ImagePicker();
-  // label controller per attachment id
   final _labelControllers = <String, TextEditingController>{};
   String? _titleError;
   String? _descError;
+  // IDs of attachments that existed before editing (don't re-copy to storage)
+  Set<String> _existingAttachmentIds = {};
+
+  bool get _isEditing => widget.initialMilestone != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final initial = widget.initialMilestone;
+    if (initial == null) return;
+    _titleController.text = initial.title;
+    _descController.text = initial.description;
+    _existingAttachmentIds = {for (final a in initial.attachments) a.id};
+    for (final a in initial.attachments) {
+      _labelControllers[a.id] = TextEditingController(text: a.label ?? '');
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(addMilestoneFormProvider.notifier)
+          .initialize(initial.date, initial.attachments);
+    });
+  }
 
   @override
   void dispose() {
@@ -612,10 +674,10 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'Record a milestone',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    _isEditing ? 'Edit memory' : 'Record a milestone',
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                 ),
                 GestureDetector(
@@ -911,42 +973,63 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
 
                 final profileIndex = ref.read(selectedProfileIndexProvider);
                 final profile = (ref.read(profilesProvider) ?? [])[profileIndex];
-                final milestoneId = DateTime.now().microsecondsSinceEpoch.toString();
 
                 final saved = <Attachment>[];
                 for (final a in form.attachments) {
                   final labelText = _labelControllers[a.id]?.text.trim();
-                  try {
-                    final filename =
-                        '${a.id}_${a.name.replaceAll(RegExp(r'[^\w.]'), '_')}';
-                    final permanentPath =
-                        await LocalStorageService.copyToAppStorage(a.localPath, filename);
-                    saved.add(Attachment(
-                      id: a.id,
-                      name: a.name,
-                      label: labelText?.isEmpty == true ? null : labelText,
-                      type: a.type,
-                      sizeBytes: a.sizeBytes,
-                      localPath: permanentPath,
-                      backupStatus: BackupStatus.queued,
-                    ));
-                  } catch (_) {
-                    saved.add(a.copyWith(label: labelText?.isEmpty == true ? null : labelText));
+                  final label = labelText?.isEmpty == true ? null : labelText;
+                  if (_existingAttachmentIds.contains(a.id)) {
+                    // Pre-existing attachment — keep path and backup status, just update label
+                    saved.add(a.copyWith(label: label));
+                  } else {
+                    // New attachment — copy to permanent storage
+                    try {
+                      final filename =
+                          '${a.id}_${a.name.replaceAll(RegExp(r'[^\w.]'), '_')}';
+                      final permanentPath =
+                          await LocalStorageService.copyToAppStorage(a.localPath, filename);
+                      saved.add(Attachment(
+                        id: a.id,
+                        name: a.name,
+                        label: label,
+                        type: a.type,
+                        sizeBytes: a.sizeBytes,
+                        localPath: permanentPath,
+                        backupStatus: BackupStatus.queued,
+                      ));
+                    } catch (_) {
+                      saved.add(a.copyWith(label: label));
+                    }
                   }
                 }
 
-                final existingCount = profile.milestones.length;
-                await ref.read(profilesProvider.notifier).prependMilestone(
-                      profileIndex,
-                      Milestone(
-                        id: milestoneId,
-                        title: title,
-                        description: desc,
-                        date: form.date,
-                        color: Colors.primaries[existingCount % Colors.primaries.length].shade300,
-                        attachments: saved,
-                      ),
-                    );
+                if (_isEditing) {
+                  final original = widget.initialMilestone!;
+                  await ref.read(profilesProvider.notifier).updateMilestone(
+                        profileIndex,
+                        Milestone(
+                          id: original.id,
+                          title: title,
+                          description: desc,
+                          date: form.date,
+                          color: original.color,
+                          attachments: saved,
+                        ),
+                      );
+                } else {
+                  final existingCount = profile.milestones.length;
+                  await ref.read(profilesProvider.notifier).prependMilestone(
+                        profileIndex,
+                        Milestone(
+                          id: DateTime.now().microsecondsSinceEpoch.toString(),
+                          title: title,
+                          description: desc,
+                          date: form.date,
+                          color: Colors.primaries[existingCount % Colors.primaries.length].shade300,
+                          attachments: saved,
+                        ),
+                      );
+                }
                 ref.read(backupSyncProvider.notifier).syncNow();
                 return true;
               },

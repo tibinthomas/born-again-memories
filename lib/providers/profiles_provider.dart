@@ -49,6 +49,25 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>?> {
     await FirestoreService.saveMilestone(uid, profile.id, milestone);
   }
 
+  Future<void> updateMilestone(int profileIndex, Milestone milestone) async {
+    final list = state ?? <KidProfile>[];
+    final profile = list[profileIndex];
+    final milestones = profile.milestones
+        .map((m) => m.id == milestone.id ? milestone : m)
+        .toList();
+    _setProfile(profileIndex, profile.copyWith(milestones: milestones));
+    await FirestoreService.saveMilestone(uid, profile.id, milestone);
+  }
+
+  Future<void> deleteMilestone(int profileIndex, String milestoneId) async {
+    final list = state ?? <KidProfile>[];
+    final profile = list[profileIndex];
+    final milestones =
+        profile.milestones.where((m) => m.id != milestoneId).toList();
+    _setProfile(profileIndex, profile.copyWith(milestones: milestones));
+    await FirestoreService.deleteMilestone(uid, profile.id, milestoneId);
+  }
+
   void _setProfile(int index, KidProfile profile) {
     final list = <KidProfile>[...(state ?? [])];
     list[index] = profile;

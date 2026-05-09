@@ -27,6 +27,9 @@ class AddMilestoneFormNotifier extends StateNotifier<AddMilestoneFormState> {
           attachments: [],
         ));
 
+  void initialize(DateTime date, List<Attachment> attachments) =>
+      state = AddMilestoneFormState(date: date, attachments: attachments);
+
   void setDate(DateTime date) => state = state.copyWith(date: date);
 
   void addAttachment(Attachment attachment) =>
