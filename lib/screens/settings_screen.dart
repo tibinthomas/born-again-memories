@@ -8,8 +8,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/app_settings_provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/backup_provider.dart';
+import '../providers/profiles_provider.dart';
 import '../providers/sharing_provider.dart';
 import '../utils/chime.dart';
+import '../utils/profile_theme.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -50,6 +52,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final sync = ref.watch(backupSyncProvider);
     final stats = ref.watch(backupStatsProvider);
     final emails = ref.watch(sharedEmailsProvider);
+    final profiles = ref.watch(profilesProvider) ?? [];
 
     return Scaffold(
       appBar: AppBar(
@@ -134,6 +137,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           // ── Share Memories With ───────────────────────────────────
           _label('Share Memories With'),
           _card([_sharingContent(theme, emails)]),
+
+          // ── Profiles ──────────────────────────────────────────────
+          _label('Profiles'),
+          _card([_profilesContent(theme, profiles)]),
 
           // ── Account ───────────────────────────────────────────────
           _label('Account'),
@@ -483,6 +490,127 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             child: const Text('Add'),
           ),
         ],
+      ),
+    );
+  }
+
+  // ── Profiles ───────────────────────────────────────────────────────────────
+
+  Widget _profilesContent(ThemeData theme, profiles) {
+    if (profiles.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.all(16),
+        child: Text('No profiles yet.',
+            style: TextStyle(fontSize: 13, color: Colors.grey.shade500)),
+      );
+    }
+    return Column(
+      children: [
+        for (int i = 0; i < profiles.length; i++) ...[
+          if (i > 0) _divider(),
+          ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            leading: Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: ProfileTheme.forProfile(profiles[i]).soft,
+              ),
+              child: Center(
+                child: Text(
+                  ProfileTheme.forProfile(profiles[i]).decalEmoji,
+                  style: const TextStyle(fontSize: 18),
+                ),
+              ),
+            ),
+            title: Text(profiles[i].name,
+                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+            subtitle: Text(profiles[i].ageText,
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+            trailing: IconButton(
+              icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+              tooltip: 'Delete profile',
+              onPressed: () => _confirmDeleteProfile(theme, profiles[i].name, i),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  void _confirmDeleteProfile(ThemeData theme, String profileName, int index) {
+    final ctrl = TextEditingController();
+    bool confirmed = false;
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Text('Delete profile?'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              RichText(
+                text: TextSpan(
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade800, height: 1.4),
+                  children: [
+                    const TextSpan(text: 'This will permanently delete '),
+                    TextSpan(
+                      text: profileName,
+                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+                    ),
+                    const TextSpan(text: ' and all their milestones. This cannot be undone.'),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Type the name to confirm:',
+                style: TextStyle(fontSize: 13, color: Colors.grey.shade600, fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: ctrl,
+                autofocus: true,
+                onChanged: (v) => setState(() => confirmed = v.trim() == profileName),
+                decoration: InputDecoration(
+                  hintText: profileName,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Colors.red, width: 1.5),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: confirmed
+                  ? () {
+                      Navigator.pop(ctx);
+                      final currentIndex = ref.read(selectedProfileIndexProvider);
+                      ref.read(profilesProvider.notifier).deleteProfile(index);
+                      // Adjust selection if deleted profile was selected
+                      final remaining = (ref.read(profilesProvider)?.length ?? 0);
+                      if (remaining > 0) {
+                        ref.read(selectedProfileIndexProvider.notifier).state =
+                            currentIndex.clamp(0, remaining - 1);
+                      }
+                    }
+                  : null,
+              style: FilledButton.styleFrom(backgroundColor: Colors.red),
+              child: const Text('Delete permanently'),
+            ),
+          ],
+        ),
       ),
     );
   }

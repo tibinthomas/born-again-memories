@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 import '../models/attachment.dart';
+import '../models/kid_profile.dart';
 import '../models/milestone.dart';
 import '../providers/app_settings_provider.dart';
 import '../providers/backup_provider.dart';
@@ -18,6 +19,7 @@ import '../services/local_storage_service.dart';
 import '../utils/attachment_helper.dart';
 import '../utils/chime.dart';
 import '../utils/date_formatter.dart';
+import '../utils/profile_theme.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/milestone_card.dart';
 import '../widgets/overview_chip.dart';
@@ -30,8 +32,9 @@ class MilestoneHomePage extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (_) => const _AddProfileSheet(),
     );
@@ -66,6 +69,7 @@ class MilestoneHomePage extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('Delete memory?'),
         content: Text('Delete "${milestone.title}"? This cannot be undone.'),
         actions: [
@@ -75,9 +79,7 @@ class MilestoneHomePage extends ConsumerWidget {
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
-              ref
-                  .read(profilesProvider.notifier)
-                  .deleteMilestone(profileIndex, milestone.id);
+              ref.read(profilesProvider.notifier).deleteMilestone(profileIndex, milestone.id);
             },
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
@@ -88,221 +90,342 @@ class MilestoneHomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Initialise backup sync as soon as the home page is shown
     ref.watch(backupSyncProvider);
 
-    final theme = Theme.of(context);
     final profilesAsync = ref.watch(profilesProvider);
-
     if (profilesAsync == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     final profiles = profilesAsync;
-
     if (profiles.isEmpty) {
-      return Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.child_care, size: 64, color: theme.colorScheme.primary),
-              const SizedBox(height: 16),
-              const Text('No profiles yet',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              const Text('Add your first kid profile to get started.',
-                  style: TextStyle(color: Colors.grey)),
-              const SizedBox(height: 24),
-              FilledButton.icon(
-                onPressed: () => _showAddProfileSheet(context),
-                icon: const Icon(Icons.person_add),
-                label: const Text('Add profile'),
-              ),
-            ],
-          ),
-        ),
-      );
+      return _EmptyProfilesScreen(onAdd: () => _showAddProfileSheet(context));
     }
 
     final selectedIndex = ref.watch(selectedProfileIndexProvider);
     final safeIndex = selectedIndex.clamp(0, profiles.length - 1);
     final currentProfile = profiles[safeIndex];
     final milestones = currentProfile.milestones;
-
-    final gradient = LinearGradient(
-      colors: [theme.colorScheme.primary, theme.colorScheme.secondary],
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-    );
+    final profileTheme = ProfileTheme.forProfile(currentProfile);
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.surface,
+      backgroundColor: const Color(0xFFFAF8F5),
+      body: Column(
+        children: [
+          // ── Hero header ──────────────────────────────
+          _ProfileHeader(
+            profile: currentProfile,
+            profileTheme: profileTheme,
+            milestoneCount: milestones.length,
+            onSettings: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const SettingsScreen()),
+            ),
+            onAddProfile: () => _showAddProfileSheet(context),
+          ),
+
+          // ── Profile switcher ─────────────────────────
+          if (profiles.length > 1)
+            _ProfileSwitcher(
+              profiles: profiles,
+              selectedIndex: safeIndex,
+              onSelect: (i) =>
+                  ref.read(selectedProfileIndexProvider.notifier).state = i,
+            ),
+
+          // ── Milestones list ──────────────────────────
+          Expanded(
+            child: Container(
+              color: const Color(0xFFFAF8F5),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 20, 16, 4),
+                    child: Row(
+                      children: [
+                        Text(
+                          '${profileTheme.decalEmoji}  Precious moments',
+                          style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF2D2D2D),
+                          ),
+                        ),
+                        const Spacer(),
+                        TextButton.icon(
+                          onPressed: () => _showAddMilestoneSheet(context),
+                          icon: Icon(Icons.add_circle, color: profileTheme.accent, size: 20),
+                          label: Text(
+                            'Add',
+                            style: TextStyle(color: profileTheme.accent, fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: milestones.isEmpty
+                        ? EmptyState(theme: Theme.of(context), gender: currentProfile.gender)
+                        : ListView.builder(
+                            padding: const EdgeInsets.fromLTRB(20, 4, 20, 100),
+                            itemCount: milestones.length,
+                            itemBuilder: (context, index) {
+                              final milestone = milestones[index];
+                              return MilestoneCard(
+                                milestone: milestone,
+                                gender: currentProfile.gender,
+                                isFirst: index == 0,
+                                isLast: index == milestones.length - 1,
+                                onEdit: () => _showEditMilestoneSheet(context, milestone),
+                                onDelete: () => _confirmDeleteMilestone(
+                                    context, ref, safeIndex, milestone),
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showAddMilestoneSheet(context),
+        backgroundColor: profileTheme.accent,
+        icon: const Icon(Icons.auto_awesome, color: Colors.white),
+        label: const Text('New memory', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+        elevation: 4,
+      ),
+    );
+  }
+}
+
+// ── Empty profiles screen ──────────────────────────────────────────────────────
+
+class _EmptyProfilesScreen extends StatelessWidget {
+  final VoidCallback onAdd;
+  const _EmptyProfilesScreen({required this.onAdd});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFFFF8F0),
       body: SafeArea(
-        child: Column(
-          children: [
-            Stack(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  height: 280,
+                  width: 100,
+                  height: 100,
                   decoration: BoxDecoration(
-                    gradient: gradient,
-                    borderRadius: const BorderRadius.only(
-                      bottomLeft: Radius.circular(36),
-                      bottomRight: Radius.circular(36),
+                    color: const Color(0xFFFFEDD5),
+                    shape: BoxShape.circle,
+                    boxShadow: [BoxShadow(color: Colors.orange.withAlpha(60), blurRadius: 20, spreadRadius: 4)],
+                  ),
+                  child: const Icon(Icons.child_care, size: 52, color: Color(0xFFFFB347)),
+                ),
+                const SizedBox(height: 28),
+                const Text(
+                  'Start your journey',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF2D2D2D)),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'Add your first little one and begin capturing those priceless moments.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 15, color: Colors.grey.shade600, height: 1.5),
+                ),
+                const SizedBox(height: 32),
+                FilledButton.icon(
+                  onPressed: onAdd,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFFFFB347),
+                    padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  ),
+                  icon: const Icon(Icons.person_add, color: Colors.white),
+                  label: const Text('Add first profile',
+                      style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600)),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Profile header ─────────────────────────────────────────────────────────────
+
+class _ProfileHeader extends StatelessWidget {
+  final KidProfile profile;
+  final ProfileTheme profileTheme;
+  final int milestoneCount;
+  final VoidCallback onSettings;
+  final VoidCallback onAddProfile;
+
+  const _ProfileHeader({
+    required this.profile,
+    required this.profileTheme,
+    required this.milestoneCount,
+    required this.onSettings,
+    required this.onAddProfile,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hasBackground = !kIsWeb &&
+        profile.backgroundImagePath != null &&
+        profile.backgroundImagePath!.isNotEmpty &&
+        File(profile.backgroundImagePath!).existsSync();
+
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 400),
+      child: ClipRRect(
+        key: ValueKey(profile.id + (profile.backgroundImagePath ?? '')),
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(36),
+          bottomRight: Radius.circular(36),
+        ),
+        child: Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            gradient: hasBackground ? null : profileTheme.headerGradient,
+            image: hasBackground
+                ? DecorationImage(
+                    image: FileImage(File(profile.backgroundImagePath!)),
+                    fit: BoxFit.cover,
+                  )
+                : null,
+          ),
+          child: Stack(
+            children: [
+              // Gradient overlay for legibility
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withAlpha(hasBackground ? 100 : 20),
+                        Colors.black.withAlpha(hasBackground ? 160 : 50),
+                      ],
                     ),
                   ),
                 ),
-                Positioned(
-                  right: -40,
-                  top: 20,
-                  child: Container(
-                    height: 120,
-                    width: 120,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withAlpha(38),
-                      shape: BoxShape.circle,
-                    ),
+              ),
+              // Decorative bubbles
+              Positioned(
+                right: -30,
+                top: 10,
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withAlpha(20),
                   ),
                 ),
-                Positioned(
-                  left: -30,
-                  top: 70,
-                  child: Container(
-                    height: 90,
-                    width: 90,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withAlpha(38),
-                      shape: BoxShape.circle,
-                    ),
+              ),
+              Positioned(
+                left: -20,
+                top: 60,
+                child: Container(
+                  width: 70,
+                  height: 70,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withAlpha(15),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+              ),
+              // Content — determines the height of the whole header
+              SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 12, 20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Top row: action buttons
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          Expanded(
-                            child: Row(
-                              children: [
-                                CircleAvatar(
-                                  backgroundColor: Colors.white,
-                                  radius: 26,
-                                  child: Icon(
-                                    Icons.child_care,
-                                    color: currentProfile.color,
-                                    size: 32,
-                                  ),
-                                ),
-                                const SizedBox(width: 14),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        currentProfile.name,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 22,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        'Age: ${currentProfile.ageText}',
-                                        style: const TextStyle(
-                                          color: Colors.white70,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
+                          IconButton(
+                            onPressed: onAddProfile,
+                            icon: const Icon(Icons.person_add_outlined, color: Colors.white70, size: 22),
+                            tooltip: 'Add profile',
                           ),
                           IconButton(
-                            onPressed: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => const SettingsScreen()),
-                            ),
-                            icon: const Icon(Icons.settings, color: Colors.white70),
+                            onPressed: onSettings,
+                            icon: const Icon(Icons.settings_outlined, color: Colors.white70, size: 22),
                             tooltip: 'Settings',
                           ),
                         ],
                       ),
-                      const SizedBox(height: 24),
-                      if (profiles.length > 1) ...[
-                        const Text(
-                          'Switch profile',
-                          style: TextStyle(color: Colors.white70, fontSize: 12),
-                        ),
-                        const SizedBox(height: 8),
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: List.generate(profiles.length, (index) {
-                              final profile = profiles[index];
-                              final isSelected = index == selectedIndex;
-                              return GestureDetector(
-                                onTap: () => ref
-                                    .read(selectedProfileIndexProvider.notifier)
-                                    .state = index,
-                                child: Container(
-                                  margin: const EdgeInsets.only(right: 10),
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? Colors.white
-                                        : Colors.white.withAlpha(38),
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Container(
-                                        height: 32,
-                                        width: 32,
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: profile.color,
-                                        ),
-                                        child: Center(
-                                          child: Text(
-                                            profile.name[0],
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        profile.name,
-                                        style: TextStyle(
-                                          color: isSelected
-                                              ? Colors.grey.shade900
-                                              : Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                      const SizedBox(height: 4),
+                      // Profile info — centered
+                      Center(
+                        child: Column(
+                          children: [
+                            Container(
+                              width: 70,
+                              height: 70,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white.withAlpha(30),
+                                border: Border.all(color: Colors.white, width: 2.5),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  profileTheme.decalEmoji,
+                                  style: const TextStyle(fontSize: 32),
                                 ),
-                              );
-                            }),
-                          ),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              profile.name,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 22,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.3,
+                                shadows: [Shadow(color: Colors.black45, blurRadius: 4)],
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withAlpha(40),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                profile.ageText,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 24),
-                      ],
+                      ),
+                      const SizedBox(height: 16),
+                      // Overview chips
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           OverviewChip(
                             label: 'Milestones',
-                            value: milestones.length.toString(),
+                            value: milestoneCount.toString(),
                             icon: Icons.flag,
                           ),
                           const SizedBox(width: 12),
@@ -316,82 +439,72 @@ class MilestoneHomePage extends ConsumerWidget {
                     ],
                   ),
                 ),
-              ],
-            ),
-            Expanded(
-              child: Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surface,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(36),
-                    topRight: Radius.circular(36),
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const Expanded(
-                            child: Text(
-                              'Your precious moments',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          IconButton(
-                            onPressed: () => _showAddMilestoneSheet(context),
-                            icon: const Icon(Icons.add_circle_outline),
-                            color: theme.colorScheme.primary,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Expanded(
-                        child: milestones.isEmpty
-                            ? EmptyState(theme: theme)
-                            : ListView.builder(
-                                padding: const EdgeInsets.only(bottom: 24),
-                                itemCount: milestones.length,
-                                itemBuilder: (context, index) {
-                                  final milestone = milestones[index];
-                                  return MilestoneCard(
-                                    milestone: milestone,
-                                    onEdit: () => _showEditMilestoneSheet(context, milestone),
-                                    onDelete: () => _confirmDeleteMilestone(context, ref, safeIndex, milestone),
-                                  );
-                                },
-                              ),
-                      ),
-                    ],
-                  ),
-                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-      floatingActionButton: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          FloatingActionButton(
-            onPressed: () => _showAddProfileSheet(context),
-            mini: true,
-            tooltip: 'Add kid profile',
-            child: const Icon(Icons.person_add),
-          ),
-          const SizedBox(height: 12),
-          FloatingActionButton.extended(
-            onPressed: () => _showAddMilestoneSheet(context),
-            icon: const Icon(Icons.add),
-            label: const Text('Add milestone'),
-          ),
-        ],
+    );
+  }
+}
+
+// ── Profile switcher ───────────────────────────────────────────────────────────
+
+class _ProfileSwitcher extends StatelessWidget {
+  final List<KidProfile> profiles;
+  final int selectedIndex;
+  final ValueChanged<int> onSelect;
+
+  const _ProfileSwitcher({
+    required this.profiles,
+    required this.selectedIndex,
+    required this.onSelect,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 60,
+      color: Colors.white,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        itemCount: profiles.length,
+        separatorBuilder: (_, _i) => const SizedBox(width: 8),
+        itemBuilder: (_, i) {
+          final profile = profiles[i];
+          final isSelected = i == selectedIndex;
+          final pTheme = ProfileTheme.forProfile(profile);
+          return GestureDetector(
+            onTap: () => onSelect(i),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              decoration: BoxDecoration(
+                color: isSelected ? pTheme.accent : pTheme.soft,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isSelected ? pTheme.accent : pTheme.accent.withAlpha(60),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(pTheme.decalEmoji, style: const TextStyle(fontSize: 14)),
+                  const SizedBox(width: 6),
+                  Text(
+                    profile.name,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                      color: isSelected ? Colors.white : pTheme.accent,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -408,6 +521,7 @@ class _AddProfileSheet extends ConsumerStatefulWidget {
 
 class _AddProfileSheetState extends ConsumerState<_AddProfileSheet> {
   final _nameController = TextEditingController();
+  final _picker = ImagePicker();
 
   @override
   void dispose() {
@@ -415,9 +529,28 @@ class _AddProfileSheetState extends ConsumerState<_AddProfileSheet> {
     super.dispose();
   }
 
+  Future<void> _pickBackground() async {
+    if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
+      final file = await _picker.pickImage(source: ImageSource.gallery);
+      if (file != null) {
+        ref.read(addProfileFormProvider.notifier).setBackgroundImagePath(file.path);
+      }
+    } else if (!kIsWeb) {
+      final result = await FilePicker.platform.pickFiles(type: FileType.image);
+      if (result?.files.first.path != null) {
+        ref.read(addProfileFormProvider.notifier)
+            .setBackgroundImagePath(result!.files.first.path!);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final form = ref.watch(addProfileFormProvider);
+    final pTheme = ProfileTheme.forGender(form.gender);
+    final hasBackground = !kIsWeb &&
+        form.backgroundImagePath != null &&
+        form.backgroundImagePath!.isNotEmpty;
 
     return Padding(
       padding: EdgeInsets.only(
@@ -426,92 +559,215 @@ class _AddProfileSheetState extends ConsumerState<_AddProfileSheet> {
         top: 16,
         bottom: MediaQuery.of(context).viewInsets.bottom + 24,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            margin: const EdgeInsets.only(bottom: 18),
-            height: 4,
-            width: 48,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade300,
-              borderRadius: BorderRadius.circular(16),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Drag handle
+            Center(
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                height: 4,
+                width: 44,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
             ),
-          ),
-          const Text(
-            'Add a new kid',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _nameController,
-            decoration: const InputDecoration(
-              labelText: 'Baby\'s name',
-              border: OutlineInputBorder(),
+
+            const Text(
+              'New little one',
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF2D2D2D)),
             ),
-          ),
-          const SizedBox(height: 12),
-          OutlinedButton(
-            onPressed: () async {
-              final picked = await showDatePicker(
-                context: context,
-                initialDate: form.dob,
-                firstDate: DateTime.now().subtract(const Duration(days: 365)),
-                lastDate: DateTime.now(),
-              );
-              if (picked != null) {
-                ref.read(addProfileFormProvider.notifier).setDob(picked);
-              }
-            },
-            child: Text('DOB: ${formatDate(form.dob)}'),
-          ),
-          const SizedBox(height: 12),
-          const Text('Profile color'),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: Colors.primaries.take(6).map((color) {
-              return GestureDetector(
-                onTap: () => ref.read(addProfileFormProvider.notifier).setColor(color),
+            const SizedBox(height: 4),
+            Text(
+              'Tell us about your baby.',
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+            ),
+            const SizedBox(height: 20),
+
+            // Gender selector
+            const Text('Gender', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+            const SizedBox(height: 8),
+            Row(
+              children: Gender.values.map((g) {
+                final gTheme = ProfileTheme.forGender(g);
+                final isSelected = form.gender == g;
+                final label = switch (g) {
+                  Gender.boy => '🚀 Boy',
+                  Gender.girl => '🌸 Girl',
+                  Gender.neutral => '⭐ Surprise',
+                };
+                return Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: GestureDetector(
+                      onTap: () => ref.read(addProfileFormProvider.notifier).setGender(g),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: isSelected ? gTheme.accent : gTheme.soft,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: isSelected ? gTheme.accent : gTheme.accent.withAlpha(60),
+                            width: isSelected ? 2 : 1,
+                          ),
+                        ),
+                        child: Text(
+                          label,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                            color: isSelected ? Colors.white : gTheme.accent,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 16),
+
+            // Name
+            TextField(
+              controller: _nameController,
+              textCapitalization: TextCapitalization.words,
+              decoration: InputDecoration(
+                labelText: "Baby's name",
+                prefixIcon: Icon(Icons.badge_outlined, color: pTheme.accent),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide(color: pTheme.accent, width: 1.5),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // DOB
+            OutlinedButton.icon(
+              onPressed: () async {
+                final picked = await showDatePicker(
+                  context: context,
+                  initialDate: form.dob,
+                  firstDate: DateTime.now().subtract(const Duration(days: 365 * 10)),
+                  lastDate: DateTime.now(),
+                );
+                if (picked != null) {
+                  ref.read(addProfileFormProvider.notifier).setDob(picked);
+                }
+              },
+              icon: Icon(Icons.cake_outlined, color: pTheme.accent),
+              label: Text(
+                'Birthday: ${formatDate(form.dob)}',
+                style: TextStyle(color: pTheme.accent, fontWeight: FontWeight.w500),
+              ),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                side: BorderSide(color: pTheme.accent.withAlpha(120)),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Background image picker (not on web)
+            if (!kIsWeb) ...[
+              Row(
+                children: [
+                  const Text('Background photo', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                  const Spacer(),
+                  if (hasBackground)
+                    TextButton(
+                      onPressed: () => ref.read(addProfileFormProvider.notifier)
+                          .setBackgroundImagePath(null),
+                      child: Text('Remove', style: TextStyle(color: Colors.red.shade400, fontSize: 12)),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              GestureDetector(
+                onTap: _pickBackground,
                 child: Container(
-                  height: 50,
-                  width: 50,
+                  height: 90,
                   decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: color,
-                    border: Border.all(
-                      color: form.color == color ? Colors.black : Colors.transparent,
-                      width: 3,
+                    color: pTheme.soft,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: pTheme.accent.withAlpha(80), width: 1.5),
+                    image: hasBackground
+                        ? DecorationImage(
+                            image: FileImage(File(form.backgroundImagePath!)),
+                            fit: BoxFit.cover,
+                            colorFilter: ColorFilter.mode(
+                              Colors.black.withAlpha(30),
+                              BlendMode.darken,
+                            ),
+                          )
+                        : null,
+                  ),
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          hasBackground ? Icons.check_circle : Icons.add_photo_alternate_outlined,
+                          color: hasBackground ? Colors.white : pTheme.accent,
+                          size: 28,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          hasBackground ? 'Photo selected — tap to change' : 'Tap to pick a photo',
+                          style: TextStyle(
+                            color: hasBackground ? Colors.white : pTheme.accent,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () {
-              final name = _nameController.text.trim();
-              if (name.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Please enter your baby\'s name.')),
+              ),
+              const SizedBox(height: 16),
+            ],
+
+            // Create button
+            FilledButton(
+              onPressed: () {
+                final name = _nameController.text.trim();
+                if (name.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Please enter your baby's name.")),
+                  );
+                  return;
+                }
+                ref.read(profilesProvider.notifier).addProfile(
+                  name,
+                  form.dob,
+                  form.color,
+                  gender: form.gender,
+                  backgroundImagePath: form.backgroundImagePath,
                 );
-                return;
-              }
-              ref.read(profilesProvider.notifier).addProfile(name, form.dob, form.color);
-              ref.read(selectedProfileIndexProvider.notifier).state =
-                  (ref.read(profilesProvider)?.length ?? 1) - 1;
-              Navigator.of(context).pop();
-            },
-            style: ElevatedButton.styleFrom(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              padding: const EdgeInsets.symmetric(vertical: 16),
+                ref.read(selectedProfileIndexProvider.notifier).state =
+                    (ref.read(profilesProvider)?.length ?? 1) - 1;
+                Navigator.of(context).pop();
+              },
+              style: FilledButton.styleFrom(
+                backgroundColor: pTheme.accent,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+              child: const Text(
+                'Create profile',
+                style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
+              ),
             ),
-            child: const Text('Create profile'),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -534,7 +790,6 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
   final _labelControllers = <String, TextEditingController>{};
   String? _titleError;
   String? _descError;
-  // IDs of attachments that existed before editing (don't re-copy to storage)
   Set<String> _existingAttachmentIds = {};
 
   bool get _isEditing => widget.initialMilestone != null;
@@ -552,8 +807,7 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      ref.read(addMilestoneFormProvider.notifier)
-          .initialize(initial.date, initial.attachments);
+      ref.read(addMilestoneFormProvider.notifier).initialize(initial.date, initial.attachments);
     });
   }
 
@@ -593,8 +847,7 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
 
   Future<void> _startLiveRecording() async {
     final tempDir = await getTemporaryDirectory();
-    final path =
-        '${tempDir.path}/rec_${DateTime.now().microsecondsSinceEpoch}.m4a';
+    final path = '${tempDir.path}/rec_${DateTime.now().microsecondsSinceEpoch}.m4a';
     final now = TimeOfDay.now();
     final filePath = await showDialog<String>(
       context: context,
@@ -723,7 +976,9 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
             TextField(
               controller: _titleController,
               maxLength: 100,
-              onChanged: (_) { if (_titleError != null) setState(() => _titleError = null); },
+              onChanged: (_) {
+                if (_titleError != null) setState(() => _titleError = null);
+              },
               decoration: inputDeco.copyWith(
                 labelText: 'Milestone title *',
                 errorText: _titleError,
@@ -737,7 +992,9 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
               controller: _descController,
               maxLines: 3,
               maxLength: 500,
-              onChanged: (_) { if (_descError != null) setState(() => _descError = null); },
+              onChanged: (_) {
+                if (_descError != null) setState(() => _descError = null);
+              },
               decoration: inputDeco.copyWith(
                 labelText: 'Why this moment matters *',
                 errorText: _descError,
@@ -746,12 +1003,11 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
             ),
             const SizedBox(height: 18),
 
-            // ── Media ──────────────────────────────────
+            // Media buttons
             _sectionLabel('Media'),
             const SizedBox(height: 8),
             Row(
               children: [
-                // Camera-only features: hidden on desktop
                 if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) ...[
                   _MediaBtn(
                     icon: Icons.camera_alt_outlined,
@@ -838,7 +1094,7 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
               ],
             ),
 
-            // Attachment strip with labels
+            // Attachment strip
             if (form.attachments.isNotEmpty) ...[
               const SizedBox(height: 14),
               SizedBox(
@@ -899,9 +1155,7 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
                                 top: 3,
                                 right: 3,
                                 child: GestureDetector(
-                                  onTap: () {
-                                    setState(() => _removeAttachment(i, a.id));
-                                  },
+                                  onTap: () => setState(() => _removeAttachment(i, a.id)),
                                   child: Container(
                                     width: 20,
                                     height: 20,
@@ -922,10 +1176,12 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
                             style: const TextStyle(fontSize: 11),
                             decoration: InputDecoration(
                               hintText: 'Add label…',
-                              hintStyle: TextStyle(fontSize: 11, color: Colors.grey.shade400),
+                              hintStyle:
+                                  TextStyle(fontSize: 11, color: Colors.grey.shade400),
                               isDense: true,
                               counterText: '',
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                              contentPadding:
+                                  const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(6),
                                 borderSide: BorderSide(color: Colors.grey.shade300),
@@ -936,7 +1192,8 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(6),
-                                borderSide: BorderSide(color: theme.colorScheme.primary),
+                                borderSide:
+                                    BorderSide(color: theme.colorScheme.primary),
                               ),
                             ),
                           ),
@@ -949,7 +1206,7 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
             ],
             const SizedBox(height: 24),
 
-            // ── Save ───────────────────────────────────
+            // Save button
             _SaveBtn(
               onSave: () async {
                 final title = _titleController.text.trim();
@@ -979,10 +1236,8 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
                   final labelText = _labelControllers[a.id]?.text.trim();
                   final label = labelText?.isEmpty == true ? null : labelText;
                   if (_existingAttachmentIds.contains(a.id)) {
-                    // Pre-existing attachment — keep path and backup status, just update label
                     saved.add(a.copyWith(label: label));
                   } else {
-                    // New attachment — copy to permanent storage
                     try {
                       final filename =
                           '${a.id}_${a.name.replaceAll(RegExp(r'[^\w.]'), '_')}';
@@ -1097,6 +1352,7 @@ class _RecordingDialogState extends State<_RecordingDialog> {
     final mins = (_elapsed.inMinutes).toString().padLeft(2, '0');
     final secs = (_elapsed.inSeconds % 60).toString().padLeft(2, '0');
     return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       title: const Text('Recording'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -1222,8 +1478,7 @@ class _SaveBtnState extends ConsumerState<_SaveBtn> {
           : Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(_saved ? Icons.check : Icons.save_outlined,
-                    size: 18, color: Colors.white),
+                Icon(_saved ? Icons.check : Icons.save_outlined, size: 18, color: Colors.white),
                 const SizedBox(width: 8),
                 Text(
                   _saved ? 'Saved!' : 'Save milestone',

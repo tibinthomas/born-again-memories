@@ -9,8 +9,25 @@ class LoginScreen extends ConsumerStatefulWidget {
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends ConsumerState<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen>
+    with SingleTickerProviderStateMixin {
   bool _isLoading = false;
+  late final AnimationController _fadeCtrl;
+  late final Animation<double> _fadeIn;
+
+  @override
+  void initState() {
+    super.initState();
+    _fadeCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 900));
+    _fadeIn = CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOut);
+    _fadeCtrl.forward();
+  }
+
+  @override
+  void dispose() {
+    _fadeCtrl.dispose();
+    super.dispose();
+  }
 
   Future<void> _signInWithGoogle() async {
     setState(() => _isLoading = true);
@@ -34,69 +51,204 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
     return Scaffold(
-      backgroundColor: colorScheme.surface,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
-          child: Column(
-            children: [
-              const Spacer(flex: 2),
-              Container(
-                width: 96,
-                height: 96,
-                decoration: BoxDecoration(
-                  color: colorScheme.primaryContainer,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.child_care_rounded,
-                  size: 52,
-                  color: colorScheme.onPrimaryContainer,
-                ),
+      backgroundColor: const Color(0xFFFFF8F0),
+      body: Stack(
+        children: [
+          // Soft background blobs
+          Positioned(
+            top: -60,
+            right: -60,
+            child: Container(
+              width: 220,
+              height: 220,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: Color(0xFFFFE4C8),
               ),
-              const SizedBox(height: 24),
-              Text(
-                'Born Again Memories',
-                style: theme.textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.onSurface,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Track every precious moment',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const Spacer(flex: 3),
-              _isLoading
-                  ? CircularProgressIndicator(color: colorScheme.primary)
-                  : _GoogleSignInButton(onPressed: _signInWithGoogle),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.cloud_done_outlined,
-                      size: 13, color: colorScheme.onSurfaceVariant),
-                  const SizedBox(width: 4),
-                  Text(
-                    'Backs up your memories to your Google Drive',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-              const Spacer(),
-            ],
+            ),
           ),
-        ),
+          Positioned(
+            bottom: -80,
+            left: -60,
+            child: Container(
+              width: 260,
+              height: 260,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: Color(0xFFFFD6E8),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 180,
+            left: -40,
+            child: Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFFD6EEFF).withAlpha(180),
+              ),
+            ),
+          ),
+
+          // Main content
+          SafeArea(
+            child: FadeTransition(
+              opacity: _fadeIn,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Column(
+                  children: [
+                    const Spacer(flex: 2),
+
+                    // Icon + floating emojis
+                    SizedBox(
+                      height: 130,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          // Glow ring
+                          Container(
+                            width: 120,
+                            height: 120,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: const Color(0xFFFFB347).withAlpha(40),
+                            ),
+                          ),
+                          Container(
+                            width: 96,
+                            height: 96,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [Color(0xFFFFB347), Color(0xFFFF8C00)],
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Color(0x60FFB347),
+                                  blurRadius: 24,
+                                  spreadRadius: 4,
+                                ),
+                              ],
+                            ),
+                            child: const Icon(Icons.child_care_rounded,
+                                size: 48, color: Colors.white),
+                          ),
+                          // Floating emojis
+                          const Positioned(top: 4, right: 16, child: Text('🌸', style: TextStyle(fontSize: 22))),
+                          const Positioned(bottom: 8, left: 14, child: Text('⭐', style: TextStyle(fontSize: 18))),
+                          const Positioned(top: 16, left: 4, child: Text('🚀', style: TextStyle(fontSize: 16))),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 28),
+
+                    // App name
+                    const Text(
+                      'Born Again\nMemories',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF2D2D2D),
+                        height: 1.15,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFB347).withAlpha(30),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Text(
+                        'Capture every precious moment ✨',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Color(0xFFCC8800),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+
+                    const Spacer(flex: 3),
+
+                    // Feature pills
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 8,
+                      alignment: WrapAlignment.center,
+                      children: const [
+                        _FeaturePill(icon: Icons.photo_library_outlined, label: 'Photos & Videos'),
+                        _FeaturePill(icon: Icons.mic_outlined, label: 'Voice Memos'),
+                        _FeaturePill(icon: Icons.cloud_done_outlined, label: 'Auto Backup'),
+                        _FeaturePill(icon: Icons.timeline_outlined, label: 'Timeline'),
+                      ],
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Sign-in button
+                    if (_isLoading)
+                      const CircularProgressIndicator(color: Color(0xFFFFB347))
+                    else
+                      _GoogleSignInButton(onPressed: _signInWithGoogle),
+
+                    const SizedBox(height: 16),
+                    Text(
+                      'Your memories are backed up securely to Google Drive',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade500,
+                        height: 1.4,
+                      ),
+                    ),
+                    const Spacer(),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FeaturePill extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  const _FeaturePill({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [BoxShadow(color: Colors.black.withAlpha(12), blurRadius: 8, offset: const Offset(0, 2))],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: const Color(0xFFFFB347)),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF555555),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -111,14 +263,15 @@ class _GoogleSignInButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      height: 52,
+      height: 54,
       child: OutlinedButton(
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          side: BorderSide(color: Colors.grey.shade300),
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          side: BorderSide(color: Colors.grey.shade200),
+          elevation: 2,
+          shadowColor: Colors.black.withAlpha(20),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -128,9 +281,9 @@ class _GoogleSignInButton extends StatelessWidget {
             const Text(
               'Continue with Google',
               style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF333333),
               ),
             ),
           ],
@@ -163,25 +316,16 @@ class _GoogleLogoPainter extends CustomPainter {
     final greenPaint = Paint()..color = const Color(0xFF34A853);
     final yellowPaint = Paint()..color = const Color(0xFFFBBC05);
 
-    // Red arc (top)
-    canvas.drawArc(rect, -2.36, 2.09, false, redPaint..strokeWidth = r * 0.36 ..style = PaintingStyle.stroke);
-    // Blue arc (right)
-    canvas.drawArc(rect, -0.27, 1.57, false, bluePaint..strokeWidth = r * 0.36 ..style = PaintingStyle.stroke);
-    // Green arc (bottom)
-    canvas.drawArc(rect, 1.3, 1.57, false, greenPaint..strokeWidth = r * 0.36 ..style = PaintingStyle.stroke);
-    // Yellow arc (left)
-    canvas.drawArc(rect, 2.87, 0.8, false, yellowPaint..strokeWidth = r * 0.36 ..style = PaintingStyle.stroke);
+    canvas.drawArc(rect, -2.36, 2.09, false, redPaint..strokeWidth = r * 0.36..style = PaintingStyle.stroke);
+    canvas.drawArc(rect, -0.27, 1.57, false, bluePaint..strokeWidth = r * 0.36..style = PaintingStyle.stroke);
+    canvas.drawArc(rect, 1.3, 1.57, false, greenPaint..strokeWidth = r * 0.36..style = PaintingStyle.stroke);
+    canvas.drawArc(rect, 2.87, 0.8, false, yellowPaint..strokeWidth = r * 0.36..style = PaintingStyle.stroke);
 
-    // Blue horizontal bar
     final barPaint = Paint()
       ..color = const Color(0xFF4285F4)
       ..strokeWidth = r * 0.36
       ..style = PaintingStyle.stroke;
-    canvas.drawLine(
-      Offset(center.dx, center.dy),
-      Offset(center.dx + r, center.dy),
-      barPaint,
-    );
+    canvas.drawLine(Offset(center.dx, center.dy), Offset(center.dx + r, center.dy), barPaint);
   }
 
   @override
