@@ -177,3 +177,4 @@ test_driver/keys.json
 graphify-out/.graphify_python
 graphify-out/.graphify_root
 graphify-out/graph.html
+graphify-out/graph.json
