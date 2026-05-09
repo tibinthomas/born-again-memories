@@ -62,5 +62,28 @@ class ProfileTheme {
     }
   }
 
-  static ProfileTheme forProfile(KidProfile profile) => forGender(profile.gender);
+  static ProfileTheme forProfile(KidProfile profile) {
+    final accent = profile.color;
+    final hsl = HSLColor.fromColor(accent);
+    final darker = hsl
+        .withLightness((hsl.lightness - 0.12).clamp(0.0, 1.0))
+        .toColor();
+
+    return ProfileTheme(
+      accent: accent,
+      soft: accent.withAlpha(30),
+      cardBg: accent.withAlpha(15),
+      timelineDot: accent,
+      decalEmoji: switch (profile.gender) {
+        Gender.boy => '🚀',
+        Gender.girl => '🌸',
+        Gender.neutral => '⭐',
+      },
+      headerGradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [accent, darker],
+      ),
+    );
+  }
 }
