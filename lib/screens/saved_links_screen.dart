@@ -35,6 +35,7 @@ class _SavedLinksScreenState extends ConsumerState<SavedLinksScreen> {
   int? _selectedYear;
   bool _showFavoritesOnly = false;
   final ScrollController _scrollController = ScrollController();
+  final TextEditingController _searchController = TextEditingController();
   final int _pageSize = 12;
   int _loadedItemCount = 12;
   bool _isLoadingMore = false;
@@ -48,7 +49,22 @@ class _SavedLinksScreenState extends ConsumerState<SavedLinksScreen> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _searchController.dispose();
     super.dispose();
+  }
+
+  bool get _hasActiveFilters =>
+      _searchQuery.isNotEmpty || _selectedTag != null || _selectedYear != null || _showFavoritesOnly;
+
+  void _clearAllFilters() {
+    _searchController.clear();
+    setState(() {
+      _searchQuery = '';
+      _selectedTag = null;
+      _selectedYear = null;
+      _showFavoritesOnly = false;
+      _resetPagination();
+    });
   }
 
   void _onScroll() {
@@ -104,126 +120,156 @@ class _SavedLinksScreenState extends ConsumerState<SavedLinksScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: Text('${profile.name}\'s Saved Links'),
+        title: Text('${profile.name}\'s Links'),
         backgroundColor: theme.accent,
         foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            onPressed: () => _showAddEditSheet(context, theme, widget.profileIndex),
-            icon: const Icon(Icons.add_link_outlined),
-            tooltip: 'Save link',
-          ),
-        ],
       ),
       body: CustomScrollView(
         controller: _scrollController,
         slivers: [
           SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: TextField(
-                onChanged: (value) {
-                  setState(() {
-                    _searchQuery = value;
-                    _resetPagination();
-                  });
-                },
-                decoration: InputDecoration(
-                  hintText: 'Search links…',
-                  prefixIcon: const Icon(Icons.search),
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
+            child: Container(
+              color: Colors.white,
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ── Search bar ──────────────────────────────────────────
+                  TextField(
+                    controller: _searchController,
+                    onChanged: (value) => setState(() {
+                      _searchQuery = value;
+                      _resetPagination();
+                    }),
+                    decoration: InputDecoration(
+                      hintText: 'Search links…',
+                      hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 15),
+                      prefixIcon: Icon(Icons.search_rounded, color: Colors.grey.shade400, size: 20),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? GestureDetector(
+                              onTap: () {
+                                _searchController.clear();
+                                setState(() {
+                                  _searchQuery = '';
+                                  _resetPagination();
+                                });
+                              },
+                              child: Icon(Icons.cancel_rounded, color: Colors.grey.shade400, size: 18),
+                            )
+                          : null,
+                      filled: true,
+                      fillColor: const Color(0xFFEFEFF4),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                    ),
                   ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
+
+                  // ── Filter chips ────────────────────────────────────────
+                  if (allLinks.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      height: 32,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        children: [
+                          _TagChip(
+                            label: 'Favourites',
+                            icon: Icons.star_rounded,
+                            selected: _showFavoritesOnly,
+                            color: const Color(0xFFF59E0B),
+                            onTap: () => setState(() {
+                              _showFavoritesOnly = !_showFavoritesOnly;
+                              _resetPagination();
+                            }),
+                          ),
+                          if (allYears.isNotEmpty) ...[
+                            const _FilterDivider(),
+                            ...allYears.map((year) => Padding(
+                                  padding: const EdgeInsets.only(right: 8),
+                                  child: _TagChip(
+                                    label: '$year',
+                                    selected: _selectedYear == year,
+                                    color: theme.accent,
+                                    onTap: () => setState(() {
+                                      _selectedYear = _selectedYear == year ? null : year;
+                                      _resetPagination();
+                                    }),
+                                  ),
+                                )),
+                          ],
+                          if (allTags.isNotEmpty) ...[
+                            const _FilterDivider(),
+                            ...allTags.map((tag) => Padding(
+                                  padding: const EdgeInsets.only(right: 8),
+                                  child: _TagChip(
+                                    label: '#$tag',
+                                    selected: _selectedTag == tag,
+                                    color: theme.accent,
+                                    onTap: () => setState(() {
+                                      _selectedTag = _selectedTag == tag ? null : tag;
+                                      _resetPagination();
+                                    }),
+                                  ),
+                                )),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+
+                  // ── Active filter bar: count + clear ────────────────────
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeInOut,
+                    child: _hasActiveFilters
+                        ? Padding(
+                            padding: const EdgeInsets.only(top: 10, bottom: 4),
+                            child: Row(
+                              children: [
+                                Icon(Icons.filter_list_rounded, size: 14, color: Colors.grey.shade500),
+                                const SizedBox(width: 6),
+                                Text(
+                                  '${filtered.length} result${filtered.length == 1 ? '' : 's'}',
+                                  style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                                ),
+                                const Spacer(),
+                                GestureDetector(
+                                  onTap: _clearAllFilters,
+                                  child: Row(
+                                    children: [
+                                      Text(
+                                        'Clear all',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: theme.accent,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 3),
+                                      Icon(Icons.close_rounded, size: 13, color: theme.accent),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : const SizedBox(height: 10),
                   ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(color: theme.accent, width: 1.5),
-                  ),
-                ),
+                ],
               ),
             ),
           ),
-          if (allLinks.isNotEmpty)
-            SliverToBoxAdapter(
-              child: SizedBox(
-                height: 44,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-                  children: [
-                    // Favourites
-                    _TagChip(
-                      label: 'Favourites',
-                      icon: _showFavoritesOnly ? Icons.star_rounded : Icons.star_outline_rounded,
-                      selected: _showFavoritesOnly,
-                      color: const Color(0xFFF59E0B),
-                      onTap: () => setState(() {
-                        _showFavoritesOnly = !_showFavoritesOnly;
-                        _resetPagination();
-                      }),
-                    ),
-                    if (allYears.isNotEmpty) ...[
-                      const _FilterDivider(),
-                      // Year chips
-                      _TagChip(
-                        label: 'All years',
-                        icon: Icons.calendar_today_outlined,
-                        selected: _selectedYear == null,
-                        color: theme.accent,
-                        onTap: () => setState(() {
-                          _selectedYear = null;
-                          _resetPagination();
-                        }),
-                      ),
-                      ...allYears.map((year) => Padding(
-                            padding: const EdgeInsets.only(left: 8),
-                            child: _TagChip(
-                              label: '$year',
-                              selected: _selectedYear == year,
-                              color: theme.accent,
-                              onTap: () => setState(() {
-                                _selectedYear = _selectedYear == year ? null : year;
-                                _resetPagination();
-                              }),
-                            ),
-                          )),
-                    ],
-                    if (allTags.isNotEmpty) ...[
-                      const _FilterDivider(),
-                      // Tag chips
-                      _TagChip(
-                        label: 'All tags',
-                        icon: Icons.label_outline,
-                        selected: _selectedTag == null,
-                        color: theme.accent,
-                        onTap: () => setState(() {
-                          _selectedTag = null;
-                          _resetPagination();
-                        }),
-                      ),
-                      ...allTags.map((tag) => Padding(
-                            padding: const EdgeInsets.only(left: 8),
-                            child: _TagChip(
-                              label: '#$tag',
-                              selected: _selectedTag == tag,
-                              color: theme.accent,
-                              onTap: () => setState(() {
-                                _selectedTag = _selectedTag == tag ? null : tag;
-                                _resetPagination();
-                              }),
-                            ),
-                          )),
-                    ],
-                  ],
-                ),
-              ),
-            ),
           if (allLinks.isEmpty)
             SliverFillRemaining(
               child: _EmptyState(theme: theme, profile: profile),
@@ -237,14 +283,9 @@ class _SavedLinksScreenState extends ConsumerState<SavedLinksScreen> {
                     Icon(Icons.search_off, size: 48, color: Colors.grey.shade400),
                     const SizedBox(height: 12),
                     Text('No saved links found', style: TextStyle(color: Colors.grey.shade600)),
-                    if (_selectedTag != null || _selectedYear != null || _showFavoritesOnly)
+                    if (_hasActiveFilters)
                       TextButton(
-                        onPressed: () => setState(() {
-                          _selectedTag = null;
-                          _selectedYear = null;
-                          _showFavoritesOnly = false;
-                          _resetPagination();
-                        }),
+                        onPressed: _clearAllFilters,
                         child: const Text('Clear filters'),
                       ),
                   ],
@@ -330,29 +371,25 @@ class _TagChip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        duration: const Duration(milliseconds: 160),
+        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
         decoration: BoxDecoration(
-          color: selected ? color : color.withAlpha(15),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: selected ? color : color.withAlpha(50),
-            width: selected ? 1.5 : 1,
-          ),
+          color: selected ? color : const Color(0xFFEFEFF4),
+          borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (icon != null) ...[
-              Icon(icon, size: 13, color: selected ? Colors.white : color),
-              const SizedBox(width: 5),
+              Icon(icon, size: 12, color: selected ? Colors.white : Colors.grey.shade600),
+              const SizedBox(width: 4),
             ],
             Text(
               label,
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: selected ? Colors.white : color,
+                color: selected ? Colors.white : Colors.grey.shade700,
               ),
             ),
           ],
@@ -372,7 +409,7 @@ class _FilterDivider extends StatelessWidget {
       child: Center(
         child: Container(
           width: 1,
-          height: 20,
+          height: 16,
           color: Colors.grey.shade300,
         ),
       ),
@@ -450,57 +487,103 @@ class _LinkCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final hasImage = link.previewImageUrl != null && link.previewImageUrl!.isNotEmpty;
+
     return Card(
       margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: Colors.grey.shade100),
+      ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         onTap: () => _openLink(context),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (link.previewImageUrl != null && link.previewImageUrl!.isNotEmpty)
-              ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
-                child: Image.network(
-                  link.previewImageUrl!,
-                  height: 160,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                ),
+            // ── Preview image ─────────────────────────────────────────
+            if (hasImage)
+              Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                    child: Image.network(
+                      link.previewImageUrl!,
+                      height: 150,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                    ),
+                  ),
+                  // Star overlaid on image
+                  Positioned(
+                    top: 10,
+                    right: 10,
+                    child: _FavButton(
+                      isFavorite: link.isFavorite,
+                      accent: theme.accent,
+                      onTap: onFavorite,
+                      onImage: true,
+                    ),
+                  ),
+                ],
               ),
+
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // ── Top row: domain + star (no image) + menu ─────────
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
+                      // Favicon-style domain pill
                       Expanded(
                         child: Text(
-                          link.title,
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                          link.domain,
+                          style: TextStyle(
+                            color: theme.accent,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      IconButton(
-                        onPressed: onFavorite,
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                        visualDensity: VisualDensity.compact,
-                        icon: Icon(
-                          link.isFavorite ? Icons.star_rounded : Icons.star_outline_rounded,
-                          size: 22,
-                          color: link.isFavorite
-                              ? const Color(0xFFFBBF24)
-                              : theme.accent.withAlpha(90),
+                      if (!hasImage)
+                        _FavButton(
+                          isFavorite: link.isFavorite,
+                          accent: theme.accent,
+                          onTap: onFavorite,
+                          onImage: false,
                         ),
-                      ),
+                      const SizedBox(width: 2),
                       PopupMenuButton<String>(
-                        icon: const Icon(Icons.more_vert, size: 20),
+                        icon: Icon(Icons.more_horiz_rounded,
+                            size: 20, color: Colors.grey.shade400),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                         itemBuilder: (_) => [
-                          const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                          const PopupMenuItem(value: 'delete', child: Text('Delete')),
+                          const PopupMenuItem(
+                            value: 'edit',
+                            child: Row(children: [
+                              Icon(Icons.edit_outlined, size: 16),
+                              SizedBox(width: 10),
+                              Text('Edit'),
+                            ]),
+                          ),
+                          const PopupMenuItem(
+                            value: 'delete',
+                            child: Row(children: [
+                              Icon(Icons.delete_outline,
+                                  size: 16, color: Colors.red),
+                              SizedBox(width: 10),
+                              Text('Delete',
+                                  style: TextStyle(color: Colors.red)),
+                            ]),
+                          ),
                         ],
                         onSelected: (value) {
                           if (value == 'edit') {
@@ -510,12 +593,18 @@ class _LinkCard extends ConsumerWidget {
                               context: context,
                               builder: (ctx) => AlertDialog(
                                 title: const Text('Delete link?'),
-                                content: Text('Remove "${link.title}" from saved links?'),
+                                content: Text(
+                                    'Remove "${link.title}" from saved links?'),
                                 actions: [
-                                  TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+                                  TextButton(
+                                      onPressed: () =>
+                                          Navigator.pop(ctx, false),
+                                      child: const Text('Cancel')),
                                   FilledButton(
-                                    style: FilledButton.styleFrom(backgroundColor: Colors.red),
-                                    onPressed: () => Navigator.pop(ctx, true),
+                                    style: FilledButton.styleFrom(
+                                        backgroundColor: Colors.red),
+                                    onPressed: () =>
+                                        Navigator.pop(ctx, true),
                                     child: const Text('Delete'),
                                   ),
                                 ],
@@ -528,41 +617,112 @@ class _LinkCard extends ConsumerWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(link.domain, style: TextStyle(color: theme.accent, fontSize: 12)),
-                  if (link.previewTitle != null && link.previewTitle!.isNotEmpty && link.previewTitle != link.title) ...[
-                    const SizedBox(height: 8),
-                    Text(link.previewTitle!, style: TextStyle(fontSize: 14, color: Colors.grey.shade800)),
-                  ],
-                  if (link.previewDescription != null && link.previewDescription!.isNotEmpty) ...[
-                    const SizedBox(height: 10),
-                    Text(link.previewDescription!, style: TextStyle(color: Colors.grey.shade700)),
-                  ],
-                  if (link.description != null && link.description!.isNotEmpty) ...[
-                    const SizedBox(height: 10),
-                    Text(link.description!, style: TextStyle(color: Colors.grey.shade600)),
-                  ],
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: link.tags
-                        .map((tag) => Chip(
-                              label: Text('#$tag'),
-                              backgroundColor: theme.accent.withAlpha(20),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                            ))
-                        .toList(),
-                  ),
-                  const SizedBox(height: 12),
+
+                  const SizedBox(height: 6),
+
+                  // ── Title ─────────────────────────────────────────────
                   Text(
-                    formatDate(link.dateAdded),
-                    style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                    link.title,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1A1A1A),
+                      height: 1.3,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+
+                  // ── Description ───────────────────────────────────────
+                  if ((link.previewDescription ?? link.description) != null) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      link.previewDescription ?? link.description!,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey.shade600,
+                          height: 1.4),
+                    ),
+                  ],
+
+                  // ── Footer: tags + date ───────────────────────────────
+                  const SizedBox(height: 10),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      if (link.tags.isNotEmpty) ...[
+                        Expanded(
+                          child: Wrap(
+                            spacing: 6,
+                            runSpacing: 0,
+                            children: link.tags
+                                .take(3)
+                                .map((tag) => Text(
+                                      '#$tag',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: theme.accent.withAlpha(180),
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ))
+                                .toList(),
+                          ),
+                        ),
+                      ] else
+                        const Spacer(),
+                      Text(
+                        formatDate(link.dateAdded),
+                        style: TextStyle(
+                            fontSize: 11, color: Colors.grey.shade400),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FavButton extends StatelessWidget {
+  final bool isFavorite;
+  final Color accent;
+  final VoidCallback onTap;
+  final bool onImage;
+
+  const _FavButton({
+    required this.isFavorite,
+    required this.accent,
+    required this.onTap,
+    required this.onImage,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 30,
+        height: 30,
+        decoration: BoxDecoration(
+          color: onImage
+              ? Colors.black.withAlpha(40)
+              : Colors.transparent,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          isFavorite ? Icons.star_rounded : Icons.star_outline_rounded,
+          size: 20,
+          color: isFavorite
+              ? const Color(0xFFFBBF24)
+              : onImage
+                  ? Colors.white.withAlpha(200)
+                  : accent.withAlpha(100),
         ),
       ),
     );

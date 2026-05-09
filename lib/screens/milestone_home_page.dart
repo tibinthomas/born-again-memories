@@ -964,6 +964,10 @@ class _ProfileHeader extends StatelessWidget {
         profile.backgroundImagePath != null &&
         profile.backgroundImagePath!.isNotEmpty &&
         File(profile.backgroundImagePath!).existsSync();
+    final hasAvatar = profile.avatarImagePath != null &&
+        profile.avatarImagePath!.isNotEmpty &&
+        !kIsWeb &&
+        File(profile.avatarImagePath!).existsSync();
 
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 400),
@@ -1002,133 +1006,52 @@ class _ProfileHeader extends StatelessWidget {
                 ),
               ),
               // Decorative bubbles
-              Positioned(
-                right: -28,
-                top: -18,
-                child: Container(
-                  width: 110,
-                  height: 110,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withAlpha(18),
-                  ),
-                ),
-              ),
-              Positioned(
-                right: 60,
-                bottom: -22,
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withAlpha(14),
-                  ),
-                ),
-              ),
-              Positioned(
-                left: -22,
-                top: 30,
-                child: Container(
-                  width: 70,
-                  height: 70,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withAlpha(12),
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 80,
-                bottom: 8,
-                child: Container(
-                  width: 28,
-                  height: 28,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withAlpha(22),
-                  ),
-                ),
-              ),
-              Positioned(
-                right: 24,
-                top: 48,
-                child: Container(
-                  width: 16,
-                  height: 16,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withAlpha(30),
-                  ),
-                ),
-              ),
+              Positioned(right: -28, top: -18, child: _Bubble(110, 18)),
+              Positioned(right: 60, bottom: -22, child: _Bubble(80, 14)),
+              Positioned(left: -22, top: 30, child: _Bubble(70, 12)),
+              Positioned(left: 80, bottom: 8, child: _Bubble(28, 22)),
+              Positioned(right: 24, top: 48, child: _Bubble(16, 30)),
               // Content
               SafeArea(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 4, 12, 14),
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 14),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // ── Action row ──────────────────────────────
+                      // ── Top bar: Switch + Settings only ──────────
                       Row(
                         children: [
                           if (hasMultipleProfiles)
                             _SwitchProfileButton(onTap: onSwitchProfile)
                           else
-                            const SizedBox(width: 44),
+                            const SizedBox.shrink(),
                           const Spacer(),
-                          IconButton(
-                            onPressed: onSharedFeed,
-                            icon: const Icon(Icons.people_outline_rounded,
-                                color: Colors.white70, size: 22),
-                            tooltip: 'Shared with me',
-                          ),
-                          IconButton(
-                            onPressed: onLinks,
-                            icon: const Icon(Icons.link_outlined,
-                                color: Colors.white70, size: 22),
-                            tooltip: 'Saved links',
-                          ),
-                          _RemindersButton(
-                            profile: profile,
-                            profileIndex: profileIndex,
-                          ),
-                          IconButton(
-                            onPressed: onEditProfile,
-                            icon: const Icon(Icons.edit_outlined,
-                                color: Colors.white70, size: 22),
-                            tooltip: 'Edit profile',
-                          ),
-                          IconButton(
-                            onPressed: onSettings,
-                            icon: const Icon(Icons.settings_outlined,
-                                color: Colors.white70, size: 22),
-                            tooltip: 'Settings',
+                          _HeaderIconBtn(
+                            icon: Icons.settings_outlined,
+                            onTap: onSettings,
                           ),
                         ],
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 14),
 
-                      // ── Profile row ─────────────────────────────
+                      // ── Profile info ─────────────────────────────
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          // Avatar
-                          Builder(
-                            builder: (context) {
-                              final hasAvatar = profile.avatarImagePath != null &&
-                                  profile.avatarImagePath!.isNotEmpty &&
-                                  !kIsWeb &&
-                                  File(profile.avatarImagePath!).existsSync();
-                              return GestureDetector(
-                                onTap: onEditProfile,
-                                child: Container(
-                                  width: 54,
-                                  height: 54,
+                          // Avatar with edit badge
+                          GestureDetector(
+                            onTap: onEditProfile,
+                            child: Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                Container(
+                                  width: 70,
+                                  height: 70,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     color: Colors.white.withAlpha(30),
-                                    border: Border.all(color: Colors.white, width: 2),
+                                    border: Border.all(color: Colors.white, width: 2.5),
                                     image: hasAvatar
                                         ? DecorationImage(
                                             image: FileImage(File(profile.avatarImagePath!)),
@@ -1137,23 +1060,48 @@ class _ProfileHeader extends StatelessWidget {
                                         : null,
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withAlpha(30),
-                                        blurRadius: 12,
-                                        offset: const Offset(0, 4),
+                                        color: Colors.black.withAlpha(40),
+                                        blurRadius: 16,
+                                        offset: const Offset(0, 6),
                                       ),
                                     ],
                                   ),
                                   child: hasAvatar
                                       ? null
                                       : Center(
-                                          child: Text(profileTheme.decalEmoji,
-                                              style: const TextStyle(fontSize: 26)),
+                                          child: Text(
+                                            profileTheme.decalEmoji,
+                                            style: const TextStyle(fontSize: 30),
+                                          ),
                                         ),
                                 ),
-                              );
-                            },
+                                Positioned(
+                                  bottom: 0,
+                                  right: 0,
+                                  child: Container(
+                                    width: 22,
+                                    height: 22,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      shape: BoxShape.circle,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withAlpha(30),
+                                          blurRadius: 4,
+                                        ),
+                                      ],
+                                    ),
+                                    child: Icon(
+                                      Icons.edit_outlined,
+                                      size: 12,
+                                      color: profileTheme.accent,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                          const SizedBox(width: 14),
+                          const SizedBox(width: 16),
 
                           // Name + age
                           Expanded(
@@ -1165,34 +1113,32 @@ class _ProfileHeader extends StatelessWidget {
                                   profile.nickname ?? profile.name,
                                   style: const TextStyle(
                                     color: Colors.white,
-                                    fontSize: 20,
+                                    fontSize: 22,
                                     fontWeight: FontWeight.w800,
                                     letterSpacing: 0.2,
                                     shadows: [
-                                      Shadow(
-                                          color: Colors.black38,
-                                          blurRadius: 4),
+                                      Shadow(color: Colors.black38, blurRadius: 4),
                                     ],
                                   ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                                if (profile.nickname != null && profile.nickname!.isNotEmpty)
+                                if (profile.nickname != null &&
+                                    profile.nickname!.isNotEmpty)
                                   Padding(
                                     padding: const EdgeInsets.only(top: 2),
                                     child: Text(
                                       profile.name,
                                       style: TextStyle(
                                         color: Colors.white.withAlpha(180),
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w400,
+                                        fontSize: 12,
                                       ),
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: 6),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 9, vertical: 3),
+                                      horizontal: 10, vertical: 4),
                                   decoration: BoxDecoration(
                                     color: Colors.white.withAlpha(35),
                                     borderRadius: BorderRadius.circular(10),
@@ -1201,35 +1147,55 @@ class _ProfileHeader extends StatelessWidget {
                                     profile.ageText,
                                     style: const TextStyle(
                                       color: Colors.white,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w500,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
                                     ),
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          const SizedBox(width: 12),
-
-                          // Stats
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              _StatBlock(
-                                value: milestoneCount.toString(),
-                                label: 'Moments',
-                                icon: Icons.auto_awesome,
-                              ),
-                              const SizedBox(width: 10),
-                              _StatBlock(
-                                value: profile.documents.length.toString(),
-                                label: 'Docs',
-                                icon: Icons.folder_outlined,
-                                onTap: onDocuments,
-                              ),
-                            ],
-                          ),
                         ],
+                      ),
+                      const SizedBox(height: 18),
+
+                      // ── Quick-access strip ────────────────────────
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        physics: const BouncingScrollPhysics(),
+                        child: Row(
+                          children: [
+                            _QuickPill(
+                              icon: Icons.auto_awesome,
+                              label: '$milestoneCount',
+                              sublabel: 'Moments',
+                            ),
+                            const SizedBox(width: 8),
+                            _QuickPill(
+                              icon: Icons.folder_outlined,
+                              label: '${profile.documents.length}',
+                              sublabel: 'Docs',
+                              onTap: onDocuments,
+                            ),
+                            const SizedBox(width: 8),
+                            _QuickPill(
+                              icon: Icons.link_outlined,
+                              label: 'Links',
+                              onTap: onLinks,
+                            ),
+                            const SizedBox(width: 8),
+                            _QuickPill(
+                              icon: Icons.people_outline_rounded,
+                              label: 'Feed',
+                              onTap: onSharedFeed,
+                            ),
+                            const SizedBox(width: 8),
+                            _RemindersQuickPill(
+                              profile: profile,
+                              profileIndex: profileIndex,
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -1243,18 +1209,62 @@ class _ProfileHeader extends StatelessWidget {
   }
 }
 
-// ── Compact stat block ────────────────────────────────────────────────────────
+// ── Decorative bubble ─────────────────────────────────────────────────────────
 
-class _StatBlock extends StatelessWidget {
-  final String value;
-  final String label;
+class _Bubble extends StatelessWidget {
+  final double size;
+  final int alpha;
+  const _Bubble(this.size, this.alpha);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white.withAlpha(alpha),
+      ),
+    );
+  }
+}
+
+// ── Minimal header icon button ────────────────────────────────────────────────
+
+class _HeaderIconBtn extends StatelessWidget {
   final IconData icon;
+  final VoidCallback onTap;
+  const _HeaderIconBtn({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.white.withAlpha(30),
+        ),
+        child: Icon(icon, color: Colors.white, size: 20),
+      ),
+    );
+  }
+}
+
+// ── Quick-access pill ─────────────────────────────────────────────────────────
+
+class _QuickPill extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String? sublabel;
   final VoidCallback? onTap;
 
-  const _StatBlock({
-    required this.value,
-    required this.label,
+  const _QuickPill({
     required this.icon,
+    required this.label,
+    this.sublabel,
     this.onTap,
   });
 
@@ -1263,36 +1273,47 @@ class _StatBlock extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
         decoration: BoxDecoration(
-          color: Colors.white.withAlpha(onTap != null ? 38 : 28),
-          borderRadius: BorderRadius.circular(14),
+          color: Colors.white.withAlpha(onTap != null ? 35 : 22),
+          borderRadius: BorderRadius.circular(24),
           border: Border.all(
-              color: Colors.white.withAlpha(onTap != null ? 60 : 40), width: 1),
+            color: Colors.white.withAlpha(onTap != null ? 60 : 35),
+          ),
         ),
-        child: Column(
+        child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: Colors.white, size: 14),
-            const SizedBox(height: 3),
-            Text(
-              value,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 15,
-                fontWeight: FontWeight.w800,
-                height: 1,
+            Icon(icon, color: Colors.white, size: 15),
+            const SizedBox(width: 6),
+            if (sublabel != null) ...[
+              Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  height: 1,
+                ),
               ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: TextStyle(
-                color: Colors.white.withAlpha(180),
-                fontSize: 10,
-                fontWeight: FontWeight.w500,
+              const SizedBox(width: 4),
+              Text(
+                sublabel!,
+                style: TextStyle(
+                  color: Colors.white.withAlpha(180),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-            ),
+            ] else
+              Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
           ],
         ),
       ),
@@ -1322,7 +1343,11 @@ class _SwitchProfileButton extends StatelessWidget {
           children: [
             Icon(Icons.swap_horiz, color: Colors.white, size: 16),
             SizedBox(width: 5),
-            Text('Switch', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
+            Text('Switch',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600)),
           ],
         ),
       ),
@@ -1330,13 +1355,14 @@ class _SwitchProfileButton extends StatelessWidget {
   }
 }
 
-// ── Reminders bell button ──────────────────────────────────────────────────────
+// ── Reminders quick pill ──────────────────────────────────────────────────────
 
-class _RemindersButton extends StatelessWidget {
+class _RemindersQuickPill extends StatelessWidget {
   final KidProfile profile;
   final int profileIndex;
 
-  const _RemindersButton({required this.profile, required this.profileIndex});
+  const _RemindersQuickPill(
+      {required this.profile, required this.profileIndex});
 
   @override
   Widget build(BuildContext context) {
@@ -1351,45 +1377,40 @@ class _RemindersButton extends StatelessWidget {
           builder: (_) => RemindersScreen(profileIndex: profileIndex),
         ),
       ),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withAlpha(overdue > 0 ? 60 : 35),
-              border: Border.all(color: Colors.white.withAlpha(overdue > 0 ? 120 : 60)),
-            ),
-            child: Icon(
-              overdue > 0 ? Icons.alarm_outlined : Icons.notifications_outlined,
-              color: overdue > 0 ? Colors.orange.shade200 : Colors.white70,
-              size: 20,
-            ),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+        decoration: BoxDecoration(
+          color: overdue > 0
+              ? Colors.orange.withAlpha(50)
+              : Colors.white.withAlpha(35),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: overdue > 0
+                ? Colors.orange.shade300.withAlpha(160)
+                : Colors.white.withAlpha(60),
           ),
-          if (badgeCount > 0)
-            Positioned(
-              top: -4,
-              right: -4,
-              child: Container(
-                padding: const EdgeInsets.all(3),
-                decoration: BoxDecoration(
-                  color: overdue > 0 ? Colors.orange.shade400 : Colors.white,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 1.5),
-                ),
-                child: Text(
-                  badgeCount > 9 ? '9+' : '$badgeCount',
-                  style: TextStyle(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w800,
-                    color: overdue > 0 ? Colors.white : Colors.grey.shade800,
-                  ),
-                ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              overdue > 0
+                  ? Icons.alarm_outlined
+                  : Icons.notifications_outlined,
+              color: overdue > 0 ? Colors.orange.shade200 : Colors.white,
+              size: 15,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              badgeCount > 0 ? 'Reminders · $badgeCount' : 'Reminders',
+              style: TextStyle(
+                color: overdue > 0 ? Colors.orange.shade100 : Colors.white,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
               ),
             ),
-        ],
+          ],
+        ),
       ),
     );
   }
