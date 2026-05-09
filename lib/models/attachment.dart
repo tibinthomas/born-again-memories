@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 
 enum AttachmentType { image, video, audio, other }
 
@@ -25,7 +26,7 @@ class Attachment {
     this.backupStatus = BackupStatus.queued,
   });
 
-  bool get localExists => localPath.isNotEmpty && File(localPath).existsSync();
+  bool get localExists => !kIsWeb && localPath.isNotEmpty && File(localPath).existsSync();
 
   Attachment copyWith({
     String? label,

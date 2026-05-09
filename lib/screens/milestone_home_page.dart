@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -689,7 +690,7 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
             Row(
               children: [
                 // Camera-only features: hidden on desktop
-                if (Platform.isIOS || Platform.isAndroid) ...[
+                if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) ...[
                   _MediaBtn(
                     icon: Icons.camera_alt_outlined,
                     label: 'Photo',
@@ -716,7 +717,7 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
                   label: 'Gallery',
                   color: Colors.purple,
                   onTap: () async {
-                    if (Platform.isIOS || Platform.isAndroid) {
+                    if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
                       final files = await _picker.pickMultipleMedia();
                       if (files.isNotEmpty) _addXFiles(files);
                     } else {
@@ -797,7 +798,7 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
                             children: [
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(10),
-                                child: a.type == AttachmentType.image
+                                child: a.type == AttachmentType.image && !kIsWeb
                                     ? Image.file(File(a.localPath),
                                         width: 90, height: 90, fit: BoxFit.cover)
                                     : Container(
