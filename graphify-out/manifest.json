@@ -48747,6 +48747,10 @@
     "mtime": 1778042728.8464055,
     "hash": "8d8cb32aabc4b46fdca36cb5db2ecaec"
   },
+  "/Users/tibinthomas/my_app/lib/utils/milestone_templates.dart": {
+    "mtime": 1778297137.877911,
+    "hash": "60da61d8267db0104bddbeb87e36af4c"
+  },
   "/Users/tibinthomas/my_app/lib/utils/profile_theme.dart": {
     "mtime": 1778295191.2012234,
     "hash": "3422f38a8f259741806cfa006b681039"
@@ -48780,8 +48784,8 @@
     "hash": "5706ca8cd8fe39b54fcf157da7ccf16c"
   },
   "/Users/tibinthomas/my_app/lib/screens/milestone_home_page.dart": {
-    "mtime": 1778295957.7008314,
-    "hash": "38df0c9e447c3e5fe0075372163870c0"
+    "mtime": 1778297341.4668534,
+    "hash": "e363ba3fa47c31408d4a69ea7c663fc5"
   },
   "/Users/tibinthomas/my_app/lib/screens/settings_screen.dart": {
     "mtime": 1778295992.2893295,
