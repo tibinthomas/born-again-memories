@@ -603,36 +603,6 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                           tooltip: _showSearch ? 'Hide search' : 'Search',
                         ),
                       ],
-                      GestureDetector(
-                        onTap: _showAddMilestoneSheet,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 14, vertical: 7),
-                          decoration: BoxDecoration(
-                            gradient: profileTheme.headerGradient,
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: profileTheme.accent.withAlpha(50),
-                                blurRadius: 8,
-                                offset: const Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.add, color: Colors.white, size: 16),
-                              SizedBox(width: 4),
-                              Text('Add',
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 13)),
-                            ],
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                 ),
