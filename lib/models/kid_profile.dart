@@ -8,9 +8,12 @@ enum Gender { boy, girl, neutral }
 class KidProfile {
   final String id;
   final String name;
+  final String? nickname;
   final DateTime dateOfBirth;
+  final DateTime? timeOfBirth;
   final Color color;
   final Gender gender;
+  final String? avatarImagePath; // device-local only, not synced to cloud
   final String? backgroundImagePath; // device-local only, not synced to cloud
   final List<Milestone> milestones;
   final List<Reminder> reminders;
@@ -19,9 +22,12 @@ class KidProfile {
   KidProfile({
     required this.id,
     required this.name,
+    this.nickname,
     required this.dateOfBirth,
+    this.timeOfBirth,
     required this.color,
     this.gender = Gender.neutral,
+    this.avatarImagePath,
     this.backgroundImagePath,
     this.milestones = const [],
     this.reminders = const [],
@@ -46,9 +52,15 @@ class KidProfile {
   KidProfile copyWith({
     String? id,
     String? name,
+    String? nickname,
+    bool clearNickname = false,
     DateTime? dateOfBirth,
+    DateTime? timeOfBirth,
+    bool clearTimeOfBirth = false,
     Color? color,
     Gender? gender,
+    String? avatarImagePath,
+    bool clearAvatar = false,
     String? backgroundImagePath,
     bool clearBackground = false,
     List<Milestone>? milestones,
@@ -58,9 +70,12 @@ class KidProfile {
       KidProfile(
         id: id ?? this.id,
         name: name ?? this.name,
+        nickname: clearNickname ? null : (nickname ?? this.nickname),
         dateOfBirth: dateOfBirth ?? this.dateOfBirth,
+        timeOfBirth: clearTimeOfBirth ? null : (timeOfBirth ?? this.timeOfBirth),
         color: color ?? this.color,
         gender: gender ?? this.gender,
+        avatarImagePath: clearAvatar ? null : (avatarImagePath ?? this.avatarImagePath),
         backgroundImagePath:
             clearBackground ? null : (backgroundImagePath ?? this.backgroundImagePath),
         milestones: milestones ?? this.milestones,
@@ -72,7 +87,9 @@ class KidProfile {
   Map<String, dynamic> toJson() => {
         'id': id,
         'name': name,
+        'nickname': nickname,
         'dateOfBirth': dateOfBirth.toIso8601String(),
+        'timeOfBirth': timeOfBirth?.toIso8601String(),
         'color': color.toARGB32(),
         'gender': gender.name,
       };
@@ -80,7 +97,9 @@ class KidProfile {
   factory KidProfile.fromJson(Map<String, dynamic> j) => KidProfile(
         id: j['id'] as String,
         name: j['name'] as String,
+        nickname: j['nickname'] as String?,
         dateOfBirth: DateTime.parse(j['dateOfBirth'] as String),
+        timeOfBirth: j['timeOfBirth'] != null ? DateTime.parse(j['timeOfBirth'] as String) : null,
         color: Color(j['color'] as int),
         gender: Gender.values.firstWhere(
           (g) => g.name == (j['gender'] as String? ?? 'neutral'),

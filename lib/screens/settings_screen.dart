@@ -4,7 +4,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/kid_profile.dart';
 import '../providers/app_settings_provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/backup_provider.dart';
@@ -515,33 +517,389 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           if (i > 0) _divider(),
           ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            leading: Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: ProfileTheme.forProfile(profiles[i]).soft,
-              ),
-              child: Center(
-                child: Text(
-                  ProfileTheme.forProfile(profiles[i]).decalEmoji,
-                  style: const TextStyle(fontSize: 18),
-                ),
-              ),
-            ),
-            title: Text(profiles[i].name,
+            leading: _buildProfileAvatar(profiles[i]),
+            title: Text(profiles[i].nickname ?? profiles[i].name,
                 style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-            subtitle: Text(profiles[i].ageText,
-                style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
-            trailing: IconButton(
-              icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
-              tooltip: 'Delete profile',
-              onPressed: () => _confirmDeleteProfile(theme, profiles[i].name, i),
+            subtitle: Text(
+              profiles[i].nickname != null && profiles[i].nickname!.isNotEmpty
+                  ? '${profiles[i].name} • ${profiles[i].ageText}'
+                  : profiles[i].ageText,
+              style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: Icon(Icons.edit_outlined, color: theme.colorScheme.primary, size: 20),
+                  tooltip: 'Edit profile',
+                  onPressed: () => _showEditProfileDialog(theme, i, profiles[i]),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                  tooltip: 'Delete profile',
+                  onPressed: () => _confirmDeleteProfile(theme, profiles[i].name, i),
+                ),
+              ],
             ),
           ),
         ],
       ],
     );
+  }
+
+  Widget _buildProfileAvatar(KidProfile profile) {
+    final pTheme = ProfileTheme.forProfile(profile);
+    final hasAvatar = profile.avatarImagePath != null &&
+        profile.avatarImagePath!.isNotEmpty &&
+        !kIsWeb &&
+        File(profile.avatarImagePath!).existsSync();
+
+    return Container(
+      width: 38,
+      height: 38,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: pTheme.soft,
+        image: hasAvatar
+            ? DecorationImage(
+                image: FileImage(File(profile.avatarImagePath!)),
+                fit: BoxFit.cover,
+              )
+            : null,
+      ),
+      child: hasAvatar
+          ? null
+          : Center(
+              child: Text(
+                pTheme.decalEmoji,
+                style: const TextStyle(fontSize: 18),
+              ),
+            ),
+    );
+  }
+
+  void _showEditProfileDialog(ThemeData theme, int index, KidProfile profile) {
+    final nameController = TextEditingController(text: profile.name);
+    final nicknameController = TextEditingController(text: profile.nickname ?? '');
+    DateTime selectedDob = profile.dateOfBirth;
+    DateTime? selectedTob = profile.timeOfBirth;
+    Color selectedColor = profile.color;
+    Gender selectedGender = profile.gender;
+    String? avatarPath = profile.avatarImagePath;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setState) {
+          final pTheme = ProfileTheme.forGender(selectedGender);
+          final hasAvatar = avatarPath != null &&
+              avatarPath!.isNotEmpty &&
+              !kIsWeb &&
+              File(avatarPath!).existsSync();
+
+          return Container(
+            height: MediaQuery.of(context).size.height * 0.85,
+            decoration: BoxDecoration(
+              color: theme.scaffoldBackgroundColor,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: Column(
+              children: [
+                Container(
+                  margin: const EdgeInsets.only(top: 12),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Text('Edit Profile', style: theme.textTheme.titleLarge),
+                      const Spacer(),
+                      TextButton(
+                        onPressed: () {
+                          final updated = profile.copyWith(
+                            name: nameController.text.trim(),
+                            nickname: nicknameController.text.trim().isEmpty ? null : nicknameController.text.trim(),
+                            clearNickname: nicknameController.text.trim().isEmpty && profile.nickname != null,
+                            dateOfBirth: selectedDob,
+                            timeOfBirth: selectedTob,
+                            clearTimeOfBirth: selectedTob == null && profile.timeOfBirth != null,
+                            color: selectedColor,
+                            gender: selectedGender,
+                            avatarImagePath: avatarPath,
+                            clearAvatar: avatarPath == null && profile.avatarImagePath != null,
+                          );
+                          ref.read(profilesProvider.notifier).updateProfile(index, updated);
+                          Navigator.pop(ctx);
+                        },
+                        child: Text('Save', style: TextStyle(color: pTheme.accent, fontWeight: FontWeight.w600)),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+                    children: [
+                      Center(
+                        child: GestureDetector(
+                          onTap: () async {
+                            if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
+                              final picker = ImagePicker();
+                              final file = await picker.pickImage(source: ImageSource.gallery);
+                              if (file != null) {
+                                setState(() => avatarPath = file.path);
+                              }
+                            } else if (!kIsWeb) {
+                              final result = await FilePicker.platform.pickFiles(
+                                type: FileType.image,
+                                allowMultiple: false,
+                              );
+                              if (result != null && result.files.isNotEmpty && result.files.first.path != null) {
+                                setState(() => avatarPath = result.files.first.path);
+                              }
+                            } else {
+                              final result = await FilePicker.platform.pickFiles(
+                                type: FileType.image,
+                                allowMultiple: false,
+                              );
+                              if (result != null && result.files.isNotEmpty && result.files.first.path != null) {
+                                setState(() => avatarPath = result.files.first.path);
+                              }
+                            }
+                          },
+                          child: Stack(
+                            children: [
+                              Container(
+                                width: 80,
+                                height: 80,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: pTheme.soft,
+                                  image: hasAvatar
+                                      ? DecorationImage(
+                                          image: FileImage(File(avatarPath!)),
+                                          fit: BoxFit.cover,
+                                        )
+                                      : null,
+                                ),
+                                child: hasAvatar
+                                    ? null
+                                    : Center(
+                                        child: Text(
+                                          ProfileTheme.forGender(selectedGender).decalEmoji,
+                                          style: const TextStyle(fontSize: 36),
+                                        ),
+                                      ),
+                              ),
+                              Positioned(
+                                right: 0,
+                                bottom: 0,
+                                child: Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    color: pTheme.accent,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.camera_alt, color: Colors.white, size: 16),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      if (hasAvatar)
+                        Center(
+                          child: TextButton(
+                            onPressed: () => setState(() => avatarPath = null),
+                            child: const Text('Remove photo', style: TextStyle(color: Colors.red)),
+                          ),
+                        ),
+                      const SizedBox(height: 16),
+                      Text('Gender', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey.shade700)),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: Gender.values.map((g) {
+                          final gTheme = ProfileTheme.forGender(g);
+                          final isSelected = selectedGender == g;
+                          final label = switch (g) {
+                            Gender.boy => '🚀 Boy',
+                            Gender.girl => '🌸 Girl',
+                            Gender.neutral => '⭐ Surprise',
+                          };
+                          return Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: GestureDetector(
+                                onTap: () => setState(() {
+                                  selectedGender = g;
+                                  selectedColor = gTheme.accent;
+                                }),
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  decoration: BoxDecoration(
+                                    color: isSelected ? gTheme.accent : gTheme.soft,
+                                    borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(
+                                      color: isSelected ? gTheme.accent : gTheme.accent.withAlpha(60),
+                                      width: isSelected ? 2 : 1,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    label,
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 13,
+                                      color: isSelected ? Colors.white : gTheme.accent,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: nameController,
+                        textCapitalization: TextCapitalization.words,
+                        decoration: InputDecoration(
+                          labelText: "Baby's name",
+                          prefixIcon: Icon(Icons.badge_outlined, color: pTheme.accent),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide(color: pTheme.accent, width: 1.5),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: nicknameController,
+                        textCapitalization: TextCapitalization.words,
+                        decoration: InputDecoration(
+                          labelText: 'Nickname (optional)',
+                          prefixIcon: Icon(Icons.favorite_outline, color: pTheme.accent),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide(color: pTheme.accent, width: 1.5),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      OutlinedButton.icon(
+                        onPressed: () async {
+                          final picked = await showDatePicker(
+                            context: ctx,
+                            initialDate: selectedDob,
+                            firstDate: DateTime.now().subtract(const Duration(days: 365 * 10)),
+                            lastDate: DateTime.now(),
+                          );
+                          if (picked != null) {
+                            setState(() => selectedDob = picked);
+                          }
+                        },
+                        icon: Icon(Icons.cake_outlined, color: pTheme.accent),
+                        label: Text('Birthday: ${_formatDate(selectedDob)}',
+                            style: TextStyle(color: pTheme.accent, fontWeight: FontWeight.w500)),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          side: BorderSide(color: pTheme.accent.withAlpha(120)),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      OutlinedButton.icon(
+                        onPressed: () async {
+                          final picked = await showTimePicker(
+                            context: ctx,
+                            initialTime: selectedTob != null
+                                ? TimeOfDay.fromDateTime(selectedTob!)
+                                : TimeOfDay.now(),
+                          );
+                          if (picked != null) {
+                            final now = DateTime.now();
+                            setState(() => selectedTob = DateTime(
+                              now.year, now.month, now.day,
+                              picked.hour, picked.minute,
+                            ));
+                          }
+                        },
+                        icon: Icon(Icons.access_time, color: pTheme.accent),
+                        label: Text(
+                          selectedTob != null
+                              ? 'Birth time: ${selectedTob!.hour.toString().padLeft(2, '0')}:${selectedTob!.minute.toString().padLeft(2, '0')}'
+                              : 'Add birth time (optional)',
+                          style: TextStyle(color: pTheme.accent, fontWeight: FontWeight.w500),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          side: BorderSide(color: pTheme.accent.withAlpha(120)),
+                        ),
+                      ),
+                      if (selectedTob != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: TextButton(
+                            onPressed: () => setState(() => selectedTob = null),
+                            child: const Text('Remove time', style: TextStyle(color: Colors.red, fontSize: 12)),
+                          ),
+                        ),
+                      const SizedBox(height: 16),
+                      Text('Theme Color', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey.shade700)),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: Colors.primaries.map((color) {
+                          final selected = selectedColor.toARGB32() == color.toARGB32();
+                          return GestureDetector(
+                            onTap: () => setState(() => selectedColor = color),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 150),
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: color,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: selected ? Colors.black : Colors.transparent,
+                                  width: 2.5,
+                                ),
+                                boxShadow: selected
+                                    ? [BoxShadow(color: color.withAlpha(120), blurRadius: 6)]
+                                    : null,
+                              ),
+                              child: selected
+                                  ? const Icon(Icons.check, color: Colors.white, size: 18)
+                                  : null,
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year}';
   }
 
   void _confirmDeleteProfile(ThemeData theme, String profileName, int index) {
