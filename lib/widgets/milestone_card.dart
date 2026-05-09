@@ -13,6 +13,7 @@ class MilestoneCard extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
+  final VoidCallback? onShare;
 
   const MilestoneCard({
     super.key,
@@ -23,6 +24,7 @@ class MilestoneCard extends StatelessWidget {
     this.onTap,
     this.onEdit,
     this.onDelete,
+    this.onShare,
   });
 
   @override
@@ -45,6 +47,7 @@ class MilestoneCard extends StatelessWidget {
                   theme: theme,
                   onEdit: onEdit,
                   onDelete: onDelete,
+                  onShare: onShare,
                 ),
               ),
             ),
@@ -105,8 +108,9 @@ class _CardBody extends StatelessWidget {
   final ProfileTheme theme;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
+  final VoidCallback? onShare;
 
-  const _CardBody({required this.milestone, required this.theme, this.onEdit, this.onDelete});
+  const _CardBody({required this.milestone, required this.theme, this.onEdit, this.onDelete, this.onShare});
 
   @override
   Widget build(BuildContext context) {
@@ -178,12 +182,21 @@ class _CardBody extends StatelessWidget {
                           ],
                         ),
                       ),
-                      if (onEdit != null || onDelete != null)
+                      if (onEdit != null || onDelete != null || onShare != null)
                         PopupMenuButton<String>(
                           icon: Icon(Icons.more_vert, size: 18, color: Colors.grey.shade400),
                           padding: EdgeInsets.zero,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           itemBuilder: (_) => [
+                            if (onShare != null)
+                              const PopupMenuItem(
+                                value: 'share',
+                                child: Row(children: [
+                                  Icon(Icons.share_outlined, size: 18, color: Color(0xFF5B9BD5)),
+                                  SizedBox(width: 10),
+                                  Text('Share'),
+                                ]),
+                              ),
                             if (onEdit != null)
                               const PopupMenuItem(
                                 value: 'edit',
@@ -204,6 +217,7 @@ class _CardBody extends StatelessWidget {
                               ),
                           ],
                           onSelected: (v) {
+                            if (v == 'share') onShare?.call();
                             if (v == 'edit') onEdit?.call();
                             if (v == 'delete') onDelete?.call();
                           },

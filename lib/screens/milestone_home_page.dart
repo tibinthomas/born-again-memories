@@ -25,6 +25,7 @@ import '../utils/profile_theme.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/milestone_card.dart';
 import '../widgets/overview_chip.dart';
+import '../utils/memory_sharer.dart';
 import 'documents_screen.dart';
 import 'milestone_detail_page.dart';
 import 'video_recorder_screen.dart';
@@ -405,6 +406,12 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                                   onEdit: () => _showEditMilestoneSheet(milestone),
                                   onDelete: () =>
                                       _confirmDeleteMilestone(safeIndex, milestone),
+                                  onShare: () => MemorySharer.show(
+                                    context,
+                                    milestone,
+                                    currentProfile.name,
+                                    currentProfile.gender,
+                                  ),
                                 );
                               },
                             ),
