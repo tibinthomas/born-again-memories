@@ -22,6 +22,17 @@ class LocalStorageService {
     return dest.path;
   }
 
+  static Future<String> copyAvatarToStorage(
+      String sourcePath, String filename) async {
+    final dir = await getApplicationDocumentsDirectory();
+    final avatarsDir = Directory('${dir.path}/avatars');
+    await avatarsDir.create(recursive: true);
+    final ext = sourcePath.contains('.') ? sourcePath.split('.').last : 'jpg';
+    final dest = File('${avatarsDir.path}/$filename.$ext');
+    await File(sourcePath).copy(dest.path);
+    return dest.path;
+  }
+
   static Future<void> delete(String filePath) async {
     try {
       final f = File(filePath);

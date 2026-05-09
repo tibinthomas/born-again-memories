@@ -12,6 +12,7 @@ import '../providers/auth_provider.dart';
 import '../providers/backup_provider.dart';
 import '../providers/profiles_provider.dart';
 import '../providers/sharing_provider.dart';
+import '../services/local_storage_service.dart';
 import '../utils/chime.dart';
 import '../utils/profile_theme.dart';
 
@@ -650,28 +651,27 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       Center(
                         child: GestureDetector(
                           onTap: () async {
+                            String? pickedPath;
                             if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
                               final picker = ImagePicker();
                               final file = await picker.pickImage(source: ImageSource.gallery);
-                              if (file != null) {
-                                setState(() => avatarPath = file.path);
-                              }
+                              pickedPath = file?.path;
                             } else if (!kIsWeb) {
                               final result = await FilePicker.platform.pickFiles(
                                 type: FileType.image,
                                 allowMultiple: false,
                               );
-                              if (result != null && result.files.isNotEmpty && result.files.first.path != null) {
-                                setState(() => avatarPath = result.files.first.path);
-                              }
-                            } else {
-                              final result = await FilePicker.platform.pickFiles(
-                                type: FileType.image,
-                                allowMultiple: false,
+                              pickedPath = result?.files.firstOrNull?.path;
+                            }
+                            if (pickedPath != null) {
+                              final permanent = await LocalStorageService.copyAvatarToStorage(
+                                pickedPath,
+                                'avatar_${profile.id}_${DateTime.now().millisecondsSinceEpoch}',
                               );
-                              if (result != null && result.files.isNotEmpty && result.files.first.path != null) {
-                                setState(() => avatarPath = result.files.first.path);
+                              if (avatarPath != null && avatarPath != profile.avatarImagePath) {
+                                LocalStorageService.delete(avatarPath!);
                               }
+                              setState(() => avatarPath = permanent);
                             }
                           },
                           child: Stack(
