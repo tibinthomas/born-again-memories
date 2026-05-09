@@ -245,6 +245,25 @@ class _CardBody extends StatelessWidget {
                       }).toList(),
                     ),
                   ],
+                  if (milestone.tags.isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      children: milestone.tags.map((tag) => Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: theme.soft,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: theme.accent.withAlpha(60)),
+                        ),
+                        child: Text(
+                          '#$tag',
+                          style: TextStyle(fontSize: 11, color: theme.accent, fontWeight: FontWeight.w600),
+                        ),
+                      )).toList(),
+                    ),
+                  ],
                 ],
               ),
             ),

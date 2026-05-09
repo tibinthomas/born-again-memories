@@ -40,11 +40,15 @@ class MilestoneHomePage extends ConsumerStatefulWidget {
 class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
   String _searchQuery = '';
   int? _selectedYear;
+  Set<String> _selectedTags = {};
+  bool _showSearch = false;
   final _searchController = TextEditingController();
+  final _searchFocusNode = FocusNode();
 
   @override
   void dispose() {
     _searchController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
@@ -124,6 +128,8 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
           setState(() {
             _searchQuery = '';
             _selectedYear = null;
+            _selectedTags = {};
+            _showSearch = false;
             _searchController.clear();
           });
         },
@@ -161,14 +167,17 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
         .toSet()
         .toList()
       ..sort((a, b) => b.compareTo(a));
+    final allTags = ({for (final m in allMilestones) ...m.tags}).toList()..sort();
 
     final filtered = allMilestones.where((m) {
       final matchYear = _selectedYear == null || m.date.year == _selectedYear;
       final q = _searchQuery.toLowerCase();
       final matchQuery = q.isEmpty ||
           m.title.toLowerCase().contains(q) ||
-          m.description.toLowerCase().contains(q);
-      return matchYear && matchQuery;
+          m.description.toLowerCase().contains(q) ||
+          m.tags.any((t) => t.contains(q));
+      final matchTags = _selectedTags.isEmpty || m.tags.any(_selectedTags.contains);
+      return matchYear && matchQuery && matchTags;
     }).toList();
 
     return Scaffold(
@@ -194,9 +203,9 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Section header with search
+                // Section header
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 12, 8),
+                  padding: const EdgeInsets.fromLTRB(20, 16, 8, 8),
                   child: Row(
                     children: [
                       Text(
@@ -210,11 +219,22 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                       const Spacer(),
                       if (allMilestones.isNotEmpty)
                         IconButton(
-                          icon: Icon(Icons.search, color: profileTheme.accent, size: 22),
-                          onPressed: () => setState(() {
-                            _searchQuery = _searchQuery.isEmpty ? '' : '';
-                          }),
-                          tooltip: 'Search',
+                          icon: Icon(
+                            _showSearch ? Icons.search_off : Icons.search,
+                            color: _showSearch ? profileTheme.accent : Colors.grey.shade500,
+                            size: 22,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _showSearch = !_showSearch;
+                              if (!_showSearch) {
+                                _searchQuery = '';
+                                _searchController.clear();
+                              }
+                            });
+                            if (_showSearch) _searchFocusNode.requestFocus();
+                          },
+                          tooltip: _showSearch ? 'Hide search' : 'Search',
                         ),
                       TextButton.icon(
                         onPressed: _showAddMilestoneSheet,
@@ -229,55 +249,63 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                   ),
                 ),
 
-                // Search bar
-                if (allMilestones.isNotEmpty) ...[
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-                    child: TextField(
-                      controller: _searchController,
-                      onChanged: (v) => setState(() => _searchQuery = v),
-                      decoration: InputDecoration(
-                        hintText: 'Search milestones…',
-                        hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-                        prefixIcon: Icon(Icons.search, color: Colors.grey.shade400, size: 20),
-                        suffixIcon: _searchQuery.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.close, size: 18),
-                                onPressed: () {
-                                  _searchController.clear();
-                                  setState(() => _searchQuery = '');
-                                },
-                              )
-                            : null,
-                        filled: true,
-                        fillColor: Colors.white,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: BorderSide(color: Colors.grey.shade200),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: BorderSide(color: Colors.grey.shade200),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: BorderSide(color: profileTheme.accent, width: 1.5),
-                        ),
-                      ),
-                    ),
-                  ),
+                // Collapsible search bar
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 220),
+                  curve: Curves.easeInOut,
+                  height: _showSearch ? 52 : 0,
+                  child: _showSearch
+                      ? Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+                          child: TextField(
+                            controller: _searchController,
+                            focusNode: _searchFocusNode,
+                            onChanged: (v) => setState(() => _searchQuery = v),
+                            decoration: InputDecoration(
+                              hintText: 'Search memories…',
+                              hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+                              prefixIcon: Icon(Icons.search, color: Colors.grey.shade400, size: 20),
+                              suffixIcon: _searchQuery.isNotEmpty
+                                  ? IconButton(
+                                      icon: const Icon(Icons.close, size: 18),
+                                      onPressed: () {
+                                        _searchController.clear();
+                                        setState(() => _searchQuery = '');
+                                      },
+                                    )
+                                  : null,
+                              filled: true,
+                              fillColor: Colors.white,
+                              contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide: BorderSide(color: Colors.grey.shade200),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide: BorderSide(color: Colors.grey.shade200),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide: BorderSide(color: profileTheme.accent, width: 1.5),
+                              ),
+                            ),
+                          ),
+                        )
+                      : const SizedBox.shrink(),
+                ),
 
-                  // Year filter chips
-                  if (availableYears.length > 1)
-                    SizedBox(
-                      height: 36,
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-                        children: [
-                          _YearChip(
-                            label: 'All',
+                // Filter chips: years + tags in one scrollable row
+                if (allMilestones.isNotEmpty && (availableYears.length > 1 || allTags.isNotEmpty)) ...[
+                  SizedBox(
+                    height: 36,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                      children: [
+                        if (availableYears.length > 1) ...[
+                          _FilterChip(
+                            label: 'All years',
                             selected: _selectedYear == null,
                             accent: profileTheme.accent,
                             soft: profileTheme.soft,
@@ -285,18 +313,41 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                           ),
                           ...availableYears.map((y) => Padding(
                                 padding: const EdgeInsets.only(left: 8),
-                                child: _YearChip(
+                                child: _FilterChip(
                                   label: '$y',
                                   selected: _selectedYear == y,
                                   accent: profileTheme.accent,
                                   soft: profileTheme.soft,
-                                  onTap: () =>
-                                      setState(() => _selectedYear = _selectedYear == y ? null : y),
+                                  onTap: () => setState(
+                                      () => _selectedYear = _selectedYear == y ? null : y),
                                 ),
                               )),
+                          if (allTags.isNotEmpty)
+                            Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 10),
+                              width: 1,
+                              color: Colors.grey.shade300,
+                            ),
                         ],
-                      ),
+                        ...allTags.map((tag) => Padding(
+                              padding: const EdgeInsets.only(left: 8),
+                              child: _FilterChip(
+                                label: '#$tag',
+                                selected: _selectedTags.contains(tag),
+                                accent: profileTheme.accent,
+                                soft: profileTheme.soft,
+                                onTap: () => setState(() {
+                                  if (_selectedTags.contains(tag)) {
+                                    _selectedTags = {..._selectedTags}..remove(tag);
+                                  } else {
+                                    _selectedTags = {..._selectedTags, tag};
+                                  }
+                                }),
+                              ),
+                            )),
+                      ],
                     ),
+                  ),
                   const SizedBox(height: 8),
                 ],
 
@@ -319,6 +370,8 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                                     onPressed: () => setState(() {
                                       _searchQuery = '';
                                       _selectedYear = null;
+                                      _selectedTags = {};
+                                      _showSearch = false;
                                       _searchController.clear();
                                     }),
                                     child: const Text('Clear filters'),
@@ -370,16 +423,16 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
   }
 }
 
-// ── Year filter chip ───────────────────────────────────────────────────────────
+// ── Filter chip (year + tag) ───────────────────────────────────────────────────
 
-class _YearChip extends StatelessWidget {
+class _FilterChip extends StatelessWidget {
   final String label;
   final bool selected;
   final Color accent;
   final Color soft;
   final VoidCallback onTap;
 
-  const _YearChip({
+  const _FilterChip({
     required this.label,
     required this.selected,
     required this.accent,
@@ -1155,10 +1208,12 @@ class _AddMilestoneSheet extends ConsumerStatefulWidget {
 class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
   final _titleController = TextEditingController();
   final _descController = TextEditingController();
+  final _tagController = TextEditingController();
   final _picker = ImagePicker();
   final _labelControllers = <String, TextEditingController>{};
   // Attachments stored in local state so webBytes survive async gaps + autoDispose
   final List<Attachment> _attachments = [];
+  final List<String> _tags = [];
   String? _titleError;
   String? _descError;
   Set<String> _existingAttachmentIds = {};
@@ -1182,6 +1237,7 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
       for (final a in initial.attachments) {
         _labelControllers[a.id] = TextEditingController(text: a.label ?? '');
       }
+      _tags.addAll(initial.tags);
       _showingTemplates = false;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
@@ -1190,10 +1246,23 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
     }
   }
 
+  void _addTag(String raw) {
+    final tag = raw.trim().toLowerCase();
+    if (tag.isEmpty || _tags.contains(tag) || _tags.length >= 5) {
+      _tagController.clear();
+      return;
+    }
+    setState(() {
+      _tags.add(tag);
+      _tagController.clear();
+    });
+  }
+
   @override
   void dispose() {
     _titleController.dispose();
     _descController.dispose();
+    _tagController.dispose();
     for (final c in _labelControllers.values) {
       c.dispose();
     }
@@ -1538,6 +1607,48 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
             counterText: '',
           ),
         ),
+        const SizedBox(height: 14),
+
+        // Tags
+        _sectionLabel('Tags'),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            ..._tags.map((tag) => Chip(
+                  label: Text('#$tag',
+                      style: TextStyle(fontSize: 12, color: pTheme.accent)),
+                  backgroundColor: pTheme.soft,
+                  side: BorderSide(color: pTheme.accent.withAlpha(80)),
+                  deleteIconColor: pTheme.accent.withAlpha(160),
+                  onDeleted: () => setState(() => _tags.remove(tag)),
+                  padding: const EdgeInsets.symmetric(horizontal: 2),
+                  visualDensity: VisualDensity.compact,
+                )),
+            if (_tags.length < 5)
+              SizedBox(
+                width: 130,
+                child: TextField(
+                  controller: _tagController,
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: _addTag,
+                  style: const TextStyle(fontSize: 13),
+                  decoration: inputDeco.copyWith(
+                    hintText: 'Add tag…',
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    suffixIcon: IconButton(
+                      icon: Icon(Icons.add, size: 16, color: pTheme.accent),
+                      onPressed: () => _addTag(_tagController.text),
+                      padding: EdgeInsets.zero,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
         const SizedBox(height: 18),
 
         // Media
@@ -1832,6 +1943,7 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
                       date: form.date,
                       color: original.color,
                       attachments: saved,
+                      tags: List.unmodifiable(_tags),
                     ),
                   );
             } else {
@@ -1847,6 +1959,7 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
                               existingCount % Colors.primaries.length]
                           .shade300,
                       attachments: saved,
+                      tags: List.unmodifiable(_tags),
                     ),
                   );
             }

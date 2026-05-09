@@ -8,6 +8,7 @@ class Milestone {
   final DateTime date;
   final Color color;
   final List<Attachment> attachments;
+  final List<String> tags;
 
   Milestone({
     String? id,
@@ -16,6 +17,7 @@ class Milestone {
     required this.date,
     required this.color,
     this.attachments = const [],
+    this.tags = const [],
   }) : id = id ?? DateTime.now().microsecondsSinceEpoch.toString();
 
   Milestone copyWith({
@@ -25,6 +27,7 @@ class Milestone {
     DateTime? date,
     Color? color,
     List<Attachment>? attachments,
+    List<String>? tags,
   }) =>
       Milestone(
         id: id ?? this.id,
@@ -33,6 +36,7 @@ class Milestone {
         date: date ?? this.date,
         color: color ?? this.color,
         attachments: attachments ?? this.attachments,
+        tags: tags ?? this.tags,
       );
 
   Map<String, dynamic> toJson() => {
@@ -42,6 +46,7 @@ class Milestone {
         'date': date.toIso8601String(),
         'color': color.toARGB32(),
         'attachments': {for (final a in attachments) a.id: a.toJson()},
+        if (tags.isNotEmpty) 'tags': tags,
       };
 
   factory Milestone.fromJson(Map<String, dynamic> j) {
@@ -62,6 +67,7 @@ class Milestone {
       date: DateTime.parse(j['date'] as String),
       color: Color(j['color'] as int),
       attachments: parseAttachments(),
+      tags: (j['tags'] as List<dynamic>?)?.cast<String>() ?? [],
     );
   }
 }
