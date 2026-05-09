@@ -5,6 +5,7 @@ import '../models/baby_document.dart';
 import '../models/kid_profile.dart';
 import '../models/milestone.dart';
 import '../models/reminder.dart';
+import '../models/saved_link.dart';
 import '../models/shared_feed.dart';
 
 class FirestoreService {
@@ -54,15 +55,17 @@ class FirestoreService {
     final profiles = <KidProfile>[];
     for (final doc in snap.docs) {
       final profile = KidProfile.fromJson(doc.data());
-      final (milestones, reminders, documents) = await (
+      final (milestones, reminders, documents, links) = await (
         _loadMilestones(uid, profile.id),
         _loadReminders(uid, profile.id),
         _loadDocuments(uid, profile.id),
+        _loadLinks(uid, profile.id),
       ).wait;
       profiles.add(profile.copyWith(
         milestones: milestones,
         reminders: reminders,
         documents: documents,
+        links: links,
       ));
     }
     return profiles;
@@ -93,8 +96,20 @@ class FirestoreService {
     final msSnap = await _db
         .collection('users/$uid/profiles/$profileId/milestones')
         .get();
+    final docSnap = await _db
+        .collection('users/$uid/profiles/$profileId/documents')
+        .get();
+    final linkSnap = await _db
+        .collection('users/$uid/profiles/$profileId/links')
+        .get();
     final batch = _db.batch();
     for (final doc in msSnap.docs) {
+      batch.delete(doc.reference);
+    }
+    for (final doc in docSnap.docs) {
+      batch.delete(doc.reference);
+    }
+    for (final doc in linkSnap.docs) {
       batch.delete(doc.reference);
     }
     batch.delete(_db.doc('users/$uid/profiles/$profileId'));
@@ -124,11 +139,32 @@ class FirestoreService {
     return snap.docs.map((d) => BabyDocument.fromJson(d.data())).toList();
   }
 
+  static Future<List<SavedLink>> _loadLinks(
+      String uid, String profileId) async {
+    final snap = await _db
+        .collection('users/$uid/profiles/$profileId/links')
+        .orderBy('dateAdded', descending: true)
+        .get();
+    return snap.docs.map((d) => SavedLink.fromJson(d.data())).toList();
+  }
+
   static Future<void> saveDocument(
           String uid, String profileId, BabyDocument doc) =>
       _db
           .doc('users/$uid/profiles/$profileId/documents/${doc.id}')
           .set(doc.toJson());
+
+  static Future<void> saveLink(
+          String uid, String profileId, SavedLink link) =>
+      _db
+          .doc('users/$uid/profiles/$profileId/links/${link.id}')
+          .set(link.toJson());
+
+  static Future<void> deleteLink(
+          String uid, String profileId, String linkId) =>
+      _db
+          .doc('users/$uid/profiles/$profileId/links/$linkId')
+          .delete();
 
   static Future<void> deleteDocument(
           String uid, String profileId, String docId) =>

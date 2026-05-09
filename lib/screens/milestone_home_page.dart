@@ -27,6 +27,7 @@ import '../widgets/milestone_card.dart';
 import '../utils/memory_sharer.dart';
 import 'documents_screen.dart';
 import 'milestone_detail_page.dart';
+import 'saved_links_screen.dart';
 import 'shared_feed_screen.dart';
 import 'video_recorder_screen.dart';
 import 'reminders_screen.dart';
@@ -45,6 +46,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
   String _searchQuery = '';
   int? _selectedYear;
   Set<String> _selectedTags = {};
+  bool _selectAllTags = true;
   bool _showSearch = false;
   final _searchController = TextEditingController();
   final _searchFocusNode = FocusNode();
@@ -506,7 +508,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
           m.title.toLowerCase().contains(q) ||
           m.description.toLowerCase().contains(q) ||
           m.tags.any((t) => t.contains(q));
-      final matchTags = _selectedTags.isEmpty || m.tags.any(_selectedTags.contains);
+      final matchTags = _selectAllTags || _selectedTags.isEmpty || m.tags.any(_selectedTags.contains);
       return matchYear && matchQuery && matchTags;
     }).toList();
 
@@ -533,6 +535,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                 builder: (_) => DocumentsScreen(profileIndex: safeIndex),
               ),
             ),
+            onLinks: () => SavedLinksScreen.push(context, safeIndex),
             onEditProfile: () => _showEditProfileSheet(context, safeIndex, currentProfile),
           ),
 
@@ -568,6 +571,9 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                               if (!_showSearch) {
                                 _searchQuery = '';
                                 _searchController.clear();
+                                _selectedYear = null;
+                                _selectedTags = {};
+                                _selectAllTags = true;
                               }
                             });
                             if (_showSearch) _searchFocusNode.requestFocus();
@@ -587,107 +593,144 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                   ),
                 ),
 
-                // Collapsible search bar
+                // Collapsible filters
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 220),
                   curve: Curves.easeInOut,
-                  height: _showSearch ? 52 : 0,
+                  height: _showSearch ? 120 : 0,
                   child: _showSearch
                       ? Padding(
                           padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-                          child: TextField(
-                            controller: _searchController,
-                            focusNode: _searchFocusNode,
-                            onChanged: (v) => setState(() => _searchQuery = v),
-                            decoration: InputDecoration(
-                              hintText: 'Search memories…',
-                              hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-                              prefixIcon: Icon(Icons.search, color: Colors.grey.shade400, size: 20),
-                              suffixIcon: _searchQuery.isNotEmpty
-                                  ? IconButton(
-                                      icon: const Icon(Icons.close, size: 18),
-                                      onPressed: () {
-                                        _searchController.clear();
-                                        setState(() => _searchQuery = '');
-                                      },
-                                    )
-                                  : null,
-                              filled: true,
-                              fillColor: Colors.white,
-                              contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(14),
-                                borderSide: BorderSide(color: Colors.grey.shade200),
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    flex: 6,
+                                    child: TextField(
+                                      controller: _searchController,
+                                      focusNode: _searchFocusNode,
+                                      onChanged: (v) => setState(() => _searchQuery = v),
+                                      decoration: InputDecoration(
+                                        hintText: 'Search memories…',
+                                        hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+                                        prefixIcon: Icon(Icons.search, color: Colors.grey.shade400, size: 20),
+                                        suffixIcon: _searchQuery.isNotEmpty
+                                            ? IconButton(
+                                                icon: const Icon(Icons.close, size: 18),
+                                                onPressed: () {
+                                                  _searchController.clear();
+                                                  setState(() => _searchQuery = '');
+                                                },
+                                              )
+                                            : null,
+                                        filled: true,
+                                        fillColor: Colors.white,
+                                        contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(14),
+                                          borderSide: BorderSide(color: Colors.grey.shade200),
+                                        ),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(14),
+                                          borderSide: BorderSide(color: Colors.grey.shade200),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(14),
+                                          borderSide: BorderSide(color: profileTheme.accent, width: 1.5),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    flex: 4,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(14),
+                                        border: Border.all(color: Colors.grey.shade200),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          IconButton(
+                                            icon: const Icon(Icons.arrow_left, size: 18),
+                                            onPressed: () {
+                                              final options = ['All', ...availableYears.map((y) => '$y')];
+                                              final currentIndex = _selectedYear == null ? 0 : options.indexOf('$_selectedYear');
+                                              final nextIndex = (currentIndex - 1 + options.length) % options.length;
+                                              setState(() {
+                                                _selectedYear = nextIndex == 0 ? null : int.parse(options[nextIndex]);
+                                              });
+                                            },
+                                          ),
+                                          Expanded(
+                                            child: Text(
+                                              _selectedYear == null ? 'All years' : '$_selectedYear',
+                                              textAlign: TextAlign.center,
+                                              style: const TextStyle(fontSize: 14),
+                                            ),
+                                          ),
+                                          IconButton(
+                                            icon: const Icon(Icons.arrow_right, size: 18),
+                                            onPressed: () {
+                                              final options = ['All', ...availableYears.map((y) => '$y')];
+                                              final currentIndex = _selectedYear == null ? 0 : options.indexOf('$_selectedYear');
+                                              final nextIndex = (currentIndex + 1) % options.length;
+                                              setState(() {
+                                                _selectedYear = nextIndex == 0 ? null : int.parse(options[nextIndex]);
+                                              });
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(14),
-                                borderSide: BorderSide(color: Colors.grey.shade200),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(14),
-                                borderSide: BorderSide(color: profileTheme.accent, width: 1.5),
-                              ),
-                            ),
+                              if (allTags.isNotEmpty) ...[
+                                const SizedBox(height: 8),
+                                SizedBox(
+                                  height: 36,
+                                  child: ListView(
+                                    scrollDirection: Axis.horizontal,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.only(left: 8),
+                                        child: _FilterChip(
+                                          label: 'All tags',
+                                          selected: _selectAllTags,
+                                          accent: profileTheme.accent,
+                                          soft: profileTheme.soft,
+                                          onTap: () => setState(() => _selectAllTags = !_selectAllTags),
+                                        ),
+                                      ),
+                                      if (!_selectAllTags) ...allTags.map((tag) => Padding(
+                                            padding: const EdgeInsets.only(left: 8),
+                                            child: _FilterChip(
+                                              label: '#$tag',
+                                              selected: _selectedTags.contains(tag),
+                                              accent: profileTheme.accent,
+                                              soft: profileTheme.soft,
+                                              onTap: () => setState(() {
+                                                if (_selectedTags.contains(tag)) {
+                                                  _selectedTags = {..._selectedTags}..remove(tag);
+                                                } else {
+                                                  _selectedTags = {..._selectedTags, tag};
+                                                }
+                                              }),
+                                            ),
+                                          )),
+                                    ].toList(),
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                         )
                       : const SizedBox.shrink(),
                 ),
-
-                // Filter chips: years + tags in one scrollable row
-                if (allMilestones.isNotEmpty && (availableYears.length > 1 || allTags.isNotEmpty)) ...[
-                  SizedBox(
-                    height: 36,
-                    child: ListView(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-                      children: [
-                        if (availableYears.length > 1) ...[
-                          _FilterChip(
-                            label: 'All years',
-                            selected: _selectedYear == null,
-                            accent: profileTheme.accent,
-                            soft: profileTheme.soft,
-                            onTap: () => setState(() => _selectedYear = null),
-                          ),
-                          ...availableYears.map((y) => Padding(
-                                padding: const EdgeInsets.only(left: 8),
-                                child: _FilterChip(
-                                  label: '$y',
-                                  selected: _selectedYear == y,
-                                  accent: profileTheme.accent,
-                                  soft: profileTheme.soft,
-                                  onTap: () => setState(
-                                      () => _selectedYear = _selectedYear == y ? null : y),
-                                ),
-                              )),
-                          if (allTags.isNotEmpty)
-                            Container(
-                              margin: const EdgeInsets.symmetric(horizontal: 10),
-                              width: 1,
-                              color: Colors.grey.shade300,
-                            ),
-                        ],
-                        ...allTags.map((tag) => Padding(
-                              padding: const EdgeInsets.only(left: 8),
-                              child: _FilterChip(
-                                label: '#$tag',
-                                selected: _selectedTags.contains(tag),
-                                accent: profileTheme.accent,
-                                soft: profileTheme.soft,
-                                onTap: () => setState(() {
-                                  if (_selectedTags.contains(tag)) {
-                                    _selectedTags = {..._selectedTags}..remove(tag);
-                                  } else {
-                                    _selectedTags = {..._selectedTags, tag};
-                                  }
-                                }),
-                              ),
-                            )),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                ],
 
                 // Milestone list or empty state
                 Expanded(
@@ -882,6 +925,7 @@ class _ProfileHeader extends StatelessWidget {
   final VoidCallback onSwitchProfile;
   final VoidCallback onSharedFeed;
   final VoidCallback onDocuments;
+  final VoidCallback onLinks;
   final VoidCallback onEditProfile;
 
   const _ProfileHeader({
@@ -894,6 +938,7 @@ class _ProfileHeader extends StatelessWidget {
     required this.onSwitchProfile,
     required this.onSharedFeed,
     required this.onDocuments,
+    required this.onLinks,
     required this.onEditProfile,
   });
 
@@ -1021,6 +1066,12 @@ class _ProfileHeader extends StatelessWidget {
                             icon: const Icon(Icons.people_outline_rounded,
                                 color: Colors.white70, size: 22),
                             tooltip: 'Shared with me',
+                          ),
+                          IconButton(
+                            onPressed: onLinks,
+                            icon: const Icon(Icons.link_outlined,
+                                color: Colors.white70, size: 22),
+                            tooltip: 'Saved links',
                           ),
                           _RemindersButton(
                             profile: profile,

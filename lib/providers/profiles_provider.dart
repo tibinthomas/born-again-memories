@@ -6,6 +6,7 @@ import '../models/baby_document.dart';
 import '../models/kid_profile.dart';
 import '../models/milestone.dart';
 import '../models/reminder.dart';
+import '../models/saved_link.dart';
 import '../services/firestore_service.dart';
 import '../services/notification_service.dart';
 import 'auth_provider.dart';
@@ -150,6 +151,31 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>?> {
           documents: profile.documents.where((d) => d.id != docId).toList(),
         ));
     await FirestoreService.deleteDocument(uid, profile.id, docId);
+  }
+
+  // ── Saved links ─────────────────────────────────────────────────────────────
+
+  Future<void> addLink(int profileIndex, SavedLink link) async {
+    final list = state ?? <KidProfile>[];
+    final profile = list[profileIndex];
+    _setProfile(profileIndex, profile.copyWith(links: [link, ...profile.links]));
+    await FirestoreService.saveLink(uid, profile.id, link);
+  }
+
+  Future<void> updateLink(int profileIndex, SavedLink link) async {
+    final list = state ?? <KidProfile>[];
+    final profile = list[profileIndex];
+    final links = profile.links.map((item) => item.id == link.id ? link : item).toList();
+    _setProfile(profileIndex, profile.copyWith(links: links));
+    await FirestoreService.saveLink(uid, profile.id, link);
+  }
+
+  Future<void> deleteLink(int profileIndex, String linkId) async {
+    final list = state ?? <KidProfile>[];
+    final profile = list[profileIndex];
+    final links = profile.links.where((item) => item.id != linkId).toList();
+    _setProfile(profileIndex, profile.copyWith(links: links));
+    await FirestoreService.deleteLink(uid, profile.id, linkId);
   }
 
   void _setProfile(int index, KidProfile profile) {
