@@ -23912,8 +23912,8 @@
     "hash": "2bd8469f2a4b701ff582f6574e58b13c"
   },
   "/Users/tibinthomas/my_app/ios/Runner/GeneratedPluginRegistrant.m": {
-    "mtime": 1778313604.6474853,
-    "hash": "9684498d9c5a1f481a102fe5c1566e3e"
+    "mtime": 1778317744.480886,
+    "hash": "a5bda67f93b556d4fe12424e3bff8366"
   },
   "/Users/tibinthomas/my_app/ios/Runner/SceneDelegate.swift": {
     "mtime": 1777367340.471183,
@@ -48708,8 +48708,8 @@
     "hash": "fd0d3b408c6619b9d255cfc44d0cec9b"
   },
   "/Users/tibinthomas/my_app/android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java": {
-    "mtime": 1778313604.6396182,
-    "hash": "0f4987b6054581dab76e57cec5c1f55f"
+    "mtime": 1778317744.473223,
+    "hash": "cd288594c36febf7476a4bc4fb0ebd34"
   },
   "/Users/tibinthomas/my_app/android/app/src/main/kotlin/com/tibinthomas/born_again_memories/MainActivity.kt": {
     "mtime": 1777823078.3771625,
@@ -48792,8 +48792,8 @@
     "hash": "3e1425c5e5a57b66836fc8e361adda9f"
   },
   "/Users/tibinthomas/my_app/lib/screens/milestone_home_page.dart": {
-    "mtime": 1778316898.382253,
-    "hash": "73b17bf584eb23392afd9eaed6d17102"
+    "mtime": 1778317875.5437737,
+    "hash": "ec939514d2c530c3945142fb6381133b"
   },
   "/Users/tibinthomas/my_app/lib/screens/settings_screen.dart": {
     "mtime": 1778309331.3023229,
@@ -48806,6 +48806,10 @@
   "/Users/tibinthomas/my_app/lib/screens/documents_screen.dart": {
     "mtime": 1778316915.5974457,
     "hash": "65e455bb37adb66996797237cc777403"
+  },
+  "/Users/tibinthomas/my_app/lib/screens/video_recorder_screen.dart": {
+    "mtime": 1778318043.2920814,
+    "hash": "d50fb79314668701f5049d3f31fb2d11"
   },
   "/Users/tibinthomas/my_app/lib/screens/login_screen.dart": {
     "mtime": 1778295467.412463,
@@ -48896,8 +48900,8 @@
     "hash": "d4a537148be5a8b731a7954884cf7119"
   },
   "/Users/tibinthomas/my_app/pubspec.yaml": {
-    "mtime": 1778312530.876037,
-    "hash": "2f119f1dc8fa1c0d862ace22ac330c67"
+    "mtime": 1778317722.0887804,
+    "hash": "0e044efc75ebd10357ddde650ef99440"
   },
   "/Users/tibinthomas/my_app/analysis_options.yaml": {
     "mtime": 1777687427.381633,

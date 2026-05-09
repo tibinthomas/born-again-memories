@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:camera/camera.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -26,6 +27,7 @@ import '../widgets/milestone_card.dart';
 import '../widgets/overview_chip.dart';
 import 'documents_screen.dart';
 import 'milestone_detail_page.dart';
+import 'video_recorder_screen.dart';
 import 'reminders_screen.dart';
 import 'settings_screen.dart';
 
@@ -1282,6 +1284,7 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
   String? _titleError;
   String? _descError;
   Set<String> _existingAttachmentIds = {};
+  bool _hasCameras = false;
 
   // Template state
   MilestoneTemplate? _selectedTemplate;
@@ -1290,6 +1293,7 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
 
   bool get _isEditing => widget.initialMilestone != null;
 
+  @override
   @override
   void initState() {
     super.initState();
@@ -1309,6 +1313,16 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
         ref.read(addMilestoneFormProvider.notifier).setDate(initial.date);
       });
     }
+    if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
+      _checkCameras();
+    }
+  }
+
+  Future<void> _checkCameras() async {
+    try {
+      final cameras = await availableCameras();
+      if (mounted) setState(() => _hasCameras = cameras.isNotEmpty);
+    } catch (_) {}
   }
 
   void _addTag(String raw) {
@@ -1733,16 +1747,40 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
                 },
               ),
               const SizedBox(width: 8),
-              _MediaBtn(
-                icon: Icons.videocam_outlined,
-                label: 'Video',
-                color: Colors.red,
-                onTap: () async {
-                  final f =
-                      await _picker.pickVideo(source: ImageSource.camera);
-                  if (f != null) _addXFiles([f]);
-                },
-              ),
+              if (_hasCameras)
+                _MediaBtn(
+                  icon: Icons.videocam_outlined,
+                  label: 'Record',
+                  color: Colors.red,
+                  onTap: () async {
+                    // Dismiss keyboard before going full-screen
+                    FocusScope.of(context).unfocus();
+                    final path = await VideoRecorderScreen.open(context);
+                    if (path != null && mounted) {
+                      final file = File(path);
+                      final ext = path.split('.').last.toLowerCase();
+                      _addAttachment(Attachment(
+                        id: DateTime.now().microsecondsSinceEpoch.toString(),
+                        name:
+                            'video_${DateTime.now().millisecondsSinceEpoch}.$ext',
+                        localPath: path,
+                        type: AttachmentType.video,
+                        sizeBytes: await file.length(),
+                      ));
+                    }
+                  },
+                )
+              else
+                _MediaBtn(
+                  icon: Icons.videocam_outlined,
+                  label: 'Video',
+                  color: Colors.red,
+                  onTap: () async {
+                    final f =
+                        await _picker.pickVideo(source: ImageSource.camera);
+                    if (f != null) _addXFiles([f]);
+                  },
+                ),
               const SizedBox(width: 8),
             ],
             _MediaBtn(
