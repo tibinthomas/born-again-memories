@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'baby_document.dart';
 import 'milestone.dart';
 import 'reminder.dart';
 
@@ -13,6 +14,7 @@ class KidProfile {
   final String? backgroundImagePath; // device-local only, not synced to cloud
   final List<Milestone> milestones;
   final List<Reminder> reminders;
+  final List<BabyDocument> documents;
 
   KidProfile({
     required this.id,
@@ -23,6 +25,7 @@ class KidProfile {
     this.backgroundImagePath,
     this.milestones = const [],
     this.reminders = const [],
+    this.documents = const [],
   });
 
   String get ageText {
@@ -50,6 +53,7 @@ class KidProfile {
     bool clearBackground = false,
     List<Milestone>? milestones,
     List<Reminder>? reminders,
+    List<BabyDocument>? documents,
   }) =>
       KidProfile(
         id: id ?? this.id,
@@ -61,6 +65,7 @@ class KidProfile {
             clearBackground ? null : (backgroundImagePath ?? this.backgroundImagePath),
         milestones: milestones ?? this.milestones,
         reminders: reminders ?? this.reminders,
+        documents: documents ?? this.documents,
       );
 
   // milestones + reminders stored in subcollections; backgroundImagePath is device-local

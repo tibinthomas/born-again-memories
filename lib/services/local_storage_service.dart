@@ -12,6 +12,16 @@ class LocalStorageService {
     return dest.path;
   }
 
+  static Future<String> copyDocumentToStorage(
+      String sourcePath, String filename) async {
+    final dir = await getApplicationDocumentsDirectory();
+    final docsDir = Directory('${dir.path}/documents');
+    await docsDir.create(recursive: true);
+    final dest = File('${docsDir.path}/$filename');
+    await File(sourcePath).copy(dest.path);
+    return dest.path;
+  }
+
   static Future<void> delete(String filePath) async {
     try {
       final f = File(filePath);

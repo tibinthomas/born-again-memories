@@ -1,0 +1,955 @@
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import '../models/baby_document.dart';
+import '../models/kid_profile.dart';
+import '../providers/profiles_provider.dart';
+import '../services/local_storage_service.dart';
+import '../utils/date_formatter.dart';
+import '../utils/profile_theme.dart';
+
+// ── Entry point ───────────────────────────────────────────────────────────────
+
+class DocumentsScreen extends ConsumerStatefulWidget {
+  final int profileIndex;
+
+  const DocumentsScreen({super.key, required this.profileIndex});
+
+  @override
+  ConsumerState<DocumentsScreen> createState() => _DocumentsScreenState();
+}
+
+class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
+  DocumentCategory? _selectedCategory;
+
+  @override
+  Widget build(BuildContext context) {
+    final profiles = ref.watch(profilesProvider) ?? [];
+    if (profiles.isEmpty || widget.profileIndex >= profiles.length) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    final profile = profiles[widget.profileIndex];
+    final theme = ProfileTheme.forProfile(profile);
+    final docs = [...profile.documents]
+      ..sort((a, b) => b.dateAdded.compareTo(a.dateAdded));
+    final filtered = _selectedCategory == null
+        ? docs
+        : docs.where((d) => d.category == _selectedCategory).toList();
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
+      body: CustomScrollView(
+        slivers: [
+          _Header(profile: profile, theme: theme),
+
+          // Category filter
+          if (docs.isNotEmpty)
+            SliverToBoxAdapter(
+              child: SizedBox(
+                height: 48,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
+                  children: [
+                    _CategoryChip(
+                      label: 'All',
+                      selected: _selectedCategory == null,
+                      color: theme.accent,
+                      onTap: () => setState(() => _selectedCategory = null),
+                    ),
+                    ...DocumentCategory.values.map((cat) => Padding(
+                          padding: const EdgeInsets.only(left: 8),
+                          child: _CategoryChip(
+                            label: '${cat.emoji} ${cat.label}',
+                            selected: _selectedCategory == cat,
+                            color: cat.color,
+                            onTap: () => setState(() =>
+                                _selectedCategory =
+                                    _selectedCategory == cat ? null : cat),
+                          ),
+                        )),
+                  ],
+                ),
+              ),
+            ),
+
+          if (docs.isEmpty)
+            SliverFillRemaining(
+              child: _EmptyState(theme: theme, kidName: profile.name),
+            )
+          else if (filtered.isEmpty)
+            SliverFillRemaining(
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.filter_list_off,
+                        size: 48, color: Colors.grey.shade300),
+                    const SizedBox(height: 12),
+                    Text(
+                      'No ${_selectedCategory?.label ?? ''} documents yet',
+                      style: TextStyle(color: Colors.grey.shade500),
+                    ),
+                    TextButton(
+                      onPressed: () =>
+                          setState(() => _selectedCategory = null),
+                      child: const Text('Show all'),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
+              sliver: SliverList.separated(
+                itemCount: filtered.length,
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: 10),
+                itemBuilder: (ctx, i) => _DocumentCard(
+                  doc: filtered[i],
+                  theme: theme,
+                  profileIndex: widget.profileIndex,
+                ),
+              ),
+            ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showAddSheet(context, theme, widget.profileIndex),
+        backgroundColor: theme.accent,
+        foregroundColor: Colors.white,
+        icon: const Icon(Icons.upload_file_outlined),
+        label: const Text('Add Document'),
+      ),
+    );
+  }
+
+  static void _showAddSheet(
+      BuildContext context, ProfileTheme theme, int profileIndex) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) =>
+          _DocumentSheet(profileIndex: profileIndex, theme: theme),
+    );
+  }
+}
+
+// ── Header ────────────────────────────────────────────────────────────────────
+
+class _Header extends StatelessWidget {
+  final KidProfile profile;
+  final ProfileTheme theme;
+
+  const _Header({required this.profile, required this.theme});
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverAppBar(
+      expandedHeight: 130,
+      pinned: true,
+      backgroundColor: theme.accent,
+      foregroundColor: Colors.white,
+      flexibleSpace: FlexibleSpaceBar(
+        titlePadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        title: Row(
+          children: [
+            Text('${theme.decalEmoji} ',
+                style: const TextStyle(fontSize: 20)),
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${profile.name}\'s Documents',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    '${profile.documents.length} document${profile.documents.length == 1 ? '' : 's'}',
+                    style:
+                        const TextStyle(fontSize: 11, color: Colors.white70),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        background: DecoratedBox(
+          decoration: BoxDecoration(gradient: theme.headerGradient),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Category chip ─────────────────────────────────────────────────────────────
+
+class _CategoryChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _CategoryChip({
+    required this.label,
+    required this.selected,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        decoration: BoxDecoration(
+          color: selected ? color : color.withAlpha(20),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: selected ? color : color.withAlpha(60)),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: selected ? Colors.white : color,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Document card ─────────────────────────────────────────────────────────────
+
+class _DocumentCard extends ConsumerWidget {
+  final BabyDocument doc;
+  final ProfileTheme theme;
+  final int profileIndex;
+
+  const _DocumentCard({
+    required this.doc,
+    required this.theme,
+    required this.profileIndex,
+  });
+
+  Color get _catColor => doc.category.color;
+
+  Future<void> _open(BuildContext context) async {
+    if (kIsWeb) {
+      if (doc.webBytes != null && doc.isImage) {
+        _showImageViewer(context);
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('File viewing is not supported on web after reload.')),
+      );
+      return;
+    }
+
+    if (doc.localPath.isEmpty || !File(doc.localPath).existsSync()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text(
+                'File not found on this device. It may have been added on another device.')),
+      );
+      return;
+    }
+
+    if (doc.isImage) {
+      _showImageViewer(context);
+      return;
+    }
+
+    try {
+      final uri = Uri.file(doc.localPath);
+      final launched =
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!launched && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(
+                  'No app found to open ${doc.name}. File is saved at: ${doc.localPath}')),
+        );
+      }
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Cannot open ${doc.name}.')),
+        );
+      }
+    }
+  }
+
+  void _showImageViewer(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (_) => Dialog.fullscreen(
+        child: Scaffold(
+          backgroundColor: Colors.black,
+          appBar: AppBar(
+            backgroundColor: Colors.black,
+            foregroundColor: Colors.white,
+            title: Text(doc.name,
+                style: const TextStyle(color: Colors.white, fontSize: 14)),
+          ),
+          body: InteractiveViewer(
+            child: Center(
+              child: doc.webBytes != null
+                  ? Image.memory(doc.webBytes!, fit: BoxFit.contain)
+                  : Image.file(File(doc.localPath), fit: BoxFit.contain),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final fileExists =
+        !kIsWeb && doc.localPath.isNotEmpty && File(doc.localPath).existsSync();
+    final isAvailable = kIsWeb ? (doc.webBytes != null) : fileExists;
+
+    return Dismissible(
+      key: ValueKey(doc.id),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 20),
+        decoration: BoxDecoration(
+          color: Colors.red.shade400,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: const Icon(Icons.delete_outline, color: Colors.white, size: 28),
+      ),
+      confirmDismiss: (_) => showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Delete document?'),
+          content: Text('Remove "${doc.name}"? The local file will also be deleted.'),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Cancel')),
+            FilledButton(
+              style: FilledButton.styleFrom(backgroundColor: Colors.red),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Delete'),
+            ),
+          ],
+        ),
+      ),
+      onDismissed: (_) {
+        // Delete local file
+        if (!kIsWeb && doc.localPath.isNotEmpty) {
+          LocalStorageService.delete(doc.localPath);
+        }
+        ref
+            .read(profilesProvider.notifier)
+            .deleteDocument(profileIndex, doc.id);
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+              SnackBar(content: Text('"${doc.name}" deleted')));
+      },
+      child: GestureDetector(
+        onTap: () => _open(context),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: _catColor.withAlpha(20),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Stack(
+            children: [
+              // Left rail
+              Positioned(
+                top: 0,
+                bottom: 0,
+                left: 0,
+                width: 5,
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    bottomLeft: Radius.circular(16),
+                  ),
+                  child: ColoredBox(color: _catColor),
+                ),
+              ),
+              // Content
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 14, 14, 14),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // File type icon
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: _catColor.withAlpha(18),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(doc.typeIcon, color: _catColor, size: 22),
+                    ),
+                    const SizedBox(width: 12),
+                    // Info
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            doc.name,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF1F2937),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 7, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: _catColor.withAlpha(18),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  '${doc.category.emoji} ${doc.category.label}',
+                                  style: TextStyle(
+                                      fontSize: 11,
+                                      color: _catColor,
+                                      fontWeight: FontWeight.w600),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                doc.formattedSize,
+                                style: TextStyle(
+                                    fontSize: 11, color: Colors.grey.shade500),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(Icons.calendar_today_outlined,
+                                  size: 11, color: Colors.grey.shade400),
+                              const SizedBox(width: 4),
+                              Text(
+                                formatDate(doc.dateAdded),
+                                style: TextStyle(
+                                    fontSize: 11, color: Colors.grey.shade500),
+                              ),
+                              if (!isAvailable) ...[
+                                const SizedBox(width: 8),
+                                Icon(Icons.cloud_off_outlined,
+                                    size: 11, color: Colors.orange.shade400),
+                                const SizedBox(width: 3),
+                                Text(
+                                  'Not on this device',
+                                  style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.orange.shade400),
+                                ),
+                              ],
+                            ],
+                          ),
+                          if (doc.notes != null && doc.notes!.isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            Text(
+                              doc.notes!,
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey.shade500,
+                                  height: 1.4),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    // Open arrow
+                    if (isAvailable)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 10),
+                        child: Icon(Icons.open_in_new_outlined,
+                            size: 18, color: _catColor.withAlpha(180)),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Empty state ───────────────────────────────────────────────────────────────
+
+class _EmptyState extends StatelessWidget {
+  final ProfileTheme theme;
+  final String kidName;
+
+  const _EmptyState({required this.theme, required this.kidName});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(40),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: theme.soft,
+                boxShadow: [
+                  BoxShadow(
+                      color: theme.accent.withAlpha(40),
+                      blurRadius: 24,
+                      spreadRadius: 4)
+                ],
+              ),
+              child: const Center(
+                  child: Text('🗂️', style: TextStyle(fontSize: 42))),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'No documents yet',
+              style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.grey.shade800),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Store ${kidName.split(' ').first}\'s birth certificate,\nvaccination records, insurance cards\nand more — all in one place.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  fontSize: 14, color: Colors.grey.shade500, height: 1.5),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Add document sheet ────────────────────────────────────────────────────────
+
+class _DocumentSheet extends ConsumerStatefulWidget {
+  final int profileIndex;
+  final ProfileTheme theme;
+
+  const _DocumentSheet({required this.profileIndex, required this.theme});
+
+  @override
+  ConsumerState<_DocumentSheet> createState() => _DocumentSheetState();
+}
+
+class _DocumentSheetState extends ConsumerState<_DocumentSheet> {
+  final _nameCtrl = TextEditingController();
+  final _notesCtrl = TextEditingController();
+  DocumentCategory _category = DocumentCategory.other;
+  PlatformFile? _pickedFile;
+  bool _saving = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _notesCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickFile() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.any,
+      withData: kIsWeb,
+    );
+    if (result == null || result.files.isEmpty) return;
+    final file = result.files.first;
+    setState(() {
+      _pickedFile = file;
+      _error = null;
+      if (_nameCtrl.text.isEmpty) {
+        final dot = file.name.lastIndexOf('.');
+        _nameCtrl.text =
+            dot > 0 ? file.name.substring(0, dot) : file.name;
+      }
+      // Auto-detect category from filename keywords
+      final lower = file.name.toLowerCase();
+      if (lower.contains('vaccine') || lower.contains('vaccination') || lower.contains('immuniz')) {
+        _category = DocumentCategory.vaccination;
+      } else if (lower.contains('insurance')) {
+        _category = DocumentCategory.insurance;
+      } else if (lower.contains('birth') || lower.contains('certificate') || lower.contains('passport')) {
+        _category = DocumentCategory.legal;
+      } else if (lower.contains('school') || lower.contains('daycare') || lower.contains('edu')) {
+        _category = DocumentCategory.education;
+      } else if (lower.contains('medical') || lower.contains('hospital') || lower.contains('report')) {
+        _category = DocumentCategory.medical;
+      }
+    });
+  }
+
+  String _guessMimeType(String filename) {
+    final ext = filename.toLowerCase().split('.').last;
+    return switch (ext) {
+      'pdf' => 'application/pdf',
+      'jpg' || 'jpeg' => 'image/jpeg',
+      'png' => 'image/png',
+      'gif' => 'image/gif',
+      'webp' => 'image/webp',
+      'doc' || 'docx' => 'application/msword',
+      'xls' || 'xlsx' => 'application/vnd.ms-excel',
+      'txt' => 'text/plain',
+      'mp3' => 'audio/mpeg',
+      'm4a' => 'audio/mp4',
+      'wav' => 'audio/wav',
+      _ => 'application/octet-stream',
+    };
+  }
+
+  Future<void> _save() async {
+    if (_pickedFile == null) {
+      setState(() => _error = 'Please select a file first');
+      return;
+    }
+    final name = _nameCtrl.text.trim();
+    if (name.isEmpty) {
+      setState(() => _error = 'Name is required');
+      return;
+    }
+    setState(() { _saving = true; _error = null; });
+
+    String localPath = '';
+    Uint8List? webBytes;
+
+    if (kIsWeb) {
+      webBytes = _pickedFile!.bytes;
+    } else if (_pickedFile!.path != null) {
+      try {
+        final safeFilename =
+            '${DateTime.now().microsecondsSinceEpoch}_${_pickedFile!.name.replaceAll(RegExp(r'[^\w.]'), '_')}';
+        localPath = await LocalStorageService.copyDocumentToStorage(
+          _pickedFile!.path!,
+          safeFilename,
+        );
+      } catch (_) {
+        localPath = _pickedFile!.path!;
+      }
+    }
+
+    final doc = BabyDocument(
+      id: 'doc_${DateTime.now().microsecondsSinceEpoch}',
+      name: name,
+      notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
+      category: _category,
+      dateAdded: DateTime.now(),
+      localPath: localPath,
+      mimeType: _guessMimeType(_pickedFile!.name),
+      sizeBytes: _pickedFile!.size,
+      webBytes: webBytes,
+    );
+
+    await ref.read(profilesProvider.notifier).addDocument(widget.profileIndex, doc);
+    if (mounted) Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final pTheme = widget.theme;
+    final inputDeco = InputDecoration(
+      filled: true,
+      fillColor: Colors.grey.shade50,
+      border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: Colors.grey.shade200)),
+      enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: Colors.grey.shade200)),
+      focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: pTheme.accent, width: 1.5)),
+      contentPadding:
+          const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    );
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 8,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Drag handle
+            Center(
+              child: Container(
+                margin: const EdgeInsets.only(top: 8, bottom: 18),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(16)),
+              ),
+            ),
+
+            // Header
+            Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration:
+                      BoxDecoration(shape: BoxShape.circle, color: pTheme.soft),
+                  child: Icon(Icons.upload_file_outlined,
+                      color: pTheme.accent, size: 22),
+                ),
+                const SizedBox(width: 12),
+                const Text('Add Document',
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1F2937))),
+              ],
+            ),
+            const SizedBox(height: 22),
+
+            // File picker
+            GestureDetector(
+              onTap: _pickedFile == null ? _pickFile : null,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: _pickedFile != null
+                      ? pTheme.accent.withAlpha(12)
+                      : Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: _pickedFile != null
+                        ? pTheme.accent.withAlpha(120)
+                        : Colors.grey.shade200,
+                    width: _pickedFile != null ? 1.5 : 1,
+                    strokeAlign: BorderSide.strokeAlignInside,
+                  ),
+                ),
+                child: _pickedFile == null
+                    ? Column(
+                        children: [
+                          Icon(Icons.cloud_upload_outlined,
+                              size: 36, color: Colors.grey.shade400),
+                          const SizedBox(height: 8),
+                          Text('Tap to select a file',
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.grey.shade600)),
+                          const SizedBox(height: 4),
+                          Text('PDF, images, Word, or any file',
+                              style: TextStyle(
+                                  fontSize: 12, color: Colors.grey.shade400)),
+                        ],
+                      )
+                    : Row(
+                        children: [
+                          Icon(
+                            BabyDocument(
+                              id: '',
+                              name: _pickedFile!.name,
+                              category: _category,
+                              dateAdded: DateTime.now(),
+                              localPath: '',
+                              mimeType: '',
+                              sizeBytes: 0,
+                            ).typeIcon,
+                            color: pTheme.accent,
+                            size: 28,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _pickedFile!.name,
+                                  style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: pTheme.accent),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Text(
+                                  _formatBytes(_pickedFile!.size),
+                                  style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.grey.shade500),
+                                ),
+                              ],
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: _pickFile,
+                            child: Text('Change',
+                                style: TextStyle(
+                                    color: pTheme.accent, fontSize: 12)),
+                          ),
+                        ],
+                      ),
+              ),
+            ),
+
+            if (_error != null) ...[
+              const SizedBox(height: 8),
+              Text(_error!,
+                  style: const TextStyle(color: Colors.red, fontSize: 12)),
+            ],
+            const SizedBox(height: 18),
+
+            // Name
+            _label('Name'),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _nameCtrl,
+              decoration: inputDeco.copyWith(hintText: 'e.g. Vaccination Record 2024'),
+            ),
+            const SizedBox(height: 18),
+
+            // Category
+            _label('Category'),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: DocumentCategory.values.map((cat) {
+                final sel = _category == cat;
+                return GestureDetector(
+                  onTap: () => setState(() => _category = cat),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 160),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: sel ? cat.color : cat.color.withAlpha(15),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                          color: sel ? cat.color : cat.color.withAlpha(60)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(cat.emoji,
+                            style: const TextStyle(fontSize: 14)),
+                        const SizedBox(width: 6),
+                        Text(
+                          cat.label,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: sel ? Colors.white : cat.color,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 18),
+
+            // Notes
+            _label('Notes (optional)'),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _notesCtrl,
+              maxLines: 2,
+              decoration: inputDeco.copyWith(
+                  hintText: 'e.g. 6-month checkup, Dr. Smith'),
+            ),
+            const SizedBox(height: 28),
+
+            // Save
+            FilledButton(
+              onPressed: _saving ? null : _save,
+              style: FilledButton.styleFrom(
+                backgroundColor: pTheme.accent,
+                minimumSize: const Size.fromHeight(52),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
+              ),
+              child: _saving
+                  ? const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                          color: Colors.white, strokeWidth: 2))
+                  : const Text('Save Document',
+                      style: TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w700)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _label(String text) => Text(
+        text,
+        style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey.shade700),
+      );
+
+  String _formatBytes(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
+}

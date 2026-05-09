@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/attachment.dart';
+import '../models/baby_document.dart';
 import '../models/kid_profile.dart';
 import '../models/milestone.dart';
 import '../models/reminder.dart';
@@ -126,6 +127,24 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>?> {
     } else {
       await NotificationService.scheduleReminder(reminder, profile.name);
     }
+  }
+
+  // ── Documents ─────────────────────────────────────────────────────────────
+
+  Future<void> addDocument(int profileIndex, BabyDocument doc) async {
+    final profile = (state ?? <KidProfile>[])[profileIndex];
+    _setProfile(profileIndex,
+        profile.copyWith(documents: [...profile.documents, doc]));
+    await FirestoreService.saveDocument(uid, profile.id, doc);
+  }
+
+  Future<void> deleteDocument(int profileIndex, String docId) async {
+    final profile = (state ?? <KidProfile>[])[profileIndex];
+    _setProfile(profileIndex,
+        profile.copyWith(
+          documents: profile.documents.where((d) => d.id != docId).toList(),
+        ));
+    await FirestoreService.deleteDocument(uid, profile.id, docId);
   }
 
   void _setProfile(int index, KidProfile profile) {

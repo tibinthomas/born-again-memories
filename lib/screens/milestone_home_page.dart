@@ -24,6 +24,7 @@ import '../utils/profile_theme.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/milestone_card.dart';
 import '../widgets/overview_chip.dart';
+import 'documents_screen.dart';
 import 'milestone_detail_page.dart';
 import 'reminders_screen.dart';
 import 'settings_screen.dart';
@@ -630,6 +631,8 @@ class _ProfileHeader extends StatelessWidget {
                           else
                             const SizedBox(width: 48),
                           const Spacer(),
+                          // Documents button
+                          _DocumentsButton(profileIndex: profileIndex),
                           // Reminders bell with badge
                           _RemindersButton(
                             profile: profile,
@@ -798,6 +801,68 @@ class _RemindersButton extends StatelessWidget {
                     fontSize: 9,
                     fontWeight: FontWeight.w800,
                     color: overdue > 0 ? Colors.white : Colors.grey.shade800,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Documents button ──────────────────────────────────────────────────────────
+
+class _DocumentsButton extends ConsumerWidget {
+  final int profileIndex;
+
+  const _DocumentsButton({required this.profileIndex});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profiles = ref.watch(profilesProvider) ?? [];
+    final count = (profiles.isEmpty || profileIndex >= profiles.length)
+        ? 0
+        : profiles[profileIndex].documents.length;
+
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => DocumentsScreen(profileIndex: profileIndex),
+        ),
+      ),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withAlpha(35),
+              border: Border.all(color: Colors.white.withAlpha(60)),
+            ),
+            child: const Icon(Icons.folder_outlined,
+                color: Colors.white70, size: 20),
+          ),
+          if (count > 0)
+            Positioned(
+              top: -4,
+              right: -4,
+              child: Container(
+                padding: const EdgeInsets.all(3),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 1.5),
+                ),
+                child: Text(
+                  count > 9 ? '9+' : '$count',
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.grey.shade800,
                   ),
                 ),
               ),

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/app_settings.dart';
 import '../models/attachment.dart';
+import '../models/baby_document.dart';
 import '../models/kid_profile.dart';
 import '../models/milestone.dart';
 import '../models/reminder.dart';
@@ -39,11 +40,16 @@ class FirestoreService {
     final profiles = <KidProfile>[];
     for (final doc in snap.docs) {
       final profile = KidProfile.fromJson(doc.data());
-      final (milestones, reminders) = await (
+      final (milestones, reminders, documents) = await (
         _loadMilestones(uid, profile.id),
         _loadReminders(uid, profile.id),
+        _loadDocuments(uid, profile.id),
       ).wait;
-      profiles.add(profile.copyWith(milestones: milestones, reminders: reminders));
+      profiles.add(profile.copyWith(
+        milestones: milestones,
+        reminders: reminders,
+        documents: documents,
+      ));
     }
     return profiles;
   }
@@ -91,6 +97,29 @@ class FirestoreService {
           String uid, String profileId, String milestoneId) =>
       _db
           .doc('users/$uid/profiles/$profileId/milestones/$milestoneId')
+          .delete();
+
+  // ── Documents ─────────────────────────────────────────────────────────────
+
+  static Future<List<BabyDocument>> _loadDocuments(
+      String uid, String profileId) async {
+    final snap = await _db
+        .collection('users/$uid/profiles/$profileId/documents')
+        .orderBy('dateAdded', descending: true)
+        .get();
+    return snap.docs.map((d) => BabyDocument.fromJson(d.data())).toList();
+  }
+
+  static Future<void> saveDocument(
+          String uid, String profileId, BabyDocument doc) =>
+      _db
+          .doc('users/$uid/profiles/$profileId/documents/${doc.id}')
+          .set(doc.toJson());
+
+  static Future<void> deleteDocument(
+          String uid, String profileId, String docId) =>
+      _db
+          .doc('users/$uid/profiles/$profileId/documents/$docId')
           .delete();
 
   // ── Reminders ──────────────────────────────────────────────────────────────
