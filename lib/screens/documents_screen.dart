@@ -44,7 +44,7 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
     }).toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: const Color(0xFFF2F2F7),
       body: CustomScrollView(
         slivers: [
           _Header(profile: profile, theme: theme),
@@ -138,12 +138,42 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
             ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddSheet(context, theme, widget.profileIndex),
-        backgroundColor: theme.accent,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.upload_file_outlined),
-        label: const Text('Add Document'),
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          gradient: theme.headerGradient,
+          borderRadius: BorderRadius.circular(32),
+          border: Border.all(color: Colors.white.withAlpha(80), width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: theme.accent.withAlpha(80),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(32),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(32),
+            onTap: () => _showAddSheet(context, theme, widget.profileIndex),
+            child: const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.upload_file_outlined, color: Colors.white, size: 18),
+                  SizedBox(width: 8),
+                  Text('Add Document',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14)),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -236,11 +266,19 @@ class _CategoryChip extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
-          color: selected ? color : color.withAlpha(20),
+          color: selected ? color : Colors.white,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: selected ? color : color.withAlpha(60)),
+          border: Border.all(
+              color: selected ? color : color.withAlpha(50), width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: selected ? color.withAlpha(50) : Colors.black.withAlpha(8),
+              blurRadius: selected ? 8 : 3,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Text(
           label,
@@ -394,12 +432,18 @@ class _DocumentCard extends ConsumerWidget {
         child: Container(
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: _catColor.withAlpha(22), width: 1),
             boxShadow: [
               BoxShadow(
-                color: _catColor.withAlpha(20),
-                blurRadius: 10,
-                offset: const Offset(0, 3),
+                color: _catColor.withAlpha(18),
+                blurRadius: 16,
+                offset: const Offset(0, 4),
+              ),
+              BoxShadow(
+                color: Colors.black.withAlpha(6),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
               ),
             ],
           ),
@@ -413,8 +457,8 @@ class _DocumentCard extends ConsumerWidget {
                 width: 5,
                 child: ClipRRect(
                   borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    bottomLeft: Radius.circular(16),
+                    topLeft: Radius.circular(20),
+                    bottomLeft: Radius.circular(20),
                   ),
                   child: ColoredBox(color: _catColor),
                 ),
@@ -427,11 +471,20 @@ class _DocumentCard extends ConsumerWidget {
                   children: [
                     // File type icon
                     Container(
-                      width: 44,
-                      height: 44,
+                      width: 46,
+                      height: 46,
                       decoration: BoxDecoration(
-                        color: _catColor.withAlpha(18),
-                        borderRadius: BorderRadius.circular(12),
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            _catColor.withAlpha(30),
+                            _catColor.withAlpha(18),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                            color: _catColor.withAlpha(50), width: 0.8),
                       ),
                       child: Icon(doc.typeIcon, color: _catColor, size: 22),
                     ),

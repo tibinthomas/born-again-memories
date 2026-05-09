@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:any_link_preview/any_link_preview.dart';
 import 'package:flutter/material.dart';
@@ -118,15 +119,33 @@ class _SavedLinksScreenState extends ConsumerState<SavedLinksScreen> {
     final visibleLinks = filtered.take(_loadedItemCount).toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      appBar: AppBar(
-        title: Text('${profile.name}\'s Links'),
-        backgroundColor: theme.accent,
-        foregroundColor: Colors.white,
-      ),
+      backgroundColor: const Color(0xFFF2F2F7),
       body: CustomScrollView(
         controller: _scrollController,
         slivers: [
+          SliverAppBar(
+            expandedHeight: 110,
+            pinned: true,
+            backgroundColor: theme.accent,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            flexibleSpace: FlexibleSpaceBar(
+              titlePadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              title: Text(
+                '${theme.decalEmoji}  ${profile.name}\'s Links',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              background: DecoratedBox(
+                decoration: BoxDecoration(gradient: theme.headerGradient),
+              ),
+            ),
+          ),
           SliverToBoxAdapter(
             child: Container(
               color: Colors.white,
@@ -372,16 +391,30 @@ class _TagChip extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 160),
-        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: selected ? color : const Color(0xFFEFEFF4),
-          borderRadius: BorderRadius.circular(8),
+          color: selected ? color : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: selected ? color : color.withAlpha(50),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: selected
+                  ? color.withAlpha(50)
+                  : Colors.black.withAlpha(8),
+              blurRadius: selected ? 8 : 3,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (icon != null) ...[
-              Icon(icon, size: 12, color: selected ? Colors.white : Colors.grey.shade600),
+              Icon(icon, size: 12,
+                  color: selected ? Colors.white : color.withAlpha(180)),
               const SizedBox(width: 4),
             ],
             Text(
@@ -489,16 +522,29 @@ class _LinkCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final hasImage = link.previewImageUrl != null && link.previewImageUrl!.isNotEmpty;
 
-    return Card(
-      margin: EdgeInsets.zero,
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.grey.shade100),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: theme.accent.withAlpha(18), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: theme.accent.withAlpha(15),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+          BoxShadow(
+            color: Colors.black.withAlpha(6),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: () => _openLink(context),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: () => _openLink(context),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -685,7 +731,8 @@ class _LinkCard extends ConsumerWidget {
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 }
 
@@ -704,25 +751,42 @@ class _FavButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (onImage) {
+      return GestureDetector(
+        onTap: onTap,
+        child: ClipOval(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.black.withAlpha(50),
+                border:
+                    Border.all(color: Colors.white.withAlpha(60), width: 0.8),
+              ),
+              child: Icon(
+                isFavorite ? Icons.star_rounded : Icons.star_outline_rounded,
+                size: 18,
+                color: isFavorite
+                    ? const Color(0xFFFBBF24)
+                    : Colors.white.withAlpha(210),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: 30,
         height: 30,
-        decoration: BoxDecoration(
-          color: onImage
-              ? Colors.black.withAlpha(40)
-              : Colors.transparent,
-          shape: BoxShape.circle,
-        ),
         child: Icon(
           isFavorite ? Icons.star_rounded : Icons.star_outline_rounded,
           size: 20,
-          color: isFavorite
-              ? const Color(0xFFFBBF24)
-              : onImage
-                  ? Colors.white.withAlpha(200)
-                  : accent.withAlpha(100),
+          color: isFavorite ? const Color(0xFFFBBF24) : accent.withAlpha(100),
         ),
       ),
     );

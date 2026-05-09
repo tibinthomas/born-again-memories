@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui';
 import 'package:camera/camera.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
@@ -515,7 +516,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
     }).toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF8F5),
+      backgroundColor: const Color(0xFFF2F2F7),
       body: Column(
         children: [
           // ── Hero header ──────────────────────────────
@@ -523,13 +524,23 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
             profile: currentProfile,
             profileTheme: profileTheme,
             milestoneCount: allMilestones.length,
-            hasMultipleProfiles: profiles.length > 1,
+            allProfiles: profiles,
             profileIndex: safeIndex,
             onSettings: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const SettingsScreen()),
             ),
-            onSwitchProfile: () => _showProfileSwitcher(profiles, safeIndex),
+            onSelectProfile: (i) {
+              ref.read(selectedProfileIndexProvider.notifier).state = i;
+              setState(() {
+                _searchQuery = '';
+                _selectedYear = null;
+                _selectedTags = {};
+                _showSearch = false;
+                _showFavoritesOnly = false;
+                _searchController.clear();
+              });
+            },
             onSharedFeed: () => SharedFeedScreen.push(context),
             onDocuments: () => Navigator.push(
               context,
@@ -592,13 +603,34 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                           tooltip: _showSearch ? 'Hide search' : 'Search',
                         ),
                       ],
-                      TextButton.icon(
-                        onPressed: _showAddMilestoneSheet,
-                        icon: Icon(Icons.add_circle, color: profileTheme.accent, size: 20),
-                        label: Text(
-                          'Add',
-                          style: TextStyle(
-                              color: profileTheme.accent, fontWeight: FontWeight.w600),
+                      GestureDetector(
+                        onTap: _showAddMilestoneSheet,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 7),
+                          decoration: BoxDecoration(
+                            gradient: profileTheme.headerGradient,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: profileTheme.accent.withAlpha(50),
+                                blurRadius: 8,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.add, color: Colors.white, size: 16),
+                              SizedBox(width: 4),
+                              Text('Add',
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 13)),
+                            ],
+                          ),
                         ),
                       ),
                     ],
@@ -814,13 +846,43 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showAddMilestoneSheet,
-        backgroundColor: profileTheme.accent,
-        icon: const Icon(Icons.auto_awesome, color: Colors.white),
-        label: const Text('New memory',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-        elevation: 4,
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          gradient: profileTheme.headerGradient,
+          borderRadius: BorderRadius.circular(32),
+          border: Border.all(color: Colors.white.withAlpha(80), width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: profileTheme.accent.withAlpha(80),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(32),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(32),
+            onTap: _showAddMilestoneSheet,
+            child: const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 22, vertical: 15),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.auto_awesome, color: Colors.white, size: 18),
+                  SizedBox(width: 8),
+                  Text('New memory',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                          letterSpacing: 0.2)),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -849,11 +911,25 @@ class _FilterChip extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
         decoration: BoxDecoration(
-          color: selected ? accent : soft,
+          color: selected ? accent : Colors.white,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: selected ? accent : accent.withAlpha(60)),
+          border: Border.all(
+              color: selected ? accent : accent.withAlpha(40), width: 1),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                      color: accent.withAlpha(40),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3))
+                ]
+              : [
+                  BoxShadow(
+                      color: Colors.black.withAlpha(8),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1))
+                ],
         ),
         child: Text(
           label,
@@ -935,10 +1011,10 @@ class _ProfileHeader extends StatelessWidget {
   final KidProfile profile;
   final ProfileTheme profileTheme;
   final int milestoneCount;
-  final bool hasMultipleProfiles;
+  final List<KidProfile> allProfiles;
   final int profileIndex;
   final VoidCallback onSettings;
-  final VoidCallback onSwitchProfile;
+  final ValueChanged<int> onSelectProfile;
   final VoidCallback onSharedFeed;
   final VoidCallback onDocuments;
   final VoidCallback onLinks;
@@ -948,10 +1024,10 @@ class _ProfileHeader extends StatelessWidget {
     required this.profile,
     required this.profileTheme,
     required this.milestoneCount,
-    required this.hasMultipleProfiles,
+    required this.allProfiles,
     required this.profileIndex,
     required this.onSettings,
-    required this.onSwitchProfile,
+    required this.onSelectProfile,
     required this.onSharedFeed,
     required this.onDocuments,
     required this.onLinks,
@@ -1019,13 +1095,9 @@ class _ProfileHeader extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // ── Top bar: Switch + Settings only ──────────
+                      // ── Top bar: Settings only ───────────────────
                       Row(
                         children: [
-                          if (hasMultipleProfiles)
-                            _SwitchProfileButton(onTap: onSwitchProfile)
-                          else
-                            const SizedBox.shrink(),
                           const Spacer(),
                           _HeaderIconBtn(
                             icon: Icons.settings_outlined,
@@ -1039,67 +1111,95 @@ class _ProfileHeader extends StatelessWidget {
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          // Avatar with edit badge
-                          GestureDetector(
-                            onTap: onEditProfile,
-                            child: Stack(
-                              clipBehavior: Clip.none,
-                              children: [
-                                Container(
-                                  width: 70,
-                                  height: 70,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Colors.white.withAlpha(30),
-                                    border: Border.all(color: Colors.white, width: 2.5),
-                                    image: hasAvatar
-                                        ? DecorationImage(
-                                            image: FileImage(File(profile.avatarImagePath!)),
-                                            fit: BoxFit.cover,
-                                          )
-                                        : null,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withAlpha(40),
-                                        blurRadius: 16,
-                                        offset: const Offset(0, 6),
+                          // Avatar column: main avatar + mini switcher row
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Main avatar with edit badge
+                              GestureDetector(
+                                onTap: onEditProfile,
+                                child: Stack(
+                                  clipBehavior: Clip.none,
+                                  children: [
+                                    Container(
+                                      width: 70,
+                                      height: 70,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Colors.white.withAlpha(30),
+                                        border: Border.all(
+                                            color: Colors.white, width: 2.5),
+                                        image: hasAvatar
+                                            ? DecorationImage(
+                                                image: FileImage(
+                                                    File(profile.avatarImagePath!)),
+                                                fit: BoxFit.cover,
+                                              )
+                                            : null,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withAlpha(40),
+                                            blurRadius: 16,
+                                            offset: const Offset(0, 6),
+                                          ),
+                                        ],
                                       ),
-                                    ],
-                                  ),
-                                  child: hasAvatar
-                                      ? null
-                                      : Center(
-                                          child: Text(
-                                            profileTheme.decalEmoji,
-                                            style: const TextStyle(fontSize: 30),
+                                      child: hasAvatar
+                                          ? null
+                                          : Center(
+                                              child: Text(
+                                                profileTheme.decalEmoji,
+                                                style: const TextStyle(
+                                                    fontSize: 30),
+                                              ),
+                                            ),
+                                    ),
+                                    Positioned(
+                                      bottom: 0,
+                                      right: 0,
+                                      child: Container(
+                                        width: 22,
+                                        height: 22,
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          shape: BoxShape.circle,
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color:
+                                                  Colors.black.withAlpha(30),
+                                              blurRadius: 4,
+                                            ),
+                                          ],
+                                        ),
+                                        child: Icon(
+                                          Icons.edit_outlined,
+                                          size: 12,
+                                          color: profileTheme.accent,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // Mini profile switcher row
+                              if (allProfiles.length > 1) ...[
+                                const SizedBox(height: 10),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    for (int i = 0; i < allProfiles.length; i++)
+                                      if (i != profileIndex)
+                                        Padding(
+                                          padding: const EdgeInsets.only(right: 6),
+                                          child: _MiniProfileAvatar(
+                                            profile: allProfiles[i],
+                                            onTap: () => onSelectProfile(i),
                                           ),
                                         ),
-                                ),
-                                Positioned(
-                                  bottom: 0,
-                                  right: 0,
-                                  child: Container(
-                                    width: 22,
-                                    height: 22,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      shape: BoxShape.circle,
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withAlpha(30),
-                                          blurRadius: 4,
-                                        ),
-                                      ],
-                                    ),
-                                    child: Icon(
-                                      Icons.edit_outlined,
-                                      size: 12,
-                                      color: profileTheme.accent,
-                                    ),
-                                  ),
+                                  ],
                                 ),
                               ],
-                            ),
+                            ],
                           ),
                           const SizedBox(width: 16),
 
@@ -1240,14 +1340,20 @@ class _HeaderIconBtn extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.white.withAlpha(30),
+      child: ClipOval(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+          child: Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withAlpha(45),
+              border: Border.all(color: Colors.white.withAlpha(70), width: 0.8),
+            ),
+            child: Icon(icon, color: Colors.white, size: 20),
+          ),
         ),
-        child: Icon(icon, color: Colors.white, size: 20),
       ),
     );
   }
@@ -1272,83 +1378,105 @@ class _QuickPill extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-        decoration: BoxDecoration(
-          color: Colors.white.withAlpha(onTap != null ? 35 : 22),
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: Colors.white.withAlpha(onTap != null ? 60 : 35),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+            decoration: BoxDecoration(
+              color: Colors.white.withAlpha(onTap != null ? 50 : 30),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: Colors.white.withAlpha(onTap != null ? 80 : 45),
+                width: 0.8,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, color: Colors.white, size: 15),
+                const SizedBox(width: 6),
+                if (sublabel != null) ...[
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      height: 1,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    sublabel!,
+                    style: TextStyle(
+                      color: Colors.white.withAlpha(200),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ] else
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+              ],
+            ),
           ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: Colors.white, size: 15),
-            const SizedBox(width: 6),
-            if (sublabel != null) ...[
-              Text(
-                label,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  height: 1,
-                ),
-              ),
-              const SizedBox(width: 4),
-              Text(
-                sublabel!,
-                style: TextStyle(
-                  color: Colors.white.withAlpha(180),
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ] else
-              Text(
-                label,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-          ],
         ),
       ),
     );
   }
 }
 
-// ── Switch profile button ─────────────────────────────────────────────────────
+// ── Mini profile avatar (switcher) ───────────────────────────────────────────
 
-class _SwitchProfileButton extends StatelessWidget {
+class _MiniProfileAvatar extends StatelessWidget {
+  final KidProfile profile;
   final VoidCallback onTap;
-  const _SwitchProfileButton({required this.onTap});
+  const _MiniProfileAvatar({required this.profile, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
+    final hasAvatar = profile.avatarImagePath != null &&
+        profile.avatarImagePath!.isNotEmpty &&
+        !kIsWeb &&
+        File(profile.avatarImagePath!).existsSync();
+    final pTheme = ProfileTheme.forProfile(profile);
+
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: Colors.white.withAlpha(35),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withAlpha(60)),
-        ),
-        child: const Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.swap_horiz, color: Colors.white, size: 16),
-            SizedBox(width: 5),
-            Text('Switch',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600)),
-          ],
+      child: ClipOval(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            width: 30,
+            height: 30,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withAlpha(35),
+              border: Border.all(color: Colors.white.withAlpha(160), width: 1.5),
+              image: hasAvatar
+                  ? DecorationImage(
+                      image: FileImage(File(profile.avatarImagePath!)),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
+            ),
+            child: hasAvatar
+                ? null
+                : Center(
+                    child: Text(
+                      pTheme.decalEmoji,
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                  ),
+          ),
         ),
       ),
     );
@@ -1377,39 +1505,47 @@ class _RemindersQuickPill extends StatelessWidget {
           builder: (_) => RemindersScreen(profileIndex: profileIndex),
         ),
       ),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-        decoration: BoxDecoration(
-          color: overdue > 0
-              ? Colors.orange.withAlpha(50)
-              : Colors.white.withAlpha(35),
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: overdue > 0
-                ? Colors.orange.shade300.withAlpha(160)
-                : Colors.white.withAlpha(60),
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              overdue > 0
-                  ? Icons.alarm_outlined
-                  : Icons.notifications_outlined,
-              color: overdue > 0 ? Colors.orange.shade200 : Colors.white,
-              size: 15,
-            ),
-            const SizedBox(width: 6),
-            Text(
-              badgeCount > 0 ? 'Reminders · $badgeCount' : 'Reminders',
-              style: TextStyle(
-                color: overdue > 0 ? Colors.orange.shade100 : Colors.white,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+            decoration: BoxDecoration(
+              color: overdue > 0
+                  ? Colors.orange.withAlpha(60)
+                  : Colors.white.withAlpha(50),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: overdue > 0
+                    ? Colors.orange.shade300.withAlpha(180)
+                    : Colors.white.withAlpha(80),
+                width: 0.8,
               ),
             ),
-          ],
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  overdue > 0
+                      ? Icons.alarm_outlined
+                      : Icons.notifications_outlined,
+                  color: overdue > 0 ? Colors.orange.shade200 : Colors.white,
+                  size: 15,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  badgeCount > 0 ? 'Reminders · $badgeCount' : 'Reminders',
+                  style: TextStyle(
+                    color:
+                        overdue > 0 ? Colors.orange.shade100 : Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

@@ -121,185 +121,235 @@ class _CardBody extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: theme.accent.withAlpha(18), width: 1),
         boxShadow: [
           BoxShadow(
-            color: theme.accent.withAlpha(30),
-            blurRadius: 16,
+            color: theme.accent.withAlpha(18),
+            blurRadius: 18,
+            spreadRadius: 0,
             offset: const Offset(0, 4),
+          ),
+          BoxShadow(
+            color: Colors.black.withAlpha(8),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Colored top accent bar
-            Container(
-              height: 4,
-              decoration: BoxDecoration(gradient: theme.headerGradient),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 8, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+        borderRadius: BorderRadius.circular(22),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Left accent rail
+              Container(
+                width: 4,
+                decoration: BoxDecoration(
+                  gradient: theme.headerGradient,
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 13, 8, 14),
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Star icon with accent color
-                      Container(
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: theme.soft,
-                        ),
-                        child: Icon(Icons.auto_awesome, size: 18, color: theme.accent),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              milestone.title,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                                height: 1.2,
-                                color: Color(0xFF2D2D2D),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Glass icon circle
+                          Container(
+                            width: 34,
+                            height: 34,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  theme.accent.withAlpha(35),
+                                  theme.accent.withAlpha(20),
+                                ],
                               ),
+                              border: Border.all(
+                                  color: theme.accent.withAlpha(50), width: 1),
                             ),
-                            const SizedBox(height: 2),
-                            Row(
+                            child: Icon(Icons.auto_awesome,
+                                size: 16, color: theme.accent),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(Icons.calendar_today_outlined, size: 12, color: theme.accent),
-                                const SizedBox(width: 4),
                                 Text(
-                                  formatDate(milestone.date),
-                                  style: TextStyle(fontSize: 12, color: theme.accent, fontWeight: FontWeight.w500),
+                                  milestone.title,
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                    height: 1.25,
+                                    color: Color(0xFF1A1A2E),
+                                  ),
+                                ),
+                                const SizedBox(height: 3),
+                                Row(
+                                  children: [
+                                    Icon(Icons.calendar_today_outlined,
+                                        size: 11, color: theme.accent),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      formatDate(milestone.date),
+                                      style: TextStyle(
+                                          fontSize: 11,
+                                          color: theme.accent,
+                                          fontWeight: FontWeight.w600),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
-                          ],
-                        ),
-                      ),
-                      if (onFavorite != null)
-                        IconButton(
-                          onPressed: onFavorite,
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                          visualDensity: VisualDensity.compact,
-                          icon: Icon(
-                            milestone.isFavorite ? Icons.star_rounded : Icons.star_outline_rounded,
-                            size: 22,
-                            color: milestone.isFavorite
-                                ? const Color(0xFFFBBF24)
-                                : theme.accent.withAlpha(90),
                           ),
+                          if (onFavorite != null)
+                            IconButton(
+                              onPressed: onFavorite,
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              visualDensity: VisualDensity.compact,
+                              icon: Icon(
+                                milestone.isFavorite
+                                    ? Icons.star_rounded
+                                    : Icons.star_outline_rounded,
+                                size: 22,
+                                color: milestone.isFavorite
+                                    ? const Color(0xFFFBBF24)
+                                    : theme.accent.withAlpha(90),
+                              ),
+                            ),
+                          if (onEdit != null ||
+                              onDelete != null ||
+                              onShare != null)
+                            PopupMenuButton<String>(
+                              icon: Icon(Icons.more_vert,
+                                  size: 18, color: Colors.grey.shade400),
+                              padding: EdgeInsets.zero,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14)),
+                              elevation: 4,
+                              itemBuilder: (_) => [
+                                if (onShare != null)
+                                  const PopupMenuItem(
+                                    value: 'share',
+                                    child: Row(children: [
+                                      Icon(Icons.share_outlined,
+                                          size: 18,
+                                          color: Color(0xFF5B9BD5)),
+                                      SizedBox(width: 10),
+                                      Text('Share'),
+                                    ]),
+                                  ),
+                                if (onEdit != null)
+                                  const PopupMenuItem(
+                                    value: 'edit',
+                                    child: Row(children: [
+                                      Icon(Icons.edit_outlined, size: 18),
+                                      SizedBox(width: 10),
+                                      Text('Edit'),
+                                    ]),
+                                  ),
+                                if (onDelete != null)
+                                  const PopupMenuItem(
+                                    value: 'delete',
+                                    child: Row(children: [
+                                      Icon(Icons.delete_outline,
+                                          size: 18, color: Colors.red),
+                                      SizedBox(width: 10),
+                                      Text('Delete',
+                                          style: TextStyle(color: Colors.red)),
+                                    ]),
+                                  ),
+                              ],
+                              onSelected: (v) {
+                                if (v == 'share') onShare?.call();
+                                if (v == 'edit') onEdit?.call();
+                                if (v == 'delete') onDelete?.call();
+                              },
+                            ),
+                        ],
+                      ),
+                      if (milestone.description.isNotEmpty) ...[
+                        const SizedBox(height: 10),
+                        Text(
+                          milestone.description,
+                          style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 13.5,
+                              height: 1.55),
                         ),
-                      if (onEdit != null || onDelete != null || onShare != null)
-                        PopupMenuButton<String>(
-                          icon: Icon(Icons.more_vert, size: 18, color: Colors.grey.shade400),
-                          padding: EdgeInsets.zero,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          itemBuilder: (_) => [
-                            if (onShare != null)
-                              const PopupMenuItem(
-                                value: 'share',
-                                child: Row(children: [
-                                  Icon(Icons.share_outlined, size: 18, color: Color(0xFF5B9BD5)),
-                                  SizedBox(width: 10),
-                                  Text('Share'),
-                                ]),
-                              ),
-                            if (onEdit != null)
-                              const PopupMenuItem(
-                                value: 'edit',
-                                child: Row(children: [
-                                  Icon(Icons.edit_outlined, size: 18),
-                                  SizedBox(width: 10),
-                                  Text('Edit'),
-                                ]),
-                              ),
-                            if (onDelete != null)
-                              const PopupMenuItem(
-                                value: 'delete',
-                                child: Row(children: [
-                                  Icon(Icons.delete_outline, size: 18, color: Colors.red),
-                                  SizedBox(width: 10),
-                                  Text('Delete', style: TextStyle(color: Colors.red)),
-                                ]),
-                              ),
-                          ],
-                          onSelected: (v) {
-                            if (v == 'share') onShare?.call();
-                            if (v == 'edit') onEdit?.call();
-                            if (v == 'delete') onDelete?.call();
-                          },
+                      ],
+                      if (milestone.attachments.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          children: milestone.attachments.map((a) {
+                            return Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                AttachmentPreview(attachment: a),
+                                if (a.label != null && a.label!.isNotEmpty)
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                        top: 4, left: 2),
+                                    child: Text(
+                                      a.label!,
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: Colors.grey.shade400,
+                                        fontStyle: FontStyle.italic,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            );
+                          }).toList(),
                         ),
+                      ],
+                      if (milestone.tags.isNotEmpty) ...[
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 5,
+                          children: milestone.tags
+                              .map((tag) => Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: theme.accent.withAlpha(15),
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                          color: theme.accent.withAlpha(50),
+                                          width: 0.8),
+                                    ),
+                                    child: Text(
+                                      '#$tag',
+                                      style: TextStyle(
+                                          fontSize: 11,
+                                          color: theme.accent,
+                                          fontWeight: FontWeight.w600),
+                                    ),
+                                  ))
+                              .toList(),
+                        ),
+                      ],
                     ],
                   ),
-                  if (milestone.description.isNotEmpty) ...[
-                    const SizedBox(height: 10),
-                    Text(
-                      milestone.description,
-                      style: TextStyle(color: Colors.grey.shade700, fontSize: 14, height: 1.5),
-                    ),
-                  ],
-                  if (milestone.attachments.isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 10,
-                      runSpacing: 10,
-                      children: milestone.attachments.map((a) {
-                        return Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            AttachmentPreview(attachment: a),
-                            if (a.label != null && a.label!.isNotEmpty)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 4, left: 2),
-                                child: Text(
-                                  a.label!,
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: Colors.grey.shade500,
-                                    fontStyle: FontStyle.italic,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                  if (milestone.tags.isNotEmpty) ...[
-                    const SizedBox(height: 10),
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 4,
-                      children: milestone.tags.map((tag) => Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: theme.soft,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: theme.accent.withAlpha(60)),
-                        ),
-                        child: Text(
-                          '#$tag',
-                          style: TextStyle(fontSize: 11, color: theme.accent, fontWeight: FontWeight.w600),
-                        ),
-                      )).toList(),
-                    ),
-                  ],
-                ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
