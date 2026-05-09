@@ -25,6 +25,7 @@ class DocumentsScreen extends ConsumerStatefulWidget {
 
 class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
   DocumentCategory? _selectedCategory;
+  bool _showFavoritesOnly = false;
 
   @override
   Widget build(BuildContext context) {
@@ -36,9 +37,11 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
     final theme = ProfileTheme.forProfile(profile);
     final docs = [...profile.documents]
       ..sort((a, b) => b.dateAdded.compareTo(a.dateAdded));
-    final filtered = _selectedCategory == null
-        ? docs
-        : docs.where((d) => d.category == _selectedCategory).toList();
+    final filtered = docs.where((d) {
+      final matchesCategory = _selectedCategory == null || d.category == _selectedCategory;
+      final matchesFavorite = !_showFavoritesOnly || d.isFavorite;
+      return matchesCategory && matchesFavorite;
+    }).toList();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
@@ -57,9 +60,21 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
                   children: [
                     _CategoryChip(
                       label: 'All',
-                      selected: _selectedCategory == null,
+                      selected: _selectedCategory == null && !_showFavoritesOnly,
                       color: theme.accent,
-                      onTap: () => setState(() => _selectedCategory = null),
+                      onTap: () => setState(() {
+                        _selectedCategory = null;
+                        _showFavoritesOnly = false;
+                      }),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: _CategoryChip(
+                        label: '★ Favourites',
+                        selected: _showFavoritesOnly,
+                        color: const Color(0xFFFBBF24),
+                        onTap: () => setState(() => _showFavoritesOnly = !_showFavoritesOnly),
+                      ),
                     ),
                     ...DocumentCategory.values.map((cat) => Padding(
                           padding: const EdgeInsets.only(left: 8),
@@ -91,12 +106,16 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
                         size: 48, color: Colors.grey.shade300),
                     const SizedBox(height: 12),
                     Text(
-                      'No ${_selectedCategory?.label ?? ''} documents yet',
+                      _showFavoritesOnly
+                          ? 'No favourite documents yet'
+                          : 'No ${_selectedCategory?.label ?? ''} documents yet',
                       style: TextStyle(color: Colors.grey.shade500),
                     ),
                     TextButton(
-                      onPressed: () =>
-                          setState(() => _selectedCategory = null),
+                      onPressed: () => setState(() {
+                        _selectedCategory = null;
+                        _showFavoritesOnly = false;
+                      }),
                       child: const Text('Show all'),
                     ),
                   ],
@@ -498,13 +517,32 @@ class _DocumentCard extends ConsumerWidget {
                         ],
                       ),
                     ),
-                    // Open arrow
-                    if (isAvailable)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 10),
-                        child: Icon(Icons.open_in_new_outlined,
-                            size: 18, color: _catColor.withAlpha(180)),
-                      ),
+                    // Favorite + open arrow column
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          onPressed: () => ref
+                              .read(profilesProvider.notifier)
+                              .toggleDocumentFavorite(profileIndex, doc.id),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          visualDensity: VisualDensity.compact,
+                          icon: Icon(
+                            doc.isFavorite ? Icons.star_rounded : Icons.star_outline_rounded,
+                            size: 22,
+                            color: doc.isFavorite
+                                ? const Color(0xFFFBBF24)
+                                : _catColor.withAlpha(120),
+                          ),
+                        ),
+                        if (isAvailable) ...[
+                          const SizedBox(height: 8),
+                          Icon(Icons.open_in_new_outlined,
+                              size: 18, color: _catColor.withAlpha(180)),
+                        ],
+                      ],
+                    ),
                   ],
                 ),
               ),

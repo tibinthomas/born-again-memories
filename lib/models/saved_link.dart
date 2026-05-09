@@ -8,6 +8,7 @@ class SavedLink {
   final String? previewTitle;
   final String? previewDescription;
   final String? previewImageUrl;
+  final bool isFavorite;
 
   const SavedLink({
     required this.id,
@@ -19,6 +20,7 @@ class SavedLink {
     this.previewTitle,
     this.previewDescription,
     this.previewImageUrl,
+    this.isFavorite = false,
   });
 
   String get domain {
@@ -36,6 +38,7 @@ class SavedLink {
     String? previewTitle,
     String? previewDescription,
     String? previewImageUrl,
+    bool? isFavorite,
     bool clearDescription = false,
     bool clearPreviewDescription = false,
   }) =>
@@ -49,6 +52,7 @@ class SavedLink {
         previewTitle: previewTitle ?? this.previewTitle,
         previewDescription: clearPreviewDescription ? null : (previewDescription ?? this.previewDescription),
         previewImageUrl: previewImageUrl ?? this.previewImageUrl,
+        isFavorite: isFavorite ?? this.isFavorite,
       );
 
   Map<String, dynamic> toJson() => {
@@ -61,6 +65,7 @@ class SavedLink {
         if (previewTitle != null) 'previewTitle': previewTitle,
         if (previewDescription != null) 'previewDescription': previewDescription,
         if (previewImageUrl != null) 'previewImageUrl': previewImageUrl,
+        if (isFavorite) 'isFavorite': isFavorite,
       };
 
   factory SavedLink.fromJson(Map<String, dynamic> j) => SavedLink(
@@ -73,5 +78,6 @@ class SavedLink {
         previewTitle: j['previewTitle'] as String?,
         previewDescription: j['previewDescription'] as String?,
         previewImageUrl: j['previewImageUrl'] as String?,
+        isFavorite: (j['isFavorite'] as bool?) ?? false,
       );
 }

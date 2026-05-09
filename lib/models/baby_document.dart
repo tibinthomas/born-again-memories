@@ -43,6 +43,7 @@ class BabyDocument {
   final int sizeBytes;
   // web-only, in-memory only — not serialized
   final Uint8List? webBytes;
+  final bool isFavorite;
 
   const BabyDocument({
     required this.id,
@@ -54,6 +55,7 @@ class BabyDocument {
     required this.mimeType,
     required this.sizeBytes,
     this.webBytes,
+    this.isFavorite = false,
   });
 
   String get fileExtension {
@@ -92,6 +94,7 @@ class BabyDocument {
     String? mimeType,
     int? sizeBytes,
     Uint8List? webBytes,
+    bool? isFavorite,
     bool clearNotes = false,
   }) =>
       BabyDocument(
@@ -104,6 +107,7 @@ class BabyDocument {
         mimeType: mimeType ?? this.mimeType,
         sizeBytes: sizeBytes ?? this.sizeBytes,
         webBytes: webBytes ?? this.webBytes,
+        isFavorite: isFavorite ?? this.isFavorite,
       );
 
   Map<String, dynamic> toJson() => {
@@ -115,6 +119,7 @@ class BabyDocument {
         'localPath': localPath,
         'mimeType': mimeType,
         'sizeBytes': sizeBytes,
+        if (isFavorite) 'isFavorite': isFavorite,
       };
 
   factory BabyDocument.fromJson(Map<String, dynamic> j) => BabyDocument(
@@ -129,5 +134,6 @@ class BabyDocument {
         localPath: j['localPath'] as String? ?? '',
         mimeType: j['mimeType'] as String? ?? '',
         sizeBytes: (j['sizeBytes'] as num?)?.toInt() ?? 0,
+        isFavorite: (j['isFavorite'] as bool?) ?? false,
       );
 }

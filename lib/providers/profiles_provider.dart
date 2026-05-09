@@ -178,6 +178,36 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>?> {
     await FirestoreService.deleteLink(uid, profile.id, linkId);
   }
 
+  Future<void> toggleMilestoneFavorite(int profileIndex, String milestoneId) async {
+    final profile = (state ?? <KidProfile>[])[profileIndex];
+    final milestones = profile.milestones
+        .map((m) => m.id == milestoneId ? m.copyWith(isFavorite: !m.isFavorite) : m)
+        .toList();
+    _setProfile(profileIndex, profile.copyWith(milestones: milestones));
+    final milestone = milestones.firstWhere((m) => m.id == milestoneId);
+    await FirestoreService.saveMilestone(uid, profile.id, milestone);
+  }
+
+  Future<void> toggleLinkFavorite(int profileIndex, String linkId) async {
+    final profile = (state ?? <KidProfile>[])[profileIndex];
+    final links = profile.links
+        .map((l) => l.id == linkId ? l.copyWith(isFavorite: !l.isFavorite) : l)
+        .toList();
+    _setProfile(profileIndex, profile.copyWith(links: links));
+    final link = links.firstWhere((l) => l.id == linkId);
+    await FirestoreService.saveLink(uid, profile.id, link);
+  }
+
+  Future<void> toggleDocumentFavorite(int profileIndex, String docId) async {
+    final profile = (state ?? <KidProfile>[])[profileIndex];
+    final documents = profile.documents
+        .map((d) => d.id == docId ? d.copyWith(isFavorite: !d.isFavorite) : d)
+        .toList();
+    _setProfile(profileIndex, profile.copyWith(documents: documents));
+    final doc = documents.firstWhere((d) => d.id == docId);
+    await FirestoreService.saveDocument(uid, profile.id, doc);
+  }
+
   void _setProfile(int index, KidProfile profile) {
     final list = <KidProfile>[...(state ?? [])];
     list[index] = profile;

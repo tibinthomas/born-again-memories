@@ -179,7 +179,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
                     const Spacer(flex: 3),
 
-                    // Feature pills
+                    // Feature pills — two rows
                     Wrap(
                       spacing: 10,
                       runSpacing: 8,
@@ -189,15 +189,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                         _FeaturePill(icon: Icons.mic_outlined, label: 'Voice Memos'),
                         _FeaturePill(icon: Icons.cloud_done_outlined, label: 'Auto Backup'),
                         _FeaturePill(icon: Icons.timeline_outlined, label: 'Timeline'),
+                        _FeaturePill(icon: Icons.star_outline_rounded, label: 'Favourites'),
+                        _FeaturePill(icon: Icons.link_outlined, label: 'Saved Links'),
+                        _FeaturePill(icon: Icons.folder_outlined, label: 'Documents'),
+                        _FeaturePill(icon: Icons.notifications_outlined, label: 'Reminders'),
                       ],
                     ),
                     const SizedBox(height: 32),
 
                     // Sign-in button
-                    if (_isLoading)
-                      const CircularProgressIndicator(color: Color(0xFFFFB347))
-                    else
-                      _GoogleSignInButton(onPressed: _signInWithGoogle),
+                    _GoogleSignInButton(
+                      onPressed: _isLoading ? null : _signInWithGoogle,
+                      isLoading: _isLoading,
+                    ),
 
                     const SizedBox(height: 16),
                     Text(
@@ -255,9 +259,10 @@ class _FeaturePill extends StatelessWidget {
 }
 
 class _GoogleSignInButton extends StatelessWidget {
-  const _GoogleSignInButton({required this.onPressed});
+  const _GoogleSignInButton({required this.onPressed, this.isLoading = false});
 
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -273,21 +278,30 @@ class _GoogleSignInButton extends StatelessWidget {
           elevation: 2,
           shadowColor: Colors.black.withAlpha(20),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _GoogleLogo(),
-            const SizedBox(width: 12),
-            const Text(
-              'Continue with Google',
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF333333),
+        child: isLoading
+            ? const SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(
+                  color: Color(0xFFFFB347),
+                  strokeWidth: 2.5,
+                ),
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _GoogleLogo(),
+                  const SizedBox(width: 12),
+                  const Text(
+                    'Continue with Google',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF333333),
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
       ),
     );
   }

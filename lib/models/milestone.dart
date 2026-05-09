@@ -9,6 +9,7 @@ class Milestone {
   final Color color;
   final List<Attachment> attachments;
   final List<String> tags;
+  final bool isFavorite;
 
   Milestone({
     String? id,
@@ -18,6 +19,7 @@ class Milestone {
     required this.color,
     this.attachments = const [],
     this.tags = const [],
+    this.isFavorite = false,
   }) : id = id ?? DateTime.now().microsecondsSinceEpoch.toString();
 
   Milestone copyWith({
@@ -28,6 +30,7 @@ class Milestone {
     Color? color,
     List<Attachment>? attachments,
     List<String>? tags,
+    bool? isFavorite,
   }) =>
       Milestone(
         id: id ?? this.id,
@@ -37,6 +40,7 @@ class Milestone {
         color: color ?? this.color,
         attachments: attachments ?? this.attachments,
         tags: tags ?? this.tags,
+        isFavorite: isFavorite ?? this.isFavorite,
       );
 
   Map<String, dynamic> toJson() => {
@@ -47,6 +51,7 @@ class Milestone {
         'color': color.toARGB32(),
         'attachments': {for (final a in attachments) a.id: a.toJson()},
         if (tags.isNotEmpty) 'tags': tags,
+        if (isFavorite) 'isFavorite': isFavorite,
       };
 
   factory Milestone.fromJson(Map<String, dynamic> j) {
@@ -68,6 +73,7 @@ class Milestone {
       color: Color(j['color'] as int),
       attachments: parseAttachments(),
       tags: (j['tags'] as List<dynamic>?)?.cast<String>() ?? [],
+      isFavorite: (j['isFavorite'] as bool?) ?? false,
     );
   }
 }

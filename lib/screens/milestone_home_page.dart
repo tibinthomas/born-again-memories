@@ -48,6 +48,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
   Set<String> _selectedTags = {};
   bool _selectAllTags = true;
   bool _showSearch = false;
+  bool _showFavoritesOnly = false;
   final _searchController = TextEditingController();
   final _searchFocusNode = FocusNode();
 
@@ -509,7 +510,8 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
           m.description.toLowerCase().contains(q) ||
           m.tags.any((t) => t.contains(q));
       final matchTags = _selectAllTags || _selectedTags.isEmpty || m.tags.any(_selectedTags.contains);
-      return matchYear && matchQuery && matchTags;
+      final matchFavorite = !_showFavoritesOnly || m.isFavorite;
+      return matchYear && matchQuery && matchTags && matchFavorite;
     }).toList();
 
     return Scaffold(
@@ -558,7 +560,16 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                         ),
                       ),
                       const Spacer(),
-                      if (allMilestones.isNotEmpty)
+                      if (allMilestones.isNotEmpty) ...[
+                        IconButton(
+                          icon: Icon(
+                            _showFavoritesOnly ? Icons.star_rounded : Icons.star_outline_rounded,
+                            color: _showFavoritesOnly ? const Color(0xFFFBBF24) : Colors.grey.shade400,
+                            size: 22,
+                          ),
+                          onPressed: () => setState(() => _showFavoritesOnly = !_showFavoritesOnly),
+                          tooltip: _showFavoritesOnly ? 'Show all memories' : 'Show favorites only',
+                        ),
                         IconButton(
                           icon: Icon(
                             _showSearch ? Icons.search_off : Icons.search,
@@ -580,6 +591,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                           },
                           tooltip: _showSearch ? 'Hide search' : 'Search',
                         ),
+                      ],
                       TextButton.icon(
                         onPressed: _showAddMilestoneSheet,
                         icon: Icon(Icons.add_circle, color: profileTheme.accent, size: 20),
@@ -744,7 +756,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                                   Icon(Icons.search_off, size: 48, color: Colors.grey.shade300),
                                   const SizedBox(height: 12),
                                   Text(
-                                    'No milestones match your filter.',
+                                    _showFavoritesOnly ? 'No favourite memories yet.' : 'No milestones match your filter.',
                                     style: TextStyle(color: Colors.grey.shade500),
                                   ),
                                   TextButton(
@@ -753,6 +765,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                                       _selectedYear = null;
                                       _selectedTags = {};
                                       _showSearch = false;
+                                      _showFavoritesOnly = false;
                                       _searchController.clear();
                                     }),
                                     child: const Text('Clear filters'),
@@ -783,6 +796,9 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                                   onEdit: () => _showEditMilestoneSheet(milestone),
                                   onDelete: () =>
                                       _confirmDeleteMilestone(safeIndex, milestone),
+                                  onFavorite: () => ref
+                                      .read(profilesProvider.notifier)
+                                      .toggleMilestoneFavorite(safeIndex, milestone.id),
                                   onShare: () => MemorySharer.show(
                                     context,
                                     milestone,

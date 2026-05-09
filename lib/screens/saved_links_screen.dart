@@ -33,6 +33,7 @@ class _SavedLinksScreenState extends ConsumerState<SavedLinksScreen> {
   String _searchQuery = '';
   String? _selectedTag;
   int? _selectedYear;
+  bool _showFavoritesOnly = false;
   final ScrollController _scrollController = ScrollController();
   final int _pageSize = 12;
   int _loadedItemCount = 12;
@@ -94,7 +95,8 @@ class _SavedLinksScreenState extends ConsumerState<SavedLinksScreen> {
           link.tags.any((tag) => tag.toLowerCase().contains(query));
       final matchesTag = _selectedTag == null || link.tags.contains(_selectedTag);
       final matchesYear = _selectedYear == null || link.dateAdded.year == _selectedYear;
-      return matchesSearch && matchesTag && matchesYear;
+      final matchesFavorite = !_showFavoritesOnly || link.isFavorite;
+      return matchesSearch && matchesTag && matchesYear && matchesFavorite;
     }).toList();
 
     final visibleLinks = filtered.take(_loadedItemCount).toList();
@@ -147,68 +149,77 @@ class _SavedLinksScreenState extends ConsumerState<SavedLinksScreen> {
               ),
             ),
           ),
-          if (allYears.isNotEmpty)
+          if (allLinks.isNotEmpty)
             SliverToBoxAdapter(
               child: SizedBox(
-                height: 42,
+                height: 44,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
                   children: [
+                    // Favourites
                     _TagChip(
-                      label: 'All years',
-                      selected: _selectedYear == null,
-                      color: theme.accent,
+                      label: 'Favourites',
+                      icon: _showFavoritesOnly ? Icons.star_rounded : Icons.star_outline_rounded,
+                      selected: _showFavoritesOnly,
+                      color: const Color(0xFFF59E0B),
                       onTap: () => setState(() {
-                        _selectedYear = null;
+                        _showFavoritesOnly = !_showFavoritesOnly;
                         _resetPagination();
                       }),
                     ),
-                    ...allYears.map((year) => Padding(
-                          padding: const EdgeInsets.only(left: 8),
-                          child: _TagChip(
-                            label: '$year',
-                            selected: _selectedYear == year,
-                            color: theme.accent,
-                            onTap: () => setState(() {
-                              _selectedYear = _selectedYear == year ? null : year;
-                              _resetPagination();
-                            }),
-                          ),
-                        )),
-                  ],
-                ),
-              ),
-            ),
-          if (allTags.isNotEmpty)
-            SliverToBoxAdapter(
-              child: SizedBox(
-                height: 42,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
-                  children: [
-                    _TagChip(
-                      label: 'All tags',
-                      selected: _selectedTag == null,
-                      color: theme.accent,
-                      onTap: () => setState(() {
-                        _selectedTag = null;
-                        _resetPagination();
-                      }),
-                    ),
-                    ...allTags.map((tag) => Padding(
-                          padding: const EdgeInsets.only(left: 8),
-                          child: _TagChip(
-                            label: '#$tag',
-                            selected: _selectedTag == tag,
-                            color: theme.accent,
-                            onTap: () => setState(() {
-                              _selectedTag = _selectedTag == tag ? null : tag;
-                              _resetPagination();
-                            }),
-                          ),
-                        )),
+                    if (allYears.isNotEmpty) ...[
+                      const _FilterDivider(),
+                      // Year chips
+                      _TagChip(
+                        label: 'All years',
+                        icon: Icons.calendar_today_outlined,
+                        selected: _selectedYear == null,
+                        color: theme.accent,
+                        onTap: () => setState(() {
+                          _selectedYear = null;
+                          _resetPagination();
+                        }),
+                      ),
+                      ...allYears.map((year) => Padding(
+                            padding: const EdgeInsets.only(left: 8),
+                            child: _TagChip(
+                              label: '$year',
+                              selected: _selectedYear == year,
+                              color: theme.accent,
+                              onTap: () => setState(() {
+                                _selectedYear = _selectedYear == year ? null : year;
+                                _resetPagination();
+                              }),
+                            ),
+                          )),
+                    ],
+                    if (allTags.isNotEmpty) ...[
+                      const _FilterDivider(),
+                      // Tag chips
+                      _TagChip(
+                        label: 'All tags',
+                        icon: Icons.label_outline,
+                        selected: _selectedTag == null,
+                        color: theme.accent,
+                        onTap: () => setState(() {
+                          _selectedTag = null;
+                          _resetPagination();
+                        }),
+                      ),
+                      ...allTags.map((tag) => Padding(
+                            padding: const EdgeInsets.only(left: 8),
+                            child: _TagChip(
+                              label: '#$tag',
+                              selected: _selectedTag == tag,
+                              color: theme.accent,
+                              onTap: () => setState(() {
+                                _selectedTag = _selectedTag == tag ? null : tag;
+                                _resetPagination();
+                              }),
+                            ),
+                          )),
+                    ],
                   ],
                 ),
               ),
@@ -226,11 +237,12 @@ class _SavedLinksScreenState extends ConsumerState<SavedLinksScreen> {
                     Icon(Icons.search_off, size: 48, color: Colors.grey.shade400),
                     const SizedBox(height: 12),
                     Text('No saved links found', style: TextStyle(color: Colors.grey.shade600)),
-                    if (_selectedTag != null || _selectedYear != null)
+                    if (_selectedTag != null || _selectedYear != null || _showFavoritesOnly)
                       TextButton(
                         onPressed: () => setState(() {
                           _selectedTag = null;
                           _selectedYear = null;
+                          _showFavoritesOnly = false;
                           _resetPagination();
                         }),
                         child: const Text('Clear filters'),
@@ -261,6 +273,7 @@ class _SavedLinksScreenState extends ConsumerState<SavedLinksScreen> {
                     profileIndex: widget.profileIndex,
                     onDelete: () => ref.read(profilesProvider.notifier).deleteLink(widget.profileIndex, link.id),
                     onEdit: () => _showAddEditSheet(context, theme, widget.profileIndex, initial: link),
+                    onFavorite: () => ref.read(profilesProvider.notifier).toggleLinkFavorite(widget.profileIndex, link.id),
                   );
                 },
               ),
@@ -302,12 +315,14 @@ class _TagChip extends StatelessWidget {
   final bool selected;
   final Color color;
   final VoidCallback onTap;
+  final IconData? icon;
 
   const _TagChip({
     required this.label,
     required this.selected,
     required this.color,
     required this.onTap,
+    this.icon,
   });
 
   @override
@@ -316,19 +331,49 @@ class _TagChip extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: selected ? color : color.withAlpha(20),
+          color: selected ? color : color.withAlpha(15),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: selected ? color : color.withAlpha(60)),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: selected ? Colors.white : color,
+          border: Border.all(
+            color: selected ? color : color.withAlpha(50),
+            width: selected ? 1.5 : 1,
           ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(icon, size: 13, color: selected ? Colors.white : color),
+              const SizedBox(width: 5),
+            ],
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: selected ? Colors.white : color,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FilterDivider extends StatelessWidget {
+  const _FilterDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      child: Center(
+        child: Container(
+          width: 1,
+          height: 20,
+          color: Colors.grey.shade300,
         ),
       ),
     );
@@ -375,6 +420,7 @@ class _LinkCard extends ConsumerWidget {
   final int profileIndex;
   final VoidCallback onDelete;
   final VoidCallback onEdit;
+  final VoidCallback onFavorite;
 
   const _LinkCard({
     required this.link,
@@ -382,6 +428,7 @@ class _LinkCard extends ConsumerWidget {
     required this.profileIndex,
     required this.onDelete,
     required this.onEdit,
+    required this.onFavorite,
   });
 
   Future<void> _openLink(BuildContext context) async {
@@ -434,6 +481,19 @@ class _LinkCard extends ConsumerWidget {
                         child: Text(
                           link.title,
                           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: onFavorite,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        visualDensity: VisualDensity.compact,
+                        icon: Icon(
+                          link.isFavorite ? Icons.star_rounded : Icons.star_outline_rounded,
+                          size: 22,
+                          color: link.isFavorite
+                              ? const Color(0xFFFBBF24)
+                              : theme.accent.withAlpha(90),
                         ),
                       ),
                       PopupMenuButton<String>(

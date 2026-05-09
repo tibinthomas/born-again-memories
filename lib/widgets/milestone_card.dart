@@ -14,6 +14,7 @@ class MilestoneCard extends StatelessWidget {
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
   final VoidCallback? onShare;
+  final VoidCallback? onFavorite;
 
   const MilestoneCard({
     super.key,
@@ -25,6 +26,7 @@ class MilestoneCard extends StatelessWidget {
     this.onEdit,
     this.onDelete,
     this.onShare,
+    this.onFavorite,
   });
 
   @override
@@ -48,6 +50,7 @@ class MilestoneCard extends StatelessWidget {
                   onEdit: onEdit,
                   onDelete: onDelete,
                   onShare: onShare,
+                  onFavorite: onFavorite,
                 ),
               ),
             ),
@@ -109,8 +112,9 @@ class _CardBody extends StatelessWidget {
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
   final VoidCallback? onShare;
+  final VoidCallback? onFavorite;
 
-  const _CardBody({required this.milestone, required this.theme, this.onEdit, this.onDelete, this.onShare});
+  const _CardBody({required this.milestone, required this.theme, this.onEdit, this.onDelete, this.onShare, this.onFavorite});
 
   @override
   Widget build(BuildContext context) {
@@ -182,6 +186,20 @@ class _CardBody extends StatelessWidget {
                           ],
                         ),
                       ),
+                      if (onFavorite != null)
+                        IconButton(
+                          onPressed: onFavorite,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          visualDensity: VisualDensity.compact,
+                          icon: Icon(
+                            milestone.isFavorite ? Icons.star_rounded : Icons.star_outline_rounded,
+                            size: 22,
+                            color: milestone.isFavorite
+                                ? const Color(0xFFFBBF24)
+                                : theme.accent.withAlpha(90),
+                          ),
+                        ),
                       if (onEdit != null || onDelete != null || onShare != null)
                         PopupMenuButton<String>(
                           icon: Icon(Icons.more_vert, size: 18, color: Colors.grey.shade400),
