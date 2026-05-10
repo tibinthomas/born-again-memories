@@ -26,6 +26,17 @@ class DocumentsScreen extends ConsumerStatefulWidget {
 class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
   DocumentCategory? _selectedCategory;
   bool _showFavoritesOnly = false;
+  bool _showSearch = false;
+  String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocus = FocusNode();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocus.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,17 +48,93 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
     final theme = ProfileTheme.forProfile(profile);
     final docs = [...profile.documents]
       ..sort((a, b) => b.dateAdded.compareTo(a.dateAdded));
+    final q = _searchQuery.toLowerCase();
     final filtered = docs.where((d) {
+      final matchesSearch = q.isEmpty ||
+          d.name.toLowerCase().contains(q) ||
+          d.notes?.toLowerCase().contains(q) == true;
       final matchesCategory = _selectedCategory == null || d.category == _selectedCategory;
       final matchesFavorite = !_showFavoritesOnly || d.isFavorite;
-      return matchesCategory && matchesFavorite;
+      return matchesSearch && matchesCategory && matchesFavorite;
     }).toList();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF2F2F7),
       body: CustomScrollView(
         slivers: [
-          _Header(profile: profile, theme: theme),
+          _Header(
+            profile: profile,
+            theme: theme,
+            showSearch: _showSearch,
+            onSearchToggle: () {
+              setState(() {
+                _showSearch = !_showSearch;
+                if (!_showSearch) {
+                  _searchController.clear();
+                  _searchQuery = '';
+                  _searchFocus.unfocus();
+                } else {
+                  Future.delayed(const Duration(milliseconds: 180),
+                      () => _searchFocus.requestFocus());
+                }
+              });
+            },
+          ),
+
+          // Search bar (hidden by default)
+          SliverToBoxAdapter(
+            child: AnimatedSize(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeInOut,
+              child: _showSearch
+                  ? Container(
+                      color: Colors.white,
+                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+                      child: SizedBox(
+                        height: 38,
+                        child: TextField(
+                          controller: _searchController,
+                          focusNode: _searchFocus,
+                          onChanged: (v) => setState(() => _searchQuery = v),
+                          decoration: InputDecoration(
+                            hintText: 'Search name or notes…',
+                            hintStyle: TextStyle(
+                                color: Colors.grey.shade400, fontSize: 13),
+                            prefixIcon: Icon(Icons.search_rounded,
+                                color: Colors.grey.shade400, size: 18),
+                            suffixIcon: _searchQuery.isNotEmpty
+                                ? GestureDetector(
+                                    onTap: () {
+                                      _searchController.clear();
+                                      setState(() => _searchQuery = '');
+                                    },
+                                    child: Icon(Icons.cancel_rounded,
+                                        color: Colors.grey.shade400, size: 16),
+                                  )
+                                : null,
+                            filled: true,
+                            fillColor: const Color(0xFFEFEFF4),
+                            contentPadding: EdgeInsets.zero,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide:
+                                  BorderSide(color: theme.accent, width: 1.5),
+                            ),
+                          ),
+                        ),
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          ),
 
           // Category filter
           if (docs.isNotEmpty)
@@ -158,7 +245,7 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
             borderRadius: BorderRadius.circular(32),
             onTap: () => _showAddSheet(context, theme, widget.profileIndex),
             child: const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -196,50 +283,64 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
 class _Header extends StatelessWidget {
   final KidProfile profile;
   final ProfileTheme theme;
+  final bool showSearch;
+  final VoidCallback onSearchToggle;
 
-  const _Header({required this.profile, required this.theme});
+  const _Header({
+    required this.profile,
+    required this.theme,
+    required this.showSearch,
+    required this.onSearchToggle,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final count = profile.documents.length;
     return SliverAppBar(
-      expandedHeight: 130,
       pinned: true,
+      toolbarHeight: 52,
       backgroundColor: theme.accent,
       foregroundColor: Colors.white,
-      flexibleSpace: FlexibleSpaceBar(
-        titlePadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        title: Row(
-          children: [
-            Text('${theme.decalEmoji} ',
-                style: const TextStyle(fontSize: 20)),
-            Expanded(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${profile.name}\'s Documents',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Text(
-                    '${profile.documents.length} document${profile.documents.length == 1 ? '' : 's'}',
-                    style:
-                        const TextStyle(fontSize: 11, color: Colors.white70),
-                  ),
-                ],
-              ),
-            ),
-          ],
+      actions: [
+        IconButton(
+          icon: Icon(
+            showSearch ? Icons.search_off_rounded : Icons.search_rounded,
+            color: Colors.white,
+          ),
+          onPressed: onSearchToggle,
         ),
+      ],
+      flexibleSpace: FlexibleSpaceBar(
         background: DecoratedBox(
           decoration: BoxDecoration(gradient: theme.headerGradient),
         ),
+      ),
+      title: Row(
+        children: [
+          Text('${theme.decalEmoji} ', style: const TextStyle(fontSize: 18)),
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${profile.name}\'s Documents',
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  '$count document${count == 1 ? '' : 's'}',
+                  style: const TextStyle(fontSize: 10, color: Colors.white70),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

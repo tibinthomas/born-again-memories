@@ -48776,8 +48776,8 @@
     "hash": "de8b65fac698507a3df8ff224c9b8400"
   },
   "/Users/tibinthomas/my_app/lib/models/app_settings.dart": {
-    "mtime": 1777866904.00508,
-    "hash": "22599676fbed0b0dabbd3fdbd9df3011"
+    "mtime": 1778404266.0232747,
+    "hash": "fc3352740b6479271bea555e73c90c74"
   },
   "/Users/tibinthomas/my_app/lib/models/share_invite.dart": {
     "mtime": 1778395818.1258562,
@@ -48812,24 +48812,24 @@
     "hash": "7bb5c119101642dda93366d02fe2d3ef"
   },
   "/Users/tibinthomas/my_app/lib/screens/milestone_home_page.dart": {
-    "mtime": 1778400549.0843008,
-    "hash": "4f989512df78c3b4cac5e147f2a733d3"
+    "mtime": 1778405381.9771712,
+    "hash": "ce6be9fd0aa61ca9b55160326ba2cb66"
   },
   "/Users/tibinthomas/my_app/lib/screens/settings_screen.dart": {
-    "mtime": 1778396492.737738,
-    "hash": "8769afd1f433e380f8aca0faa0c45d72"
+    "mtime": 1778404289.152505,
+    "hash": "3bfd5a8d80801979d832c03aa27f4302"
   },
   "/Users/tibinthomas/my_app/lib/screens/saved_links_screen.dart": {
-    "mtime": 1778346625.4721274,
-    "hash": "ff7756f9e782916a970dcd7b7e93c7c8"
+    "mtime": 1778406213.6859415,
+    "hash": "a3aff48f101716902280a7f9c21e22c7"
   },
   "/Users/tibinthomas/my_app/lib/screens/milestone_detail_page.dart": {
-    "mtime": 1778404040.3982654,
-    "hash": "c9cfdc6b22507c3a7c850fedf1339a1b"
+    "mtime": 1778404805.823294,
+    "hash": "b1ec92087c08f6e26f0e47190a77011e"
   },
   "/Users/tibinthomas/my_app/lib/screens/documents_screen.dart": {
-    "mtime": 1778346693.6745205,
-    "hash": "9c1b6ac635c1aa7a0855839ac66db090"
+    "mtime": 1778406406.0002778,
+    "hash": "6edb01d6db3bb472b4d542debe48c57e"
   },
   "/Users/tibinthomas/my_app/lib/screens/video_recorder_screen.dart": {
     "mtime": 1778318043.2920814,
@@ -48868,8 +48868,8 @@
     "hash": "50c378cc78f1694f7b3e6f3661b1d73f"
   },
   "/Users/tibinthomas/my_app/lib/widgets/milestone_card.dart": {
-    "mtime": 1778404031.8884914,
-    "hash": "de586914cba39b8c8bf2305875d388ab"
+    "mtime": 1778404315.347057,
+    "hash": "a249669a5fd636f21a2290e23f0c47cd"
   },
   "/Users/tibinthomas/my_app/lib/widgets/attachment_preview.dart": {
     "mtime": 1778311312.1500106,

@@ -46,8 +46,8 @@ class MilestoneHomePage extends ConsumerStatefulWidget {
 
 class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
   String _searchQuery = '';
-  int? _selectedYear;
   Set<String> _selectedTags = {};
+  Set<int> _selectedAges = {};
   bool _selectAllTags = true;
   bool _showSearch = false;
   bool _showFavoritesOnly = false;
@@ -138,7 +138,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
           // Reset filters when switching profiles
           setState(() {
             _searchQuery = '';
-            _selectedYear = null;
+            _selectedAges = {};
             _selectedTags = {};
             _showSearch = false;
             _searchController.clear();
@@ -479,15 +479,17 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
 
     // Filter milestones
     final allMilestones = currentProfile.milestones;
-    final availableYears = allMilestones
-        .map((m) => m.date.year)
-        .toSet()
-        .toList()
-      ..sort((a, b) => b.compareTo(a));
     final allTags = ({for (final m in allMilestones) ...m.tags}).toList()..sort();
 
+    int ageAt(Milestone m) {
+      final days = m.date.difference(currentProfile.dateOfBirth).inDays;
+      return (days / 365.25).floor().clamp(0, 99);
+    }
+
+    final availableAges = allMilestones.map(ageAt).toSet().toList()..sort();
+
     final filtered = allMilestones.where((m) {
-      final matchYear = _selectedYear == null || m.date.year == _selectedYear;
+      final matchAge = _selectedAges.isEmpty || _selectedAges.contains(ageAt(m));
       final q = _searchQuery.toLowerCase();
       final matchQuery = q.isEmpty ||
           m.title.toLowerCase().contains(q) ||
@@ -495,7 +497,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
           m.tags.any((t) => t.contains(q));
       final matchTags = _selectAllTags || _selectedTags.isEmpty || m.tags.any(_selectedTags.contains);
       final matchFavorite = !_showFavoritesOnly || m.isFavorite;
-      return matchYear && matchQuery && matchTags && matchFavorite;
+      return matchAge && matchQuery && matchTags && matchFavorite;
     }).toList();
 
     return Scaffold(
@@ -516,7 +518,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
               ref.read(selectedProfileIndexProvider.notifier).state = i;
               setState(() {
                 _searchQuery = '';
-                _selectedYear = null;
+                _selectedAges = {};
                 _selectedTags = {};
                 _showSearch = false;
                 _showFavoritesOnly = false;
@@ -576,7 +578,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                               if (!_showSearch) {
                                 _searchQuery = '';
                                 _searchController.clear();
-                                _selectedYear = null;
+                                _selectedAges = {};
                                 _selectedTags = {};
                                 _selectAllTags = true;
                               }
@@ -594,135 +596,120 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 220),
                   curve: Curves.easeInOut,
-                  height: _showSearch ? 120 : 0,
+                  height: _showSearch ? 84 : 0,
                   child: _showSearch
                       ? Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                           child: Column(
                             children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    flex: 6,
-                                    child: TextField(
-                                      controller: _searchController,
-                                      focusNode: _searchFocusNode,
-                                      onChanged: (v) => setState(() => _searchQuery = v),
-                                      decoration: InputDecoration(
-                                        hintText: 'Search memories…',
-                                        hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-                                        prefixIcon: Icon(Icons.search, color: Colors.grey.shade400, size: 20),
-                                        suffixIcon: _searchQuery.isNotEmpty
-                                            ? IconButton(
-                                                icon: const Icon(Icons.close, size: 18),
-                                                onPressed: () {
-                                                  _searchController.clear();
-                                                  setState(() => _searchQuery = '');
-                                                },
-                                              )
-                                            : null,
-                                        filled: true,
-                                        fillColor: Colors.white,
-                                        contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                                        border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(14),
-                                          borderSide: BorderSide(color: Colors.grey.shade200),
-                                        ),
-                                        enabledBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(14),
-                                          borderSide: BorderSide(color: Colors.grey.shade200),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(14),
-                                          borderSide: BorderSide(color: profileTheme.accent, width: 1.5),
-                                        ),
-                                      ),
+                              // ── Search bar ──────────────────────────────
+                              SizedBox(
+                                height: 38,
+                                child: TextField(
+                                  controller: _searchController,
+                                  focusNode: _searchFocusNode,
+                                  onChanged: (v) => setState(() => _searchQuery = v),
+                                  decoration: InputDecoration(
+                                    hintText: 'Search memories…',
+                                    hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+                                    prefixIcon: Icon(Icons.search, color: Colors.grey.shade400, size: 18),
+                                    suffixIcon: _searchQuery.isNotEmpty
+                                        ? IconButton(
+                                            icon: const Icon(Icons.close, size: 16),
+                                            onPressed: () {
+                                              _searchController.clear();
+                                              setState(() => _searchQuery = '');
+                                            },
+                                          )
+                                        : null,
+                                    filled: true,
+                                    fillColor: Colors.white,
+                                    contentPadding: EdgeInsets.zero,
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: BorderSide(color: Colors.grey.shade200),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: BorderSide(color: Colors.grey.shade200),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: BorderSide(color: profileTheme.accent, width: 1.5),
                                     ),
                                   ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    flex: 4,
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(14),
-                                        border: Border.all(color: Colors.grey.shade200),
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          IconButton(
-                                            icon: const Icon(Icons.arrow_left, size: 18),
-                                            onPressed: () {
-                                              final options = ['All', ...availableYears.map((y) => '$y')];
-                                              final currentIndex = _selectedYear == null ? 0 : options.indexOf('$_selectedYear');
-                                              final nextIndex = (currentIndex - 1 + options.length) % options.length;
-                                              setState(() {
-                                                _selectedYear = nextIndex == 0 ? null : int.parse(options[nextIndex]);
-                                              });
-                                            },
-                                          ),
-                                          Expanded(
-                                            child: Text(
-                                              _selectedYear == null ? 'All years' : '$_selectedYear',
-                                              textAlign: TextAlign.center,
-                                              style: const TextStyle(fontSize: 14),
-                                            ),
-                                          ),
-                                          IconButton(
-                                            icon: const Icon(Icons.arrow_right, size: 18),
-                                            onPressed: () {
-                                              final options = ['All', ...availableYears.map((y) => '$y')];
-                                              final currentIndex = _selectedYear == null ? 0 : options.indexOf('$_selectedYear');
-                                              final nextIndex = (currentIndex + 1) % options.length;
-                                              setState(() {
-                                                _selectedYear = nextIndex == 0 ? null : int.parse(options[nextIndex]);
-                                              });
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                                ),
                               ),
-                              if (allTags.isNotEmpty) ...[
-                                const SizedBox(height: 8),
-                                SizedBox(
-                                  height: 36,
-                                  child: ListView(
-                                    scrollDirection: Axis.horizontal,
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.only(left: 8),
-                                        child: _FilterChip(
-                                          label: 'All tags',
-                                          selected: _selectAllTags,
-                                          accent: profileTheme.accent,
-                                          soft: profileTheme.soft,
-                                          onTap: () => setState(() => _selectAllTags = !_selectAllTags),
-                                        ),
+                              const SizedBox(height: 7),
+                              // ── Chip row: tags + age ─────────────────────
+                              SizedBox(
+                                height: 28,
+                                child: ListView(
+                                  scrollDirection: Axis.horizontal,
+                                  children: [
+                                    // Tags
+                                    if (allTags.isNotEmpty) ...[
+                                      _FilterChip(
+                                        label: 'All tags',
+                                        selected: _selectAllTags,
+                                        accent: profileTheme.accent,
+                                        soft: profileTheme.soft,
+                                        onTap: () => setState(() {
+                                          _selectAllTags = true;
+                                          _selectedTags = {};
+                                        }),
                                       ),
-                                      if (!_selectAllTags) ...allTags.map((tag) => Padding(
-                                            padding: const EdgeInsets.only(left: 8),
+                                      ...allTags.map((tag) => Padding(
+                                            padding: const EdgeInsets.only(left: 6),
                                             child: _FilterChip(
                                               label: '#$tag',
                                               selected: _selectedTags.contains(tag),
                                               accent: profileTheme.accent,
                                               soft: profileTheme.soft,
                                               onTap: () => setState(() {
+                                                _selectAllTags = false;
                                                 if (_selectedTags.contains(tag)) {
                                                   _selectedTags = {..._selectedTags}..remove(tag);
+                                                  if (_selectedTags.isEmpty) _selectAllTags = true;
                                                 } else {
                                                   _selectedTags = {..._selectedTags, tag};
                                                 }
                                               }),
                                             ),
                                           )),
-                                    ].toList(),
-                                  ),
+                                    ],
+                                    // Divider between tags and ages
+                                    if (allTags.isNotEmpty && availableAges.isNotEmpty)
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                                        child: Center(
+                                          child: Container(
+                                            width: 1,
+                                            height: 16,
+                                            color: Colors.grey.shade300,
+                                          ),
+                                        ),
+                                      ),
+                                    // Age chips (multiselect)
+                                    ...availableAges.map((age) => Padding(
+                                          padding: EdgeInsets.only(
+                                              left: age == availableAges.first && allTags.isEmpty ? 0 : 6),
+                                          child: _AgeChip(
+                                            age: age,
+                                            selected: _selectedAges.contains(age),
+                                            accent: profileTheme.accent,
+                                            onTap: () => setState(() {
+                                              if (_selectedAges.contains(age)) {
+                                                _selectedAges = {..._selectedAges}..remove(age);
+                                              } else {
+                                                _selectedAges = {..._selectedAges, age};
+                                              }
+                                            }),
+                                          ),
+                                        )),
+                                  ],
                                 ),
-                              ],
+                              ),
                             ],
                           ),
                         )
@@ -747,7 +734,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                                   TextButton(
                                     onPressed: () => setState(() {
                                       _searchQuery = '';
-                                      _selectedYear = null;
+                                      _selectedAges = {};
                                       _selectedTags = {};
                                       _showSearch = false;
                                       _showFavoritesOnly = false;
@@ -881,6 +868,56 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
 
 // ── Filter chip (year + tag) ───────────────────────────────────────────────────
 
+class _AgeChip extends StatelessWidget {
+  final int age;
+  final bool selected;
+  final Color accent;
+  final VoidCallback onTap;
+
+  const _AgeChip({
+    required this.age,
+    required this.selected,
+    required this.accent,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 160),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: selected ? accent : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+              color: selected ? accent : Colors.grey.shade300, width: 1),
+          boxShadow: selected
+              ? [BoxShadow(color: accent.withAlpha(50), blurRadius: 6, offset: const Offset(0, 2))]
+              : [],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.cake_outlined, size: 11,
+                color: selected ? Colors.white : accent),
+            const SizedBox(width: 4),
+            Text(
+              '${age}y',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: selected ? Colors.white : accent,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _FilterChip extends StatelessWidget {
   final String label;
   final bool selected;
@@ -901,31 +938,21 @@ class _FilterChip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+        duration: const Duration(milliseconds: 160),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         decoration: BoxDecoration(
           color: selected ? accent : Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-              color: selected ? accent : accent.withAlpha(40), width: 1),
+              color: selected ? accent : Colors.grey.shade300, width: 1),
           boxShadow: selected
-              ? [
-                  BoxShadow(
-                      color: accent.withAlpha(40),
-                      blurRadius: 8,
-                      offset: const Offset(0, 3))
-                ]
-              : [
-                  BoxShadow(
-                      color: Colors.black.withAlpha(8),
-                      blurRadius: 4,
-                      offset: const Offset(0, 1))
-                ],
+              ? [BoxShadow(color: accent.withAlpha(50), blurRadius: 6, offset: const Offset(0, 2))]
+              : [],
         ),
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 13,
+            fontSize: 12,
             fontWeight: FontWeight.w600,
             color: selected ? Colors.white : accent,
           ),
