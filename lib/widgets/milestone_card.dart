@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../models/milestone.dart';
 import '../models/kid_profile.dart';
@@ -109,7 +110,7 @@ class _MilestoneCardState extends State<MilestoneCard>
   }
 }
 
-class _CrystalCard extends StatelessWidget {
+class _CrystalCard extends StatefulWidget {
   final Milestone milestone;
   final ProfileTheme theme;
   final VoidCallback? onEdit;
@@ -127,66 +128,144 @@ class _CrystalCard extends StatelessWidget {
   });
 
   @override
+  State<_CrystalCard> createState() => _CrystalCardState();
+}
+
+class _CrystalCardState extends State<_CrystalCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _float;
+
+  @override
+  void initState() {
+    super.initState();
+    _float = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 5),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _float.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Diagonal corner tints — visible but not garish
-    final cornerTL = Color.lerp(Colors.white, theme.accent, 0.28)!;
-    final cornerBR = Color.lerp(Colors.white, theme.secondary, 0.24)!;
-    final midColor = theme.tertiary != null
-        ? Color.lerp(Colors.white, theme.tertiary!, 0.10)!
-        : Colors.white;
+    final accent = widget.theme.accent;
+    final secondary = widget.theme.secondary;
+    final theme = widget.theme;
+    final milestone = widget.milestone;
+
+    // Rich pastel tones anchored to the profile theme
+    final bgTL = Color.lerp(Colors.white, accent, 0.45)!;
+    final bgBR = Color.lerp(Colors.white, secondary, 0.40)!;
 
     return Container(
       decoration: BoxDecoration(
-        // Strong diagonal gradient: accent corner → white → secondary corner
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          stops: const [0.0, 0.38, 0.62, 1.0],
-          colors: [cornerTL, Colors.white, midColor, cornerBR],
+          stops: const [0.0, 0.42, 1.0],
+          colors: [bgTL, Colors.white.withAlpha(245), bgBR],
         ),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(28),
         border: Border.all(
-          color: Color.lerp(theme.accent, theme.secondary, 0.4)!.withAlpha(80),
-          width: 1.2,
+          color: accent.withAlpha(70),
+          width: 1.4,
         ),
         boxShadow: [
           BoxShadow(
-            color: theme.accent.withAlpha(65),
-            blurRadius: 28,
+            color: accent.withAlpha(60),
+            blurRadius: 22,
             spreadRadius: -4,
-            offset: const Offset(-3, 8),
+            offset: const Offset(0, 8),
           ),
           BoxShadow(
-            color: theme.secondary.withAlpha(55),
-            blurRadius: 24,
+            color: secondary.withAlpha(45),
+            blurRadius: 16,
             spreadRadius: -4,
-            offset: const Offset(5, 14),
+            offset: const Offset(6, 14),
           ),
           BoxShadow(
             color: Colors.black.withAlpha(10),
             blurRadius: 8,
-            offset: const Offset(0, 3),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(28),
         child: Stack(
           children: [
-            // ── Diagonal shimmer — two bright bands crossing the card ─
+            // ── Floating parallax bubbles ─────────────────────────
+            Positioned.fill(
+              child: AnimatedBuilder(
+                animation: _float,
+                builder: (_, __) {
+                  final t = _float.value * 2 * math.pi;
+                  return Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      // Large top-right — slow drift
+                      Positioned(
+                        top: -24, right: -24,
+                        child: Transform.translate(
+                          offset: Offset(math.cos(t * 0.5) * 6, math.sin(t * 0.7) * 10),
+                          child: _CardBubble(92, accent, 50),
+                        ),
+                      ),
+                      // Large bottom-left — opposite phase
+                      Positioned(
+                        bottom: -20, left: -20,
+                        child: Transform.translate(
+                          offset: Offset(math.cos(t * 0.4 + 1.0) * 5, math.sin(t * 0.6 + math.pi) * 9),
+                          child: _CardBubble(72, secondary, 44),
+                        ),
+                      ),
+                      // Mid small — faster
+                      Positioned(
+                        top: 22, right: 52,
+                        child: Transform.translate(
+                          offset: Offset(math.cos(t * 0.9 + 0.5) * 5, math.sin(t * 1.1 + 2.0) * 7),
+                          child: _CardBubble(24, secondary, 36),
+                        ),
+                      ),
+                      // Bottom-right small
+                      Positioned(
+                        bottom: 14, right: 8,
+                        child: Transform.translate(
+                          offset: Offset(math.cos(t * 1.2) * 4, math.sin(t * 0.8 + 1.5) * 6),
+                          child: _CardBubble(38, accent, 28),
+                        ),
+                      ),
+                      // Tiny top-centre
+                      Positioned(
+                        top: 8, left: 58,
+                        child: Transform.translate(
+                          offset: Offset(math.cos(t * 0.7 + 2.0) * 4, math.sin(t * 1.3 + 0.8) * 5),
+                          child: _CardBubble(16, accent, 22),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+
+            // ── Shimmer ───────────────────────────────────────────
             Positioned.fill(
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    begin: const Alignment(-1.4, -1.0),
-                    end: const Alignment(0.4, 1.0),
-                    stops: const [0.0, 0.22, 0.40, 0.56, 1.0],
+                    begin: const Alignment(-1.2, -1.0),
+                    end: const Alignment(0.6, 1.0),
+                    stops: const [0.0, 0.30, 0.62, 1.0],
                     colors: [
-                      Colors.white.withAlpha(170),
-                      Colors.white.withAlpha(8),
-                      Colors.white.withAlpha(130),
-                      Colors.white.withAlpha(6),
-                      Colors.white.withAlpha(50),
+                      Colors.white.withAlpha(150),
+                      Colors.white.withAlpha(0),
+                      Colors.white.withAlpha(90),
+                      Colors.white.withAlpha(0),
                     ],
                   ),
                 ),
@@ -195,13 +274,13 @@ class _CrystalCard extends StatelessWidget {
 
             // ── Specular top-edge glint ────────────────────────────
             Positioned(
-              top: 0, left: 20, right: 20, height: 1.5,
+              top: 0, left: 24, right: 24, height: 1.5,
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
                       Colors.transparent,
-                      Colors.white.withAlpha(220),
+                      Colors.white.withAlpha(200),
                       Colors.transparent,
                     ],
                   ),
@@ -277,9 +356,9 @@ class _CrystalCard extends StatelessWidget {
                           ],
                         ),
                       ),
-                      if (onFavorite != null)
+                      if (widget.onFavorite != null)
                         IconButton(
-                          onPressed: onFavorite,
+                          onPressed: widget.onFavorite,
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
                           visualDensity: VisualDensity.compact,
@@ -293,7 +372,7 @@ class _CrystalCard extends StatelessWidget {
                                 : theme.accent.withAlpha(90),
                           ),
                         ),
-                      if (onEdit != null || onDelete != null || onShare != null)
+                      if (widget.onEdit != null || widget.onDelete != null || widget.onShare != null)
                         PopupMenuButton<String>(
                           icon: Icon(Icons.more_vert,
                               size: 18, color: Colors.grey.shade500),
@@ -302,7 +381,7 @@ class _CrystalCard extends StatelessWidget {
                               borderRadius: BorderRadius.circular(14)),
                           elevation: 4,
                           itemBuilder: (_) => [
-                            if (onShare != null)
+                            if (widget.onShare != null)
                               const PopupMenuItem(
                                 value: 'share',
                                 child: Row(children: [
@@ -312,7 +391,7 @@ class _CrystalCard extends StatelessWidget {
                                   Text('Share'),
                                 ]),
                               ),
-                            if (onEdit != null)
+                            if (widget.onEdit != null)
                               const PopupMenuItem(
                                 value: 'edit',
                                 child: Row(children: [
@@ -321,7 +400,7 @@ class _CrystalCard extends StatelessWidget {
                                   Text('Edit'),
                                 ]),
                               ),
-                            if (onDelete != null)
+                            if (widget.onDelete != null)
                               const PopupMenuItem(
                                 value: 'delete',
                                 child: Row(children: [
@@ -334,9 +413,9 @@ class _CrystalCard extends StatelessWidget {
                               ),
                           ],
                           onSelected: (v) {
-                            if (v == 'share') onShare?.call();
-                            if (v == 'edit') onEdit?.call();
-                            if (v == 'delete') onDelete?.call();
+                            if (v == 'share') widget.onShare?.call();
+                            if (v == 'edit') widget.onEdit?.call();
+                            if (v == 'delete') widget.onDelete?.call();
                           },
                         ),
                     ],
@@ -417,6 +496,25 @@ class _CrystalCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _CardBubble extends StatelessWidget {
+  final double size;
+  final Color color;
+  final int alpha;
+  const _CardBubble(this.size, this.color, this.alpha);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color.withAlpha(alpha),
       ),
     );
   }
