@@ -1109,7 +1109,7 @@ class _ProfileHeader extends StatelessWidget {
               // Content
               SafeArea(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
+                  padding: const EdgeInsets.fromLTRB(16, 24, 16, 20),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
