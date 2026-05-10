@@ -10,6 +10,7 @@ class MilestoneCard extends StatefulWidget {
   final Milestone milestone;
   final ProfileTheme? profileTheme;
   final int animIndex;
+  final bool animationsEnabled;
   final VoidCallback? onTap;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
@@ -21,6 +22,7 @@ class MilestoneCard extends StatefulWidget {
     required this.milestone,
     this.profileTheme,
     this.animIndex = 0,
+    this.animationsEnabled = true,
     this.onTap,
     this.onEdit,
     this.onDelete,
@@ -97,6 +99,7 @@ class _MilestoneCardState extends State<MilestoneCard>
               child: _CrystalCard(
                 milestone: milestone,
                 theme: theme,
+                animationsEnabled: widget.animationsEnabled,
                 onEdit: widget.onEdit,
                 onDelete: widget.onDelete,
                 onShare: widget.onShare,
@@ -113,6 +116,7 @@ class _MilestoneCardState extends State<MilestoneCard>
 class _CrystalCard extends StatefulWidget {
   final Milestone milestone;
   final ProfileTheme theme;
+  final bool animationsEnabled;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
   final VoidCallback? onShare;
@@ -121,6 +125,7 @@ class _CrystalCard extends StatefulWidget {
   const _CrystalCard({
     required this.milestone,
     required this.theme,
+    this.animationsEnabled = true,
     this.onEdit,
     this.onDelete,
     this.onShare,
@@ -150,7 +155,8 @@ class _CrystalCardState extends State<_CrystalCard>
     _float = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 20),
-    )..repeat();
+    );
+    if (widget.animationsEnabled) _float.repeat();
   }
 
   @override

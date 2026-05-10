@@ -5,6 +5,7 @@ class AppSettings {
   final bool soundEnabled;
   final double soundVolume;
   final bool hapticEnabled;
+  final bool animationsEnabled;
   final Color themeColor;
 
   AppSettings({
@@ -12,6 +13,7 @@ class AppSettings {
     this.soundEnabled = true,
     this.soundVolume = 0.7,
     this.hapticEnabled = true,
+    this.animationsEnabled = true,
     this.themeColor = Colors.pinkAccent,
   });
 
@@ -20,6 +22,7 @@ class AppSettings {
     bool? soundEnabled,
     double? soundVolume,
     bool? hapticEnabled,
+    bool? animationsEnabled,
     Color? themeColor,
     bool clearCustomIcon = false,
   }) =>
@@ -28,6 +31,7 @@ class AppSettings {
         soundEnabled: soundEnabled ?? this.soundEnabled,
         soundVolume: soundVolume ?? this.soundVolume,
         hapticEnabled: hapticEnabled ?? this.hapticEnabled,
+        animationsEnabled: animationsEnabled ?? this.animationsEnabled,
         themeColor: themeColor ?? this.themeColor,
       );
 
@@ -35,6 +39,7 @@ class AppSettings {
         'soundEnabled': soundEnabled,
         'soundVolume': soundVolume,
         'hapticEnabled': hapticEnabled,
+        'animationsEnabled': animationsEnabled,
         'themeColor': themeColor.toARGB32(),
       };
 
@@ -42,6 +47,7 @@ class AppSettings {
         soundEnabled: j['soundEnabled'] as bool? ?? true,
         soundVolume: (j['soundVolume'] as num?)?.toDouble() ?? 0.7,
         hapticEnabled: j['hapticEnabled'] as bool? ?? true,
+        animationsEnabled: j['animationsEnabled'] as bool? ?? true,
         themeColor:
             Color(j['themeColor'] as int? ?? Colors.pinkAccent.toARGB32()),
       );

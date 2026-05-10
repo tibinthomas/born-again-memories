@@ -20,12 +20,14 @@ class MilestoneDetailPage extends StatefulWidget {
   final List<Milestone> milestones;
   final int initialIndex;
   final KidProfile profile;
+  final bool animationsEnabled;
 
   const MilestoneDetailPage({
     super.key,
     required this.milestones,
     required this.initialIndex,
     required this.profile,
+    this.animationsEnabled = true,
   });
 
   @override
@@ -34,14 +36,13 @@ class MilestoneDetailPage extends StatefulWidget {
 
 class _MilestoneDetailPageState extends State<MilestoneDetailPage>
     with TickerProviderStateMixin {
-  late final PageController _pageController;
   late int _currentIndex;
 
   // Slideshow
   bool _slideshowActive = false;
   bool _musicEnabled = true;
   Timer? _slideshowTimer;
-  int _slideshowKey = 0; // incremented to reset progress bar tween
+  int _slideshowKey = 0;
 
   // Music
   final AudioPlayer _musicPlayer = AudioPlayer();
@@ -56,7 +57,6 @@ class _MilestoneDetailPageState extends State<MilestoneDetailPage>
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
-    _pageController = PageController(initialPage: widget.initialIndex);
     _contentFadeCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 700));
     _contentFade =
@@ -65,11 +65,20 @@ class _MilestoneDetailPageState extends State<MilestoneDetailPage>
 
   @override
   void dispose() {
-    _pageController.dispose();
     _slideshowTimer?.cancel();
     _musicPlayer.dispose();
     _contentFadeCtrl.dispose();
     super.dispose();
+  }
+
+  void _prevMilestone() {
+    if (_currentIndex > 0) setState(() => _currentIndex--);
+  }
+
+  void _nextMilestone() {
+    if (_currentIndex < widget.milestones.length - 1) {
+      setState(() => _currentIndex++);
+    }
   }
 
   // ── Slideshow control ──────────────────────────────────────────────────────
@@ -97,12 +106,12 @@ class _MilestoneDetailPageState extends State<MilestoneDetailPage>
     _slideshowTimer?.cancel();
     _slideshowTimer = Timer(const Duration(seconds: 5), () {
       if (!mounted || !_slideshowActive) return;
-      final next = (_currentIndex + 1) % widget.milestones.length;
-      _pageController.animateToPage(
-        next,
-        duration: const Duration(milliseconds: 900),
-        curve: Curves.easeInOut,
-      );
+      setState(() {
+        _currentIndex = (_currentIndex + 1) % widget.milestones.length;
+        _slideshowKey++;
+      });
+      _contentFadeCtrl.forward(from: 0);
+      _scheduleNext();
     });
   }
 
@@ -131,16 +140,6 @@ class _MilestoneDetailPageState extends State<MilestoneDetailPage>
     } catch (_) {}
   }
 
-  void _onPageChanged(int i) {
-    setState(() {
-      _currentIndex = i;
-      if (_slideshowActive) {
-        _slideshowKey++;
-        _scheduleNext();
-        _contentFadeCtrl.forward(from: 0);
-      }
-    });
-  }
 
   // ── Build ──────────────────────────────────────────────────────────────────
 
@@ -154,16 +153,27 @@ class _MilestoneDetailPageState extends State<MilestoneDetailPage>
         backgroundColor: Colors.black,
         body: Stack(
           children: [
-            // ── PageView ───────────────────────────────────────────────────
-            PageView.builder(
-              controller: _pageController,
-              itemCount: widget.milestones.length,
-              onPageChanged: _onPageChanged,
-              itemBuilder: (_, i) => _MilestoneView(
-                milestone: widget.milestones[i],
-                profile: widget.profile,
-                isSlideshow: _slideshowActive,
-                contentFade: _contentFade,
+            // ── Current milestone view (animated swap on index change) ──────
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 320),
+              transitionBuilder: (child, anim) => FadeTransition(
+                opacity: anim,
+                child: ScaleTransition(
+                  scale: Tween(begin: 0.97, end: 1.0).animate(
+                    CurvedAnimation(parent: anim, curve: Curves.easeOut),
+                  ),
+                  child: child,
+                ),
+              ),
+              child: KeyedSubtree(
+                key: ValueKey(_currentIndex),
+                child: _MilestoneView(
+                  milestone: widget.milestones[_currentIndex],
+                  profile: widget.profile,
+                  isSlideshow: _slideshowActive,
+                  contentFade: _contentFade,
+                  animationsEnabled: widget.animationsEnabled,
+                ),
               ),
             ),
 
@@ -180,6 +190,15 @@ class _MilestoneDetailPageState extends State<MilestoneDetailPage>
                         onTap: () => Navigator.pop(context),
                       ),
                       const Spacer(),
+                      if (widget.milestones.length > 1)
+                        _GlassButton(
+                          icon: Icons.photo_library_outlined,
+                          label:
+                              '${_currentIndex + 1} / ${widget.milestones.length}',
+                          onTap: null,
+                        ),
+                      if (widget.milestones.length > 1)
+                        const SizedBox(width: 8),
                       _GlassButton(
                         icon: Icons.play_circle_outline_rounded,
                         label: 'Slideshow',
@@ -190,8 +209,33 @@ class _MilestoneDetailPageState extends State<MilestoneDetailPage>
                 ),
               ),
 
-              // Page position indicator
-              if (widget.milestones.length > 1)
+              // ── Left / right navigation arrows ────────────────────────────
+              if (widget.milestones.length > 1) ...[
+                if (_currentIndex > 0)
+                  Positioned(
+                    left: 8,
+                    top: MediaQuery.of(context).padding.top + 60,
+                    bottom: MediaQuery.of(context).size.height * 0.48,
+                    child: Center(
+                      child: _NavArrow(
+                        icon: Icons.chevron_left_rounded,
+                        onTap: _prevMilestone,
+                      ),
+                    ),
+                  ),
+                if (_currentIndex < widget.milestones.length - 1)
+                  Positioned(
+                    right: 8,
+                    top: MediaQuery.of(context).padding.top + 60,
+                    bottom: MediaQuery.of(context).size.height * 0.48,
+                    child: Center(
+                      child: _NavArrow(
+                        icon: Icons.chevron_right_rounded,
+                        onTap: _nextMilestone,
+                      ),
+                    ),
+                  ),
+                // Dots below arrows
                 Positioned(
                   left: 0,
                   right: 0,
@@ -204,6 +248,7 @@ class _MilestoneDetailPageState extends State<MilestoneDetailPage>
                     ),
                   ),
                 ),
+              ],
             ],
 
             // ── Slideshow chrome ───────────────────────────────────────────
@@ -239,12 +284,14 @@ class _MilestoneView extends StatelessWidget {
   final KidProfile profile;
   final bool isSlideshow;
   final Animation<double> contentFade;
+  final bool animationsEnabled;
 
   const _MilestoneView({
     required this.milestone,
     required this.profile,
     required this.isSlideshow,
     required this.contentFade,
+    this.animationsEnabled = true,
   });
 
   @override
@@ -262,7 +309,7 @@ class _MilestoneView extends StatelessWidget {
         _Background(bgAttachment: firstPhoto, gradient: pTheme.headerGradient),
 
         // Animated bubble layer (sits above bg, below content)
-        _BubbleLayer(pTheme: pTheme, seed: milestone.id),
+        if (animationsEnabled) _BubbleLayer(pTheme: pTheme, seed: milestone.id),
 
         // Slideshow: just the cinematic overlay with title
         if (isSlideshow)
@@ -811,14 +858,12 @@ class _PhotoThumbnail extends StatelessWidget {
       );
     }
     return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(
-          fullscreenDialog: true,
-          builder: (_) => _FullScreenPhotoViewer(
-            photos: allPhotos,
-            initialIndex: initialIndex,
-          ),
+      onTap: () => showDialog(
+        context: context,
+        barrierColor: Colors.black87,
+        builder: (_) => _PhotoDialog(
+          photos: allPhotos,
+          initialIndex: initialIndex,
         ),
       ),
       child: Hero(
@@ -877,128 +922,158 @@ class _PhotoThumbnail extends StatelessWidget {
   }
 }
 
-// ── Full-screen photo viewer ────────────────────────────────────────────────────
+// ── Photo dialog (inline overlay) ─────────────────────────────────────────────
 
-class _FullScreenPhotoViewer extends StatefulWidget {
+class _PhotoDialog extends StatefulWidget {
   final List<Attachment> photos;
   final int initialIndex;
-
-  const _FullScreenPhotoViewer(
-      {required this.photos, required this.initialIndex});
+  const _PhotoDialog({required this.photos, required this.initialIndex});
 
   @override
-  State<_FullScreenPhotoViewer> createState() => _FullScreenPhotoViewerState();
+  State<_PhotoDialog> createState() => _PhotoDialogState();
 }
 
-class _FullScreenPhotoViewerState extends State<_FullScreenPhotoViewer> {
+class _PhotoDialogState extends State<_PhotoDialog> {
   late int _index;
-  late PageController _ctrl;
+  late final PageController _ctrl;
 
   @override
   void initState() {
     super.initState();
     _index = widget.initialIndex;
     _ctrl = PageController(initialPage: widget.initialIndex);
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
   }
 
   @override
   void dispose() {
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     _ctrl.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          // Photo PageView
-          PageView.builder(
-            controller: _ctrl,
-            itemCount: widget.photos.length,
-            onPageChanged: (i) => setState(() => _index = i),
-            itemBuilder: (_, i) {
-              final a = widget.photos[i];
-              if (!a.isViewable) {
-                return const Center(
-                    child: Icon(Icons.broken_image, color: Colors.white54));
-              }
-              return InteractiveViewer(
-                minScale: 0.5,
-                maxScale: 6,
-                child: Center(
-                  child: Hero(
-                    tag: 'photo_${a.id}',
-                    child: attachmentImageWidget(a, fit: BoxFit.contain),
+    final size = MediaQuery.of(context).size;
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: EdgeInsets.zero,
+      child: SizedBox(
+        width: size.width,
+        height: size.height,
+        child: Stack(
+          children: [
+            // Photo pages
+            PageView.builder(
+              controller: _ctrl,
+              itemCount: widget.photos.length,
+              onPageChanged: (i) => setState(() => _index = i),
+              itemBuilder: (_, i) {
+                final a = widget.photos[i];
+                if (!a.isViewable) {
+                  return const Center(
+                      child: Icon(Icons.broken_image, color: Colors.white54));
+                }
+                return InteractiveViewer(
+                  minScale: 0.5,
+                  maxScale: 6,
+                  child: Center(
+                    child: Hero(
+                      tag: 'photo_${a.id}',
+                      child: attachmentImageWidget(a, fit: BoxFit.contain),
+                    ),
+                  ),
+                );
+              },
+            ),
+
+            // Top bar
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 8,
+              left: 12,
+              right: 12,
+              child: Row(
+                children: [
+                  _GlassButton(
+                      icon: Icons.close,
+                      onTap: () => Navigator.pop(context)),
+                  const Spacer(),
+                  if (widget.photos.length > 1)
+                    _GlassButton(
+                      icon: Icons.photo_library_outlined,
+                      label: '${_index + 1} / ${widget.photos.length}',
+                      onTap: null,
+                    ),
+                ],
+              ),
+            ),
+
+            // Left / right arrows
+            if (widget.photos.length > 1) ...[
+              if (_index > 0)
+                Positioned(
+                  left: 8,
+                  top: 0,
+                  bottom: 0,
+                  child: Center(
+                    child: _NavArrow(
+                        icon: Icons.chevron_left_rounded,
+                        onTap: () {
+                          _ctrl.previousPage(
+                              duration: const Duration(milliseconds: 250),
+                              curve: Curves.easeOut);
+                        }),
                   ),
                 ),
-              );
-            },
-          ),
+              if (_index < widget.photos.length - 1)
+                Positioned(
+                  right: 8,
+                  top: 0,
+                  bottom: 0,
+                  child: Center(
+                    child: _NavArrow(
+                        icon: Icons.chevron_right_rounded,
+                        onTap: () {
+                          _ctrl.nextPage(
+                              duration: const Duration(milliseconds: 250),
+                              curve: Curves.easeOut);
+                        }),
+                  ),
+                ),
+            ],
 
-          // Top bar
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Row(
-                  children: [
-                    _GlassButton(
-                        icon: Icons.close,
-                        onTap: () => Navigator.pop(context)),
-                    const Spacer(),
-                    if (widget.photos.length > 1)
-                      _GlassButton(
-                        icon: Icons.photo_library_outlined,
-                        label:
-                            '${_index + 1}/${widget.photos.length}',
-                        onTap: null,
-                      ),
-                  ],
+            // Caption
+            if (widget.photos[_index].label?.isNotEmpty == true)
+              Positioned(
+                bottom: 40,
+                left: 24,
+                right: 24,
+                child: Text(
+                  widget.photos[_index].label!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    shadows: [Shadow(color: Colors.black, blurRadius: 8)],
+                  ),
                 ),
               ),
-            ),
-          ),
 
-          // Caption
-          if (widget.photos[_index].label?.isNotEmpty == true)
-            Positioned(
-              bottom: 40,
-              left: 24,
-              right: 24,
-              child: Text(
-                widget.photos[_index].label!,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                  shadows: [Shadow(color: Colors.black, blurRadius: 8)],
+            // Dots
+            if (widget.photos.length > 1)
+              Positioned(
+                bottom: 16,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: _PageDots(
+                    count: widget.photos.length,
+                    currentIndex: _index,
+                    accent: Colors.white,
+                  ),
                 ),
               ),
-            ),
-
-          // Dot indicator
-          if (widget.photos.length > 1)
-            Positioned(
-              bottom: 16,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: _PageDots(
-                  count: widget.photos.length,
-                  currentIndex: _index,
-                  accent: Colors.white,
-                ),
-              ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -1017,13 +1092,10 @@ class _VideoTile extends StatelessWidget {
     final exists = !kIsWeb && File(attachment.localPath).existsSync();
     return GestureDetector(
       onTap: exists
-          ? () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  fullscreenDialog: true,
-                  builder: (_) =>
-                      _FullScreenVideoPlayer(attachment: attachment),
-                ),
+          ? () => showDialog(
+                context: context,
+                barrierColor: Colors.black87,
+                builder: (_) => _VideoDialog(attachment: attachment),
               )
           : null,
       child: Container(
@@ -1080,26 +1152,25 @@ class _VideoTile extends StatelessWidget {
   }
 }
 
-// ── Full-screen video player ──────────────────────────────────────────────────
+// ── Video dialog (inline overlay) ─────────────────────────────────────────────
 
-class _FullScreenVideoPlayer extends StatefulWidget {
+class _VideoDialog extends StatefulWidget {
   final Attachment attachment;
-  const _FullScreenVideoPlayer({required this.attachment});
+  const _VideoDialog({required this.attachment});
 
   @override
-  State<_FullScreenVideoPlayer> createState() => _FullScreenVideoPlayerState();
+  State<_VideoDialog> createState() => _VideoDialogState();
 }
 
-class _FullScreenVideoPlayerState extends State<_FullScreenVideoPlayer> {
+class _VideoDialogState extends State<_VideoDialog> {
   VideoPlayerController? _ctrl;
   bool _initialized = false;
   bool _showControls = true;
-  Timer? _hideControlsTimer;
+  Timer? _hideTimer;
 
   @override
   void initState() {
     super.initState();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
     _initVideo();
   }
 
@@ -1107,9 +1178,7 @@ class _FullScreenVideoPlayerState extends State<_FullScreenVideoPlayer> {
     try {
       final ctrl = VideoPlayerController.file(File(widget.attachment.localPath));
       await ctrl.initialize();
-      ctrl.addListener(() {
-        if (mounted) setState(() {});
-      });
+      ctrl.addListener(() { if (mounted) setState(() {}); });
       await ctrl.play();
       if (mounted) setState(() { _ctrl = ctrl; _initialized = true; });
     } catch (_) {}
@@ -1117,160 +1186,144 @@ class _FullScreenVideoPlayerState extends State<_FullScreenVideoPlayer> {
 
   @override
   void dispose() {
-    _hideControlsTimer?.cancel();
+    _hideTimer?.cancel();
     _ctrl?.dispose();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     super.dispose();
   }
 
   void _toggleControls() {
     setState(() => _showControls = !_showControls);
-    if (_showControls) _scheduleHideControls();
+    if (_showControls) {
+      _hideTimer?.cancel();
+      _hideTimer = Timer(const Duration(seconds: 3),
+          () { if (mounted) setState(() => _showControls = false); });
+    }
   }
 
-  void _scheduleHideControls() {
-    _hideControlsTimer?.cancel();
-    _hideControlsTimer =
-        Timer(const Duration(seconds: 3), () {
-      if (mounted) setState(() => _showControls = false);
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: GestureDetector(
-        onTap: _toggleControls,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            if (_initialized && _ctrl != null)
-              Center(
-                child: AspectRatio(
-                  aspectRatio: _ctrl!.value.aspectRatio,
-                  child: VideoPlayer(_ctrl!),
-                ),
-              )
-            else
-              const Center(child: CircularProgressIndicator(color: Colors.white)),
-
-            // Controls overlay
-            AnimatedOpacity(
-              opacity: _showControls ? 1.0 : 0.0,
-              duration: const Duration(milliseconds: 300),
-              child: _VideoControls(ctrl: _ctrl, onClose: () => Navigator.pop(context)),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _VideoControls extends StatelessWidget {
-  final VideoPlayerController? ctrl;
-  final VoidCallback onClose;
-
-  const _VideoControls({required this.ctrl, required this.onClose});
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        // Gradient overlays
-        const Positioned.fill(
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Colors.black54, Colors.transparent, Colors.black54],
-                stops: [0.0, 0.4, 1.0],
-              ),
-            ),
-          ),
-        ),
-
-        // Top: close
-        SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Align(
-              alignment: Alignment.topLeft,
-              child: _GlassButton(icon: Icons.close, onTap: onClose),
-            ),
-          ),
-        ),
-
-        // Center: play/pause
-        if (ctrl != null)
-          Center(
-            child: GestureDetector(
-              onTap: ctrl!.value.isPlaying ? ctrl!.pause : ctrl!.play,
-              child: Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  color: Colors.white.withAlpha(40),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white.withAlpha(100), width: 1.5),
-                ),
-                child: Icon(
-                  ctrl!.value.isPlaying
-                      ? Icons.pause_rounded
-                      : Icons.play_arrow_rounded,
-                  color: Colors.white,
-                  size: 36,
-                ),
-              ),
-            ),
-          ),
-
-        // Bottom: progress
-        if (ctrl != null)
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    VideoProgressIndicator(
-                      ctrl!,
-                      allowScrubbing: true,
-                      colors: const VideoProgressColors(
-                        playedColor: Colors.white,
-                        bufferedColor: Colors.white38,
-                        backgroundColor: Colors.white24,
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(_fmtDuration(ctrl!.value.position),
-                            style: const TextStyle(color: Colors.white70, fontSize: 12)),
-                        Text(_fmtDuration(ctrl!.value.duration),
-                            style: const TextStyle(color: Colors.white70, fontSize: 12)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  String _fmtDuration(Duration d) {
+  String _fmt(Duration d) {
     final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
     final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
     return '$m:$s';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    return Dialog(
+      backgroundColor: Colors.black,
+      insetPadding: EdgeInsets.zero,
+      child: SizedBox(
+        width: size.width,
+        height: size.height,
+        child: GestureDetector(
+          onTap: _toggleControls,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (_initialized && _ctrl != null)
+                Center(
+                  child: AspectRatio(
+                    aspectRatio: _ctrl!.value.aspectRatio,
+                    child: VideoPlayer(_ctrl!),
+                  ),
+                )
+              else
+                const Center(child: CircularProgressIndicator(color: Colors.white)),
+
+              AnimatedOpacity(
+                opacity: _showControls ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 250),
+                child: Stack(
+                  children: [
+                    // Gradient bars
+                    const Positioned.fill(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Colors.black54, Colors.transparent, Colors.black54],
+                            stops: [0.0, 0.45, 1.0],
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // Close button
+                    Positioned(
+                      top: MediaQuery.of(context).padding.top + 8,
+                      left: 12,
+                      child: _GlassButton(
+                          icon: Icons.close,
+                          onTap: () => Navigator.pop(context)),
+                    ),
+
+                    // Play/pause
+                    if (_ctrl != null)
+                      Center(
+                        child: GestureDetector(
+                          onTap: () => _ctrl!.value.isPlaying
+                              ? _ctrl!.pause()
+                              : _ctrl!.play(),
+                          child: Container(
+                            width: 64,
+                            height: 64,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withAlpha(40),
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                  color: Colors.white.withAlpha(100), width: 1.5),
+                            ),
+                            child: Icon(
+                              _ctrl!.value.isPlaying
+                                  ? Icons.pause_rounded
+                                  : Icons.play_arrow_rounded,
+                              color: Colors.white,
+                              size: 36,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                    // Progress bar
+                    if (_ctrl != null)
+                      Positioned(
+                        bottom: MediaQuery.of(context).padding.bottom + 16,
+                        left: 16,
+                        right: 16,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            VideoProgressIndicator(
+                              _ctrl!,
+                              allowScrubbing: true,
+                              colors: const VideoProgressColors(
+                                playedColor: Colors.white,
+                                bufferedColor: Colors.white38,
+                                backgroundColor: Colors.white24,
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(_fmt(_ctrl!.value.position),
+                                    style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                                Text(_fmt(_ctrl!.value.duration),
+                                    style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -1830,6 +1883,29 @@ class _PageDots extends StatelessWidget {
           ),
         );
       }),
+    );
+  }
+}
+
+class _NavArrow extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  const _NavArrow({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: Colors.black.withAlpha(70),
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white.withAlpha(60)),
+        ),
+        child: Icon(icon, color: Colors.white, size: 26),
+      ),
     );
   }
 }

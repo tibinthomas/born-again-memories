@@ -461,6 +461,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
   Widget build(BuildContext context) {
     ref.watch(backupSyncProvider);
 
+    final settings = ref.watch(appSettingsProvider);
     final profilesAsync = ref.watch(profilesProvider);
     if (profilesAsync == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -799,6 +800,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                                       milestone: milestone,
                                       profileTheme: profileTheme,
                                       animIndex: index,
+                                      animationsEnabled: settings.animationsEnabled,
                                       onTap: () => Navigator.push(
                                         context,
                                         MaterialPageRoute(
@@ -806,6 +808,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                                             milestones: filtered,
                                             initialIndex: index,
                                             profile: currentProfile,
+                                            animationsEnabled: settings.animationsEnabled,
                                           ),
                                         ),
                                       ),

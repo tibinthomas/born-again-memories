@@ -148,6 +148,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         .update(settings.copyWith(soundVolume: v)),
                     onHapticChanged: (v) => ref.read(appSettingsProvider.notifier)
                         .update(settings.copyWith(hapticEnabled: v)),
+                    onAnimationsChanged: (v) => ref.read(appSettingsProvider.notifier)
+                        .update(settings.copyWith(animationsEnabled: v)),
                     onTestSound: _playTestSound,
                   ),
                   const SizedBox(height: 22),
@@ -1060,6 +1062,7 @@ class _PreferencesCard extends StatelessWidget {
   final ValueChanged<bool> onSoundChanged;
   final ValueChanged<double> onVolumeChanged;
   final ValueChanged<bool> onHapticChanged;
+  final ValueChanged<bool> onAnimationsChanged;
   final VoidCallback onTestSound;
 
   const _PreferencesCard({
@@ -1069,6 +1072,7 @@ class _PreferencesCard extends StatelessWidget {
     required this.onSoundChanged,
     required this.onVolumeChanged,
     required this.onHapticChanged,
+    required this.onAnimationsChanged,
     required this.onTestSound,
   });
 
@@ -1125,6 +1129,18 @@ class _PreferencesCard extends StatelessWidget {
         trailing: Switch.adaptive(
           value: settings.hapticEnabled,
           onChanged: onHapticChanged,
+          activeColor: accent,
+        ),
+      ),
+      _divider(),
+      // Animations toggle
+      _PrefRow(
+        icon: Icons.animation_rounded,
+        accent: accent,
+        label: 'Animations & bubbles',
+        trailing: Switch.adaptive(
+          value: settings.animationsEnabled,
+          onChanged: onAnimationsChanged,
           activeColor: accent,
         ),
       ),
