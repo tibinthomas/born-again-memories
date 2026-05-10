@@ -48812,8 +48812,8 @@
     "hash": "7bb5c119101642dda93366d02fe2d3ef"
   },
   "/Users/tibinthomas/my_app/lib/screens/milestone_home_page.dart": {
-    "mtime": 1778398957.5991929,
-    "hash": "475114f67c1019c60f9c227e0e2ff200"
+    "mtime": 1778400549.0843008,
+    "hash": "4f989512df78c3b4cac5e147f2a733d3"
   },
   "/Users/tibinthomas/my_app/lib/screens/settings_screen.dart": {
     "mtime": 1778396492.737738,
@@ -48844,8 +48844,8 @@
     "hash": "dcce8649c9a306f09aa07b94a60139c1"
   },
   "/Users/tibinthomas/my_app/lib/screens/shared_feed_screen.dart": {
-    "mtime": 1778347764.1993868,
-    "hash": "1ef8be9269c62c4354d3c42ed1f5908e"
+    "mtime": 1778400555.164047,
+    "hash": "4c5a87748db0fadbae3a3a2b97b8dc04"
   },
   "/Users/tibinthomas/my_app/lib/services/firestore_service.dart": {
     "mtime": 1778396064.5097067,
@@ -48868,8 +48868,8 @@
     "hash": "50c378cc78f1694f7b3e6f3661b1d73f"
   },
   "/Users/tibinthomas/my_app/lib/widgets/milestone_card.dart": {
-    "mtime": 1778400165.7507505,
-    "hash": "1dc150c696200f525f43c21042bab91f"
+    "mtime": 1778400536.0461767,
+    "hash": "8fe5052b894bcbf1eb901cdebad1feba"
   },
   "/Users/tibinthomas/my_app/lib/widgets/attachment_preview.dart": {
     "mtime": 1778311312.1500106,

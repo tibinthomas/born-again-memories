@@ -797,7 +797,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                                     padding: const EdgeInsets.only(bottom: 14),
                                     child: MilestoneCard(
                                       milestone: milestone,
-                                      gender: currentProfile.gender,
+                                      profileTheme: profileTheme,
                                       animIndex: index,
                                       onTap: () => Navigator.push(
                                         context,

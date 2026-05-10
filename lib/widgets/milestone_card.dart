@@ -8,7 +8,7 @@ import 'attachment_preview.dart';
 
 class MilestoneCard extends StatefulWidget {
   final Milestone milestone;
-  final Gender gender;
+  final ProfileTheme? profileTheme;
   final int animIndex;
   final VoidCallback? onTap;
   final VoidCallback? onEdit;
@@ -19,7 +19,7 @@ class MilestoneCard extends StatefulWidget {
   const MilestoneCard({
     super.key,
     required this.milestone,
-    this.gender = Gender.neutral,
+    this.profileTheme,
     this.animIndex = 0,
     this.onTap,
     this.onEdit,
@@ -76,7 +76,7 @@ class _MilestoneCardState extends State<MilestoneCard>
 
   @override
   Widget build(BuildContext context) {
-    final theme = ProfileTheme.forGender(widget.gender);
+    final theme = widget.profileTheme ?? ProfileTheme.forGender(Gender.neutral);
     final milestone = widget.milestone;
 
     return FadeTransition(

@@ -257,7 +257,7 @@ class _FeedItem extends StatelessWidget {
         ),
         MilestoneCard(
           milestone: entry.milestone,
-          gender: entry.babyGender,
+          profileTheme: ProfileTheme.forGender(entry.babyGender),
           animIndex: animIndex,
         ),
       ],
