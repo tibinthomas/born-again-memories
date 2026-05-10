@@ -134,13 +134,22 @@ class _CrystalCard extends StatefulWidget {
 class _CrystalCardState extends State<_CrystalCard>
     with SingleTickerProviderStateMixin {
   late final AnimationController _float;
+  late final List<double> _phases; // random phase per bubble — loop-safe
+  late final List<double> _amps;   // amplitude multipliers
+  late final List<double> _signs;  // orbit direction per bubble
 
   @override
   void initState() {
     super.initState();
+    // Stable randomness seeded by milestone id — each card looks unique
+    final rng = math.Random(widget.milestone.id.hashCode);
+    _phases = List.generate(5, (_) => rng.nextDouble() * 2 * math.pi);
+    _amps   = List.generate(5, (_) => 0.75 + rng.nextDouble() * 0.5);
+    _signs  = List.generate(5, (_) => rng.nextBool() ? 1.0 : -1.0);
+
     _float = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 5),
+      duration: const Duration(seconds: 20),
     )..repeat();
   }
 
@@ -198,56 +207,56 @@ class _CrystalCardState extends State<_CrystalCard>
         borderRadius: BorderRadius.circular(28),
         child: Stack(
           children: [
-            // ── Floating parallax bubbles ─────────────────────────
+            // ── Bubbles moving across the card ────────────────────
             Positioned.fill(
-              child: AnimatedBuilder(
-                animation: _float,
-                builder: (_, __) {
-                  final t = _float.value * 2 * math.pi;
-                  return Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      // Large top-right — slow drift
-                      Positioned(
-                        top: -24, right: -24,
-                        child: Transform.translate(
-                          offset: Offset(math.cos(t * 0.5) * 6, math.sin(t * 0.7) * 10),
-                          child: _CardBubble(92, accent, 50),
-                        ),
-                      ),
-                      // Large bottom-left — opposite phase
-                      Positioned(
-                        bottom: -20, left: -20,
-                        child: Transform.translate(
-                          offset: Offset(math.cos(t * 0.4 + 1.0) * 5, math.sin(t * 0.6 + math.pi) * 9),
-                          child: _CardBubble(72, secondary, 44),
-                        ),
-                      ),
-                      // Mid small — faster
-                      Positioned(
-                        top: 22, right: 52,
-                        child: Transform.translate(
-                          offset: Offset(math.cos(t * 0.9 + 0.5) * 5, math.sin(t * 1.1 + 2.0) * 7),
-                          child: _CardBubble(24, secondary, 36),
-                        ),
-                      ),
-                      // Bottom-right small
-                      Positioned(
-                        bottom: 14, right: 8,
-                        child: Transform.translate(
-                          offset: Offset(math.cos(t * 1.2) * 4, math.sin(t * 0.8 + 1.5) * 6),
-                          child: _CardBubble(38, accent, 28),
-                        ),
-                      ),
-                      // Tiny top-centre
-                      Positioned(
-                        top: 8, left: 58,
-                        child: Transform.translate(
-                          offset: Offset(math.cos(t * 0.7 + 2.0) * 4, math.sin(t * 1.3 + 0.8) * 5),
-                          child: _CardBubble(16, accent, 22),
-                        ),
-                      ),
-                    ],
+              child: LayoutBuilder(
+                builder: (_, box) {
+                  final w = box.maxWidth;
+                  final h = box.maxHeight;
+                  return AnimatedBuilder(
+                    animation: _float,
+                    builder: (_, __) {
+                      final t = _float.value * 2 * math.pi;
+                      // Integer multipliers + phase offsets → seamless loop
+                      // sin(2π·n + φ) == sin(φ), so no jump at reset.
+                      double s(double v) => math.sin(v);
+                      double c(double v) => math.cos(v);
+                      return Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          // Large accent — horizontal sweep near top
+                          Positioned(
+                            left: (s(t + _phases[0]) * 0.5 + 0.5) * (w + 92) - 46,
+                            top: h * 0.04 + s(t * 2 + _phases[0]) * h * 0.07 * _amps[0],
+                            child: _CardBubble(92, accent, 50),
+                          ),
+                          // Large secondary — opposite sweep near bottom
+                          Positioned(
+                            left: (c(_signs[1] * t + _phases[1]) * 0.5 + 0.5) * (w + 72) - 36,
+                            top: h * 0.62 + s(t * 3 + _phases[1]) * h * 0.07 * _amps[1],
+                            child: _CardBubble(72, secondary, 44),
+                          ),
+                          // Small secondary — diagonal figure-8
+                          Positioned(
+                            left: (s(_signs[2] * t * 2 + _phases[2]) * 0.5 + 0.5) * w,
+                            top: (c(t * 2 + _phases[2]) * 0.5 + 0.5) * h,
+                            child: _CardBubble(24, secondary, 38),
+                          ),
+                          // Medium accent — circular orbit
+                          Positioned(
+                            left: w * 0.5 + c(_signs[3] * t + _phases[3]) * w * 0.44 * _amps[3],
+                            top: h * 0.5 + s(t + _phases[3]) * h * 0.40 * _amps[3],
+                            child: _CardBubble(38, accent, 30),
+                          ),
+                          // Tiny accent — small fast orbit
+                          Positioned(
+                            left: w * 0.35 + c(_signs[4] * t * 3 + _phases[4]) * w * 0.28 * _amps[4],
+                            top: h * 0.28 + s(t * 3 + _phases[4]) * h * 0.22 * _amps[4],
+                            child: _CardBubble(16, accent, 24),
+                          ),
+                        ],
+                      );
+                    },
                   );
                 },
               ),
