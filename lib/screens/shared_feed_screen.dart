@@ -79,96 +79,107 @@ class _SharedFeedScreenState extends ConsumerState<SharedFeedScreen> {
 
   @override
   Widget build(BuildContext context) {
+    const accent = Color(0xFF5B9BD5);
+    const secondary = Color(0xFF8B5CF6);
+    final headerGradient = LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [accent, Color.lerp(accent, secondary, 0.6)!],
+    );
+
     final filtered = _selectedUid == null
         ? _entries
         : _entries.where((e) => e.senderUid == _selectedUid).toList();
 
     return Scaffold(
       backgroundColor: const Color(0xFFFAF8F5),
-      appBar: AppBar(
-        title: const Text(
-          'Shared with me',
-          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
-        ),
-        backgroundColor: const Color(0xFFFAF8F5),
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh_rounded),
-            onPressed: _loading ? null : _load,
-            tooltip: 'Refresh',
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            pinned: true,
+            toolbarHeight: 52,
+            backgroundColor: accent,
+            foregroundColor: Colors.white,
+            flexibleSpace: FlexibleSpaceBar(
+              background: DecoratedBox(
+                decoration: BoxDecoration(gradient: headerGradient),
+              ),
+            ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.refresh_rounded, color: Colors.white),
+                onPressed: _loading ? null : _load,
+                tooltip: 'Refresh',
+              ),
+            ],
+            title: const Row(
+              children: [
+                Text('🌟 ', style: TextStyle(fontSize: 18)),
+                Text('Shared with me', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white)),
+              ],
+            ),
           ),
+          if (_loading)
+            const SliverFillRemaining(
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (_error != null)
+            SliverFillRemaining(
+              child: _ErrorState(error: _error!, onRetry: _load),
+            )
+          else if (_entries.isEmpty)
+            const SliverFillRemaining(child: _EmptyState())
+          else ...[
+            if (_entries.isNotEmpty)
+              SliverToBoxAdapter(
+                child: SizedBox(
+                  height: 44,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
+                    children: [
+                      _SenderChip(
+                        label: 'All',
+                        avatar: null,
+                        selected: _selectedUid == null,
+                        onTap: () => setState(() => _selectedUid = null),
+                      ),
+                      ..._senders.map((s) => Padding(
+                            padding: const EdgeInsets.only(left: 8),
+                            child: _SenderChip(
+                              label: s.name,
+                              avatar: s.name.isNotEmpty ? s.name[0].toUpperCase() : '?',
+                              selected: _selectedUid == s.uid,
+                              onTap: () => setState(() => _selectedUid = _selectedUid == s.uid ? null : s.uid),
+                            ),
+                          )),
+                    ],
+                  ),
+                ),
+              ),
+            if (filtered.isEmpty)
+              const SliverFillRemaining(
+                child: Center(
+                  child: Text(
+                    'No memories from this person yet.',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ),
+              )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
+                sliver: SliverList.builder(
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) {
+                    final entry = filtered[index];
+                    return _FeedItem(entry: entry, animIndex: index, showSender: _selectedUid == null);
+                  },
+                ),
+              ),
+          ],
         ],
       ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-              ? _ErrorState(error: _error!, onRetry: _load)
-              : _entries.isEmpty
-                  ? const _EmptyState()
-                  : Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // ── Sender filter chips ──────────────────────
-                        SizedBox(
-                          height: 44,
-                          child: ListView(
-                            scrollDirection: Axis.horizontal,
-                            padding:
-                                const EdgeInsets.fromLTRB(16, 4, 16, 4),
-                            children: [
-                              _SenderChip(
-                                label: 'All',
-                                avatar: null,
-                                selected: _selectedUid == null,
-                                onTap: () =>
-                                    setState(() => _selectedUid = null),
-                              ),
-                              ..._senders.map((s) => Padding(
-                                    padding: const EdgeInsets.only(left: 8),
-                                    child: _SenderChip(
-                                      label: s.name,
-                                      avatar: s.name.isNotEmpty
-                                          ? s.name[0].toUpperCase()
-                                          : '?',
-                                      selected: _selectedUid == s.uid,
-                                      onTap: () => setState(() =>
-                                          _selectedUid = _selectedUid == s.uid
-                                              ? null
-                                              : s.uid),
-                                    ),
-                                  )),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-
-                        // ── Feed ─────────────────────────────────────
-                        Expanded(
-                          child: filtered.isEmpty
-                              ? const Center(
-                                  child: Text(
-                                    'No memories from this person yet.',
-                                    style: TextStyle(color: Colors.grey),
-                                  ),
-                                )
-                              : ListView.builder(
-                                  padding: const EdgeInsets.fromLTRB(
-                                      20, 8, 20, 40),
-                                  itemCount: filtered.length,
-                                  itemBuilder: (context, index) {
-                                    final entry = filtered[index];
-                                    return _FeedItem(
-                                      entry: entry,
-                                      animIndex: index,
-                                      showSender: _selectedUid == null,
-                                    );
-                                  },
-                                ),
-                        ),
-                      ],
-                    ),
     );
   }
 }
@@ -243,14 +254,12 @@ class _FeedItem extends StatelessWidget {
               const SizedBox(width: 4),
               Text(
                 entry.babyName,
-                style:
-                    TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
               ),
               const SizedBox(width: 6),
               Text(
                 formatDate(entry.milestone.date),
-                style:
-                    TextStyle(fontSize: 11, color: Colors.grey.shade400),
+                style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
               ),
             ],
           ),

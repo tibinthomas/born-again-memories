@@ -8,76 +8,168 @@ import '../utils/profile_theme.dart';
 
 // ── Entry point ───────────────────────────────────────────────────────────────
 
-class RemindersScreen extends ConsumerWidget {
+class RemindersScreen extends ConsumerStatefulWidget {
   final int profileIndex;
 
   const RemindersScreen({super.key, required this.profileIndex});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<RemindersScreen> createState() => _RemindersScreenState();
+}
+
+class _RemindersScreenState extends ConsumerState<RemindersScreen> {
+  _ReminderFilter _filter = _ReminderFilter.all;
+
+  @override
+  Widget build(BuildContext context) {
     final profiles = ref.watch(profilesProvider) ?? [];
-    if (profiles.isEmpty || profileIndex >= profiles.length) {
+    if (profiles.isEmpty || widget.profileIndex >= profiles.length) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-    final profile = profiles[profileIndex];
+    final profile = profiles[widget.profileIndex];
     final theme = ProfileTheme.forProfile(profile);
     final reminders = profile.reminders
       ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
     final upcoming = reminders.where((r) => !r.isDone).toList();
     final done = reminders.where((r) => r.isDone).toList();
 
+    final filtered = switch (_filter) {
+      _ReminderFilter.upcoming => upcoming,
+      _ReminderFilter.done => done,
+      _ReminderFilter.all => reminders,
+    };
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       body: CustomScrollView(
         slivers: [
-          _Header(profile: profile, theme: theme),
-          if (upcoming.isEmpty && done.isEmpty)
+          SliverAppBar(
+            pinned: true,
+            toolbarHeight: 52,
+            backgroundColor: theme.accent,
+            foregroundColor: Colors.white,
+            flexibleSpace: FlexibleSpaceBar(
+              background: DecoratedBox(
+                decoration: BoxDecoration(gradient: theme.headerGradient),
+              ),
+            ),
+            title: Row(
+              children: [
+                Text('${theme.decalEmoji} ', style: const TextStyle(fontSize: 18)),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${profile.name}\'s Reminders',
+                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        '${reminders.length} reminder${reminders.length == 1 ? '' : 's'}',
+                        style: const TextStyle(fontSize: 10, color: Colors.white70),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (reminders.isNotEmpty)
+            SliverToBoxAdapter(
+              child: SizedBox(
+                height: 44,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
+                  children: [
+                    _ReminderChip(
+                      label: 'All (${reminders.length})',
+                      selected: _filter == _ReminderFilter.all,
+                      accent: theme.accent,
+                      onTap: () => setState(() => _filter = _ReminderFilter.all),
+                    ),
+                    const SizedBox(width: 8),
+                    _ReminderChip(
+                      label: 'Upcoming (${upcoming.length})',
+                      selected: _filter == _ReminderFilter.upcoming,
+                      accent: theme.accent,
+                      onTap: () => setState(() => _filter = _ReminderFilter.upcoming),
+                    ),
+                    const SizedBox(width: 8),
+                    _ReminderChip(
+                      label: 'Completed (${done.length})',
+                      selected: _filter == _ReminderFilter.done,
+                      accent: Colors.grey.shade500,
+                      onTap: () => setState(() => _filter = _ReminderFilter.done),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          if (reminders.isEmpty)
             SliverFillRemaining(
               child: _EmptyState(theme: theme, kidName: profile.name),
             )
+          else if (filtered.isEmpty)
+            SliverFillRemaining(
+              child: Center(
+                child: Text(
+                  _filter == _ReminderFilter.upcoming
+                      ? 'No upcoming reminders.'
+                      : 'No completed reminders.',
+                  style: const TextStyle(color: Colors.grey),
+                ),
+              ),
+            )
           else ...[
-            if (upcoming.isNotEmpty) ...[
-              _SectionHeader(label: 'Upcoming', color: theme.accent),
-              SliverList.separated(
-                itemCount: upcoming.length,
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              sliver: SliverList.separated(
+                itemCount: filtered.length,
                 separatorBuilder: (context, index) => const SizedBox(height: 10),
-                itemBuilder: (ctx, i) => Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: _ReminderCard(
-                    reminder: upcoming[i],
-                    theme: theme,
-                    profileIndex: profileIndex,
-                    profileName: profile.name,
-                  ),
+                itemBuilder: (ctx, i) => _ReminderCard(
+                  reminder: filtered[i],
+                  theme: theme,
+                  profileIndex: widget.profileIndex,
+                  profileName: profile.name,
                 ),
               ),
-            ],
-            if (done.isNotEmpty) ...[
-              _SectionHeader(label: 'Completed', color: Colors.grey.shade500),
-              SliverList.separated(
-                itemCount: done.length,
-                separatorBuilder: (context, index) => const SizedBox(height: 10),
-                itemBuilder: (ctx, i) => Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: _ReminderCard(
-                    reminder: done[i],
-                    theme: theme,
-                    profileIndex: profileIndex,
-                    profileName: profile.name,
-                  ),
-                ),
-              ),
-            ],
+            ),
             const SliverToBoxAdapter(child: SizedBox(height: 100)),
           ],
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddSheet(context, profile, theme, profileIndex),
-        backgroundColor: theme.accent,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add_alarm_outlined),
-        label: const Text('Add Reminder'),
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          gradient: theme.headerGradient,
+          borderRadius: BorderRadius.circular(32),
+          border: Border.all(color: Colors.white.withAlpha(80), width: 1),
+          boxShadow: [
+            BoxShadow(color: theme.accent.withAlpha(80), blurRadius: 20, offset: const Offset(0, 8)),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(32),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(32),
+            onTap: () => _showAddSheet(context, profile, theme, widget.profileIndex),
+            child: const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.add_alarm_outlined, color: Colors.white, size: 18),
+                  SizedBox(width: 8),
+                  Text('Add Reminder', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14)),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -102,83 +194,37 @@ class RemindersScreen extends ConsumerWidget {
   }
 }
 
-// ── Header ────────────────────────────────────────────────────────────────────
+// ── Filter chip ───────────────────────────────────────────────────────────────
 
-class _Header extends StatelessWidget {
-  final KidProfile profile;
-  final ProfileTheme theme;
-
-  const _Header({required this.profile, required this.theme});
-
-  @override
-  Widget build(BuildContext context) {
-    return SliverAppBar(
-      expandedHeight: 140,
-      pinned: true,
-      backgroundColor: theme.accent,
-      foregroundColor: Colors.white,
-      flexibleSpace: FlexibleSpaceBar(
-        titlePadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        title: Row(
-          children: [
-            Text(
-              '${theme.decalEmoji} ',
-              style: const TextStyle(fontSize: 20),
-            ),
-            Expanded(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${profile.name}\'s Reminders',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Text(
-                    profile.ageText,
-                    style: const TextStyle(fontSize: 11, color: Colors.white70),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        background: DecoratedBox(
-          decoration: BoxDecoration(gradient: theme.headerGradient),
-        ),
-      ),
-    );
-  }
-}
-
-// ── Section header ────────────────────────────────────────────────────────────
-
-class _SectionHeader extends StatelessWidget {
+class _ReminderChip extends StatelessWidget {
   final String label;
-  final Color color;
-
-  const _SectionHeader({required this.label, required this.color});
+  final bool selected;
+  final Color accent;
+  final VoidCallback onTap;
+  const _ReminderChip({required this.label, required this.selected, required this.accent, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-        child: Row(
-          children: [
-            Container(width: 3, height: 14, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2))),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: color, letterSpacing: 0.5),
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+        decoration: BoxDecoration(
+          color: selected ? accent : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: selected ? accent : accent.withAlpha(50), width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: selected ? accent.withAlpha(50) : Colors.black.withAlpha(8),
+              blurRadius: selected ? 8 : 3,
+              offset: const Offset(0, 2),
             ),
           ],
+        ),
+        child: Text(
+          label,
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: selected ? Colors.white : accent),
         ),
       ),
     );
@@ -793,3 +839,7 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
         style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey.shade700),
       );
 }
+
+// ── Filter enum ───────────────────────────────────────────────────────────────
+
+enum _ReminderFilter { all, upcoming, done }

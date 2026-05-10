@@ -638,30 +638,15 @@ class _LinkCard extends ConsumerWidget {
           children: [
             // ── Preview image ─────────────────────────────────────────
             if (hasImage)
-              Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                    child: Image.network(
-                      link.previewImageUrl!,
-                      height: 150,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                    ),
-                  ),
-                  // Star overlaid on image
-                  Positioned(
-                    top: 10,
-                    right: 10,
-                    child: _FavButton(
-                      isFavorite: link.isFavorite,
-                      accent: theme.accent,
-                      onTap: onFavorite,
-                      onImage: true,
-                    ),
-                  ),
-                ],
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                child: Image.network(
+                  link.previewImageUrl!,
+                  height: 150,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                ),
               ),
 
             Padding(
@@ -669,7 +654,7 @@ class _LinkCard extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ── Top row: domain + star (no image) + menu ─────────
+                  // ── Top row: domain + star + menu ─────────────────────
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -686,13 +671,11 @@ class _LinkCard extends ConsumerWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      if (!hasImage)
-                        _FavButton(
-                          isFavorite: link.isFavorite,
-                          accent: theme.accent,
-                          onTap: onFavorite,
-                          onImage: false,
-                        ),
+                      _FavButton(
+                        isFavorite: link.isFavorite,
+                        accent: theme.accent,
+                        onTap: onFavorite,
+                      ),
                       const SizedBox(width: 2),
                       PopupMenuButton<String>(
                         icon: Icon(Icons.more_horiz_rounded,
@@ -828,53 +811,31 @@ class _FavButton extends StatelessWidget {
   final bool isFavorite;
   final Color accent;
   final VoidCallback onTap;
-  final bool onImage;
 
   const _FavButton({
     required this.isFavorite,
     required this.accent,
     required this.onTap,
-    required this.onImage,
   });
 
   @override
   Widget build(BuildContext context) {
-    if (onImage) {
-      return GestureDetector(
-        onTap: onTap,
-        child: ClipOval(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.black.withAlpha(50),
-                border:
-                    Border.all(color: Colors.white.withAlpha(60), width: 0.8),
-              ),
-              child: Icon(
-                isFavorite ? Icons.star_rounded : Icons.star_outline_rounded,
-                size: 18,
-                color: isFavorite
-                    ? const Color(0xFFFBBF24)
-                    : Colors.white.withAlpha(210),
-              ),
-            ),
-          ),
-        ),
-      );
-    }
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        width: 30,
-        height: 30,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: isFavorite
+              ? const Color(0xFFFBBF24).withAlpha(22)
+              : Colors.grey.shade100,
+        ),
         child: Icon(
           isFavorite ? Icons.star_rounded : Icons.star_outline_rounded,
-          size: 20,
-          color: isFavorite ? const Color(0xFFFBBF24) : accent.withAlpha(100),
+          size: 18,
+          color: isFavorite ? const Color(0xFFFBBF24) : Colors.grey.shade400,
         ),
       ),
     );
