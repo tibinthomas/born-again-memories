@@ -9,6 +9,7 @@ import '../models/baby_document.dart';
 import '../models/kid_profile.dart';
 import '../providers/profiles_provider.dart';
 import '../services/local_storage_service.dart';
+import '../utils/profile_theme.dart';
 import '../utils/date_formatter.dart';
 import '../utils/profile_theme.dart';
 
@@ -781,6 +782,13 @@ class _DocumentSheetState extends ConsumerState<_DocumentSheet> {
   PlatformFile? _pickedFile;
   bool _saving = false;
   String? _error;
+  List<int> _selectedProfileIndices = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedProfileIndices = [widget.profileIndex]; // Default to current profile
+  }
 
   @override
   void dispose() {
@@ -880,7 +888,12 @@ class _DocumentSheetState extends ConsumerState<_DocumentSheet> {
       webBytes: webBytes,
     );
 
-    await ref.read(profilesProvider.notifier).addDocument(widget.profileIndex, doc);
+    if (_selectedProfileIndices.length == 1) {
+      await ref.read(profilesProvider.notifier).addDocument(_selectedProfileIndices.first, doc);
+    } else {
+      await ref.read(profilesProvider.notifier).addDocumentToProfiles(_selectedProfileIndices, doc);
+    }
+
     if (mounted) Navigator.pop(context);
   }
 
@@ -951,6 +964,16 @@ class _DocumentSheetState extends ConsumerState<_DocumentSheet> {
               ],
             ),
             const SizedBox(height: 22),
+
+            // Profile selection
+            _label('Add to Profiles'),
+            const SizedBox(height: 8),
+            _ProfileSelector(
+              selectedIndices: _selectedProfileIndices,
+              onSelectionChanged: (indices) => setState(() => _selectedProfileIndices = indices),
+              theme: pTheme,
+            ),
+            const SizedBox(height: 18),
 
             // File picker
             GestureDetector(
@@ -1143,5 +1166,104 @@ class _DocumentSheetState extends ConsumerState<_DocumentSheet> {
     if (bytes < 1024) return '$bytes B';
     if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
     return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
+}
+
+// ── Profile selector ──────────────────────────────────────────────────────────
+
+class _ProfileSelector extends ConsumerWidget {
+  final List<int> selectedIndices;
+  final ValueChanged<List<int>> onSelectionChanged;
+  final ProfileTheme theme;
+
+  const _ProfileSelector({
+    required this.selectedIndices,
+    required this.onSelectionChanged,
+    required this.theme,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profiles = ref.watch(profilesProvider) ?? [];
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        // All profiles option
+        GestureDetector(
+          onTap: () {
+            final allIndices = List.generate(profiles.length, (i) => i);
+            onSelectionChanged(allIndices);
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: selectedIndices.length == profiles.length ? theme.accent : Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: selectedIndices.length == profiles.length ? theme.accent : Colors.grey.shade200,
+              ),
+            ),
+            child: Text(
+              'All Profiles',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: selectedIndices.length == profiles.length ? Colors.white : Colors.grey.shade700,
+              ),
+            ),
+          ),
+        ),
+        // Individual profiles
+        ...profiles.asMap().entries.map((entry) {
+          final index = entry.key;
+          final profile = entry.value;
+          final selected = selectedIndices.contains(index);
+          return GestureDetector(
+            onTap: () {
+              final newSelection = List<int>.from(selectedIndices);
+              if (selected) {
+                newSelection.remove(index);
+                if (newSelection.isEmpty) newSelection.add(index); // Keep at least one
+              } else {
+                newSelection.add(index);
+              }
+              onSelectionChanged(newSelection);
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 160),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: selected ? ProfileTheme.forProfile(profile).accent : Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: selected ? ProfileTheme.forProfile(profile).accent : Colors.grey.shade200,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    ProfileTheme.forProfile(profile).decalEmoji,
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    profile.name,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: selected ? Colors.white : Colors.grey.shade700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }),
+      ],
+    );
   }
 }

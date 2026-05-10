@@ -854,6 +854,7 @@ class _LinkFormSheetState extends ConsumerState<_LinkFormSheet> {
   String _previewErrorText = '';
   Timer? _previewDebounce;
   bool _autoFilled = false;
+  List<int> _selectedProfileIndices = [];
 
   @override
   void initState() {
@@ -863,6 +864,7 @@ class _LinkFormSheetState extends ConsumerState<_LinkFormSheet> {
     _descriptionController = TextEditingController(text: widget.initial?.description ?? '');
     _tagController = TextEditingController();
     _tags = widget.initial?.tags.toList() ?? [];
+    _selectedProfileIndices = [widget.profileIndex]; // Default to current profile
     if (_urlController.text.isNotEmpty) {
       _schedulePreviewFetch(_urlController.text);
     }
@@ -1126,6 +1128,14 @@ class _LinkFormSheetState extends ConsumerState<_LinkFormSheet> {
               ],
             ),
             const SizedBox(height: 12),
+            if (!isEditing) ...[
+              _ProfileSelector(
+                selectedIndices: _selectedProfileIndices,
+                onSelectionChanged: (indices) => setState(() => _selectedProfileIndices = indices),
+                theme: widget.theme,
+              ),
+              const SizedBox(height: 12),
+            ],
             Expanded(
               child: ListView(
                 children: [
@@ -1217,7 +1227,11 @@ class _LinkFormSheetState extends ConsumerState<_LinkFormSheet> {
                         previewImageUrl: _previewData?.image,
                       );
                       if (widget.initial == null) {
-                        ref.read(profilesProvider.notifier).addLink(widget.profileIndex, item);
+                        if (_selectedProfileIndices.length == 1) {
+                          ref.read(profilesProvider.notifier).addLink(_selectedProfileIndices.first, item);
+                        } else {
+                          ref.read(profilesProvider.notifier).addLinkToProfiles(_selectedProfileIndices, item);
+                        }
                       } else {
                         ref.read(profilesProvider.notifier).updateLink(widget.profileIndex, item);
                       }
@@ -1229,6 +1243,101 @@ class _LinkFormSheetState extends ConsumerState<_LinkFormSheet> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _ProfileSelector extends ConsumerWidget {
+  final List<int> selectedIndices;
+  final ValueChanged<List<int>> onSelectionChanged;
+  final ProfileTheme theme;
+
+  const _ProfileSelector({
+    required this.selectedIndices,
+    required this.onSelectionChanged,
+    required this.theme,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profiles = ref.watch(profilesProvider) ?? [];
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        GestureDetector(
+          onTap: () {
+            final allIndices = List.generate(profiles.length, (i) => i);
+            onSelectionChanged(allIndices);
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: selectedIndices.length == profiles.length ? theme.accent : Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: selectedIndices.length == profiles.length ? theme.accent : Colors.grey.shade200,
+              ),
+            ),
+            child: Text(
+              'All Profiles',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: selectedIndices.length == profiles.length ? Colors.white : Colors.grey.shade700,
+              ),
+            ),
+          ),
+        ),
+        ...profiles.asMap().entries.map((entry) {
+          final index = entry.key;
+          final profile = entry.value;
+          final selected = selectedIndices.contains(index);
+          return GestureDetector(
+            onTap: () {
+              final newSelection = List<int>.from(selectedIndices);
+              if (selected) {
+                newSelection.remove(index);
+                if (newSelection.isEmpty) newSelection.add(index);
+              } else {
+                newSelection.add(index);
+              }
+              onSelectionChanged(newSelection);
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 160),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: selected ? ProfileTheme.forProfile(profile).accent : Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: selected ? ProfileTheme.forProfile(profile).accent : Colors.grey.shade200,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    ProfileTheme.forProfile(profile).decalEmoji,
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    profile.name,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: selected ? Colors.white : Colors.grey.shade700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }),
+      ],
     );
   }
 }

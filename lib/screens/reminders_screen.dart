@@ -556,6 +556,7 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
   late ReminderRepeat _repeat;
   bool _saving = false;
   String? _titleError;
+  List<int> _selectedProfileIndices = [];
 
   bool get _isEditing => widget.existing != null;
 
@@ -568,6 +569,7 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
     _type = e?.type ?? ReminderType.other;
     _dateTime = e?.dateTime ?? DateTime.now().add(const Duration(days: 1, hours: 1));
     _repeat = e?.repeat ?? ReminderRepeat.none;
+    _selectedProfileIndices = [widget.profileIndex]; // Default to current profile
   }
 
   @override
@@ -631,7 +633,11 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
     if (_isEditing) {
       await ref.read(profilesProvider.notifier).updateReminder(widget.profileIndex, reminder);
     } else {
-      await ref.read(profilesProvider.notifier).addReminder(widget.profileIndex, reminder);
+      if (_selectedProfileIndices.length == 1) {
+        await ref.read(profilesProvider.notifier).addReminder(_selectedProfileIndices.first, reminder);
+      } else {
+        await ref.read(profilesProvider.notifier).addReminderToProfiles(_selectedProfileIndices, reminder);
+      }
     }
 
     if (mounted) Navigator.pop(context);
@@ -698,6 +704,18 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
               ],
             ),
             const SizedBox(height: 22),
+
+            // Profile selection (only for new reminders)
+            if (!_isEditing) ...[
+              _label('Add to Profiles'),
+              const SizedBox(height: 8),
+              _ProfileSelector(
+                selectedIndices: _selectedProfileIndices,
+                onSelectionChanged: (indices) => setState(() => _selectedProfileIndices = indices),
+                theme: pTheme,
+              ),
+              const SizedBox(height: 18),
+            ],
 
             // Type selector
             _label('Type'),
@@ -838,6 +856,105 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
         text,
         style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey.shade700),
       );
+}
+
+// ── Profile selector ──────────────────────────────────────────────────────────
+
+class _ProfileSelector extends ConsumerWidget {
+  final List<int> selectedIndices;
+  final ValueChanged<List<int>> onSelectionChanged;
+  final ProfileTheme theme;
+
+  const _ProfileSelector({
+    required this.selectedIndices,
+    required this.onSelectionChanged,
+    required this.theme,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profiles = ref.watch(profilesProvider) ?? [];
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        // All profiles option
+        GestureDetector(
+          onTap: () {
+            final allIndices = List.generate(profiles.length, (i) => i);
+            onSelectionChanged(allIndices);
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: selectedIndices.length == profiles.length ? theme.accent : Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: selectedIndices.length == profiles.length ? theme.accent : Colors.grey.shade200,
+              ),
+            ),
+            child: Text(
+              'All Profiles',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: selectedIndices.length == profiles.length ? Colors.white : Colors.grey.shade700,
+              ),
+            ),
+          ),
+        ),
+        // Individual profiles
+        ...profiles.asMap().entries.map((entry) {
+          final index = entry.key;
+          final profile = entry.value;
+          final selected = selectedIndices.contains(index);
+          return GestureDetector(
+            onTap: () {
+              final newSelection = List<int>.from(selectedIndices);
+              if (selected) {
+                newSelection.remove(index);
+                if (newSelection.isEmpty) newSelection.add(index); // Keep at least one
+              } else {
+                newSelection.add(index);
+              }
+              onSelectionChanged(newSelection);
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 160),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: selected ? ProfileTheme.forProfile(profile).accent : Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: selected ? ProfileTheme.forProfile(profile).accent : Colors.grey.shade200,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    ProfileTheme.forProfile(profile).decalEmoji,
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    profile.name,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: selected ? Colors.white : Colors.grey.shade700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }),
+      ],
+    );
+  }
 }
 
 // ── Filter enum ───────────────────────────────────────────────────────────────

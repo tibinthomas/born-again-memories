@@ -101,6 +101,16 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>?> {
     await NotificationService.scheduleReminder(reminder, profile.name);
   }
 
+  Future<void> addReminderToProfiles(List<int> profileIndices, Reminder reminder) async {
+    for (final profileIndex in profileIndices) {
+      final profile = (state ?? <KidProfile>[])[profileIndex];
+      final updated = profile.copyWith(reminders: [...profile.reminders, reminder]);
+      _setProfile(profileIndex, updated);
+      await FirestoreService.saveReminder(uid, profile.id, reminder);
+      await NotificationService.scheduleReminder(reminder, profile.name);
+    }
+  }
+
   Future<void> updateReminder(int profileIndex, Reminder reminder) async {
     final profile = (state ?? <KidProfile>[])[profileIndex];
     final reminders = profile.reminders
@@ -144,6 +154,15 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>?> {
     await FirestoreService.saveDocument(uid, profile.id, doc);
   }
 
+  Future<void> addDocumentToProfiles(List<int> profileIndices, BabyDocument doc) async {
+    for (final profileIndex in profileIndices) {
+      final profile = (state ?? <KidProfile>[])[profileIndex];
+      _setProfile(profileIndex,
+          profile.copyWith(documents: [...profile.documents, doc]));
+      await FirestoreService.saveDocument(uid, profile.id, doc);
+    }
+  }
+
   Future<void> deleteDocument(int profileIndex, String docId) async {
     final profile = (state ?? <KidProfile>[])[profileIndex];
     _setProfile(profileIndex,
@@ -160,6 +179,15 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>?> {
     final profile = list[profileIndex];
     _setProfile(profileIndex, profile.copyWith(links: [link, ...profile.links]));
     await FirestoreService.saveLink(uid, profile.id, link);
+  }
+
+  Future<void> addLinkToProfiles(List<int> profileIndices, SavedLink link) async {
+    for (final profileIndex in profileIndices) {
+      final list = state ?? <KidProfile>[];
+      final profile = list[profileIndex];
+      _setProfile(profileIndex, profile.copyWith(links: [link, ...profile.links]));
+      await FirestoreService.saveLink(uid, profile.id, link);
+    }
   }
 
   Future<void> updateLink(int profileIndex, SavedLink link) async {
