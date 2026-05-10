@@ -532,6 +532,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
             ),
             onLinks: () => SavedLinksScreen.push(context, safeIndex),
             onEditProfile: () => _showEditProfileSheet(context, safeIndex, currentProfile),
+            onAddProfile: _showAddProfileSheet,
           ),
 
           // ── Milestone list ───────────────────────────
@@ -1007,6 +1008,7 @@ class _ProfileHeader extends StatelessWidget {
   final VoidCallback onDocuments;
   final VoidCallback onLinks;
   final VoidCallback onEditProfile;
+  final VoidCallback onAddProfile;
 
   const _ProfileHeader({
     required this.profile,
@@ -1020,6 +1022,7 @@ class _ProfileHeader extends StatelessWidget {
     required this.onDocuments,
     required this.onLinks,
     required this.onEditProfile,
+    required this.onAddProfile,
   });
 
   @override
@@ -1169,24 +1172,42 @@ class _ProfileHeader extends StatelessWidget {
                                   ],
                                 ),
                               ),
-                              // Mini profile switcher row
-                              if (allProfiles.length > 1) ...[
-                                const SizedBox(height: 10),
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    for (int i = 0; i < allProfiles.length; i++)
-                                      if (i != profileIndex)
-                                        Padding(
-                                          padding: const EdgeInsets.only(right: 6),
-                                          child: _MiniProfileAvatar(
-                                            profile: allProfiles[i],
-                                            onTap: () => onSelectProfile(i),
-                                          ),
+                              // Mini profile switcher row + add button
+                              const SizedBox(height: 10),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  for (int i = 0; i < allProfiles.length; i++)
+                                    if (i != profileIndex)
+                                      Padding(
+                                        padding: const EdgeInsets.only(right: 6),
+                                        child: _MiniProfileAvatar(
+                                          profile: allProfiles[i],
+                                          onTap: () => onSelectProfile(i),
                                         ),
-                                  ],
-                                ),
-                              ],
+                                      ),
+                                  // Add profile button
+                                  GestureDetector(
+                                    onTap: onAddProfile,
+                                    child: ClipOval(
+                                      child: BackdropFilter(
+                                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                        child: Container(
+                                          width: 30,
+                                          height: 30,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: Colors.white.withAlpha(30),
+                                            border: Border.all(
+                                                color: Colors.white.withAlpha(140), width: 1.5),
+                                          ),
+                                          child: const Icon(Icons.add, color: Colors.white, size: 16),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ],
                           ),
                           const SizedBox(width: 16),
