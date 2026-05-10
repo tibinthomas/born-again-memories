@@ -788,6 +788,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                                       profileTheme: profileTheme,
                                       animIndex: index,
                                       animationsEnabled: settings.animationsEnabled,
+                                      dateOfBirth: currentProfile.dateOfBirth,
                                       onTap: () => Navigator.push(
                                         context,
                                         MaterialPageRoute(

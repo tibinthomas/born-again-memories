@@ -11,6 +11,7 @@ class MilestoneCard extends StatefulWidget {
   final ProfileTheme? profileTheme;
   final int animIndex;
   final bool animationsEnabled;
+  final DateTime? dateOfBirth;
   final VoidCallback? onTap;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
@@ -23,6 +24,7 @@ class MilestoneCard extends StatefulWidget {
     this.profileTheme,
     this.animIndex = 0,
     this.animationsEnabled = true,
+    this.dateOfBirth,
     this.onTap,
     this.onEdit,
     this.onDelete,
@@ -100,6 +102,7 @@ class _MilestoneCardState extends State<MilestoneCard>
                 milestone: milestone,
                 theme: theme,
                 animationsEnabled: widget.animationsEnabled,
+                dateOfBirth: widget.dateOfBirth,
                 onEdit: widget.onEdit,
                 onDelete: widget.onDelete,
                 onShare: widget.onShare,
@@ -117,6 +120,7 @@ class _CrystalCard extends StatefulWidget {
   final Milestone milestone;
   final ProfileTheme theme;
   final bool animationsEnabled;
+  final DateTime? dateOfBirth;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
   final VoidCallback? onShare;
@@ -126,6 +130,7 @@ class _CrystalCard extends StatefulWidget {
     required this.milestone,
     required this.theme,
     this.animationsEnabled = true,
+    this.dateOfBirth,
     this.onEdit,
     this.onDelete,
     this.onShare,
@@ -366,6 +371,26 @@ class _CrystalCardState extends State<_CrystalCard>
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
+                                if (widget.dateOfBirth != null) ...[
+                                  Text(
+                                    '  ·  ',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: theme.accent.withAlpha(120),
+                                    ),
+                                  ),
+                                  Icon(Icons.cake_outlined,
+                                      size: 11, color: theme.accent.withAlpha(180)),
+                                  const SizedBox(width: 3),
+                                  Text(
+                                    _preciseAge(widget.dateOfBirth!, milestone.date),
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: theme.accent,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
                               ],
                             ),
                           ],
@@ -562,4 +587,25 @@ class _CardBubble extends StatelessWidget {
       ),
     );
   }
+}
+
+String _preciseAge(DateTime birth, DateTime date) {
+  int years = date.year - birth.year;
+  int months = date.month - birth.month;
+  int days = date.day - birth.day;
+
+  if (days < 0) {
+    months -= 1;
+    days += DateTime(date.year, date.month, 0).day;
+  }
+  if (months < 0) {
+    years -= 1;
+    months += 12;
+  }
+
+  final parts = <String>[];
+  if (years > 0) parts.add('${years}y');
+  if (months > 0) parts.add('${months}m');
+  if (days > 0 || parts.isEmpty) parts.add('${days}d');
+  return parts.join(' ');
 }

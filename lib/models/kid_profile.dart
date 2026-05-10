@@ -41,17 +41,32 @@ class KidProfile {
 
   String get ageText {
     final now = DateTime.now();
-    final years = now.year - dateOfBirth.year;
-    final months = now.month - dateOfBirth.month + years * 12;
-    final days = now.difference(dateOfBirth).inDays;
+    final totalDays = now.difference(dateOfBirth).inDays;
 
-    if (days < 1) return 'Today';
-    if (days < 7) return '${days}d old';
-    if (days < 30) return '${(days / 7).floor()}w old';
-    if (months < 24) return '${months}mo old';
-    final yrs = months ~/ 12;
-    final mo = months % 12;
-    return mo > 0 ? '${yrs}yr ${mo}mo old' : '${yrs}yr old';
+    if (totalDays < 1) return 'Today';
+    if (totalDays < 7) return '${totalDays}d old';
+    if (totalDays < 30) return '${(totalDays / 7).floor()}w old';
+
+    int y = now.year - dateOfBirth.year;
+    int m = now.month - dateOfBirth.month;
+    int d = now.day - dateOfBirth.day;
+    if (d < 0) {
+      m -= 1;
+      d += DateTime(now.year, now.month, 0).day;
+    }
+    if (m < 0) {
+      y -= 1;
+      m += 12;
+    }
+
+    final totalMonths = y * 12 + m;
+    if (totalMonths < 24) {
+      return d > 0 ? '${totalMonths}mo ${d}d old' : '${totalMonths}mo old';
+    }
+    final parts = ['${y}yr'];
+    if (m > 0) parts.add('${m}mo');
+    if (d > 0) parts.add('${d}d');
+    return '${parts.join(' ')} old';
   }
 
   KidProfile copyWith({
