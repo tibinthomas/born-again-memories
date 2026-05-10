@@ -1,10 +1,15 @@
+import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
+
+import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_appauth/flutter_appauth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' show DriveApi;
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 final authStateProvider = StreamProvider<User?>((ref) {
   return FirebaseAuth.instance.authStateChanges();
@@ -61,7 +66,6 @@ class AuthService {
         scopes: ['openid', 'email', 'profile', DriveApi.driveFileScope],
       ),
     );
-    if (result == null) return null;
     final credential = GoogleAuthProvider.credential(
       accessToken: result.accessToken,
       idToken: result.idToken,
@@ -83,6 +87,46 @@ class AuthService {
       idToken: googleAuth.idToken,
     );
     return _auth.signInWithCredential(credential);
+  }
+
+  Future<UserCredential?> signInWithApple() async {
+    if (kIsWeb) {
+      throw UnsupportedError('Apple Sign In is not supported on web.');
+    }
+    if (!Platform.isIOS && !Platform.isMacOS) {
+      throw UnsupportedError('Apple Sign In is only available on Apple platforms.');
+    }
+
+    final rawNonce = _generateNonce();
+    final hashedNonce = _sha256ofString(rawNonce);
+
+    final appleCredential = await SignInWithApple.getAppleIDCredential(
+      scopes: [
+        AppleIDAuthorizationScopes.email,
+        AppleIDAuthorizationScopes.fullName,
+      ],
+      nonce: hashedNonce,
+    );
+
+    final oauthCredential = OAuthProvider('apple.com').credential(
+      idToken: appleCredential.identityToken,
+      rawNonce: rawNonce,
+      accessToken: appleCredential.authorizationCode,
+    );
+
+    return _auth.signInWithCredential(oauthCredential);
+  }
+
+  static String _generateNonce([int length = 32]) {
+    const charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+    final random = Random.secure();
+    return List.generate(length, (_) => charset[random.nextInt(charset.length)]).join();
+  }
+
+  static String _sha256ofString(String input) {
+    final bytes = utf8.encode(input);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
   }
 
   Future<void> signOut() async {

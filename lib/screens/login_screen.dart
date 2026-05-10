@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_provider.dart';
@@ -33,6 +36,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     setState(() => _isLoading = true);
     try {
       final result = await ref.read(authServiceProvider).signInWithGoogle();
+      if (result == null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Sign in cancelled')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Sign in failed: ${e.toString()}')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _signInWithApple() async {
+    setState(() => _isLoading = true);
+    try {
+      final result = await ref.read(authServiceProvider).signInWithApple();
       if (result == null && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Sign in cancelled')),
@@ -197,13 +220,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                     ),
                     const SizedBox(height: 32),
 
-                    // Sign-in button
+                    // Sign-in buttons
                     _GoogleSignInButton(
                       onPressed: _isLoading ? null : _signInWithGoogle,
                       isLoading: _isLoading,
                     ),
-
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
+                    if (!kIsWeb && (Platform.isIOS || Platform.isMacOS)) ...[
+                      _AppleSignInButton(
+                        onPressed: _isLoading ? null : _signInWithApple,
+                        isLoading: _isLoading,
+                      ),
+                      const SizedBox(height: 16),
+                    ],
                     Text(
                       'Your memories are backed up securely to Google Drive',
                       textAlign: TextAlign.center,
@@ -220,6 +249,55 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _AppleSignInButton extends StatelessWidget {
+  const _AppleSignInButton({required this.onPressed, this.isLoading = false});
+
+  final VoidCallback? onPressed;
+  final bool isLoading;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 54,
+      child: OutlinedButton(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          backgroundColor: Colors.black,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          side: BorderSide(color: Colors.black.withAlpha(70)),
+          elevation: 2,
+          shadowColor: Colors.black.withAlpha(20),
+        ),
+        child: isLoading
+            ? const SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2.5,
+                ),
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  Icon(Icons.apple, size: 20, color: Colors.white),
+                  SizedBox(width: 12),
+                  Text(
+                    'Continue with Apple',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
       ),
     );
   }

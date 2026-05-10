@@ -12,8 +12,8 @@
     "hash": "35fbf1f08349e55d5bdfa8738a2e7528"
   },
   "/Users/tibinthomas/my_app/macos/Flutter/GeneratedPluginRegistrant.swift": {
-    "mtime": 1778318597.9580612,
-    "hash": "c01fa15af1ba5386f5484918e2796521"
+    "mtime": 1778408984.6794746,
+    "hash": "857014509220b8771dd64aabb901e234"
   },
   "/Users/tibinthomas/my_app/macos/Pods/FirebaseSharedSwift/FirebaseSharedSwift/Sources/FirebaseRemoteConfigValueDecoding.swift": {
     "mtime": 1778175293.2475145,
@@ -23912,8 +23912,8 @@
     "hash": "2bd8469f2a4b701ff582f6574e58b13c"
   },
   "/Users/tibinthomas/my_app/ios/Runner/GeneratedPluginRegistrant.m": {
-    "mtime": 1778318597.9570131,
-    "hash": "052441a12c9b5a8c5c108587da89f19b"
+    "mtime": 1778408984.6744401,
+    "hash": "b8cba26faa875907849c3c8a1a6974eb"
   },
   "/Users/tibinthomas/my_app/ios/Runner/SceneDelegate.swift": {
     "mtime": 1777367340.471183,
@@ -48748,8 +48748,8 @@
     "hash": "fd0d3b408c6619b9d255cfc44d0cec9b"
   },
   "/Users/tibinthomas/my_app/android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java": {
-    "mtime": 1778318597.9476202,
-    "hash": "bde88ce6aad7b74a8fea1f9a62020221"
+    "mtime": 1778408984.6301885,
+    "hash": "363a78278b99ea7afdd4b972d2bca3c3"
   },
   "/Users/tibinthomas/my_app/android/app/src/main/kotlin/com/tibinthomas/born_again_memories/MainActivity.kt": {
     "mtime": 1777823078.3771625,
@@ -48772,8 +48772,8 @@
     "hash": "9fdb9dd2c69a258dc4a166984e4c1042"
   },
   "/Users/tibinthomas/my_app/lib/providers/auth_provider.dart": {
-    "mtime": 1778175265.4753754,
-    "hash": "b4787e1b84e30cd09f8aaa4f08213450"
+    "mtime": 1778409195.7745051,
+    "hash": "af57d95671cf4a51ce5db3f3bdf88298"
   },
   "/Users/tibinthomas/my_app/lib/providers/milestone_form_provider.dart": {
     "mtime": 1778293682.9163911,
@@ -48876,8 +48876,8 @@
     "hash": "d50fb79314668701f5049d3f31fb2d11"
   },
   "/Users/tibinthomas/my_app/lib/screens/login_screen.dart": {
-    "mtime": 1778331216.9923766,
-    "hash": "1a8270a3de25c0935ac6e9d79c0ceb75"
+    "mtime": 1778409039.5448363,
+    "hash": "8738f93e5b6d86664c6f7a31990d4d6e"
   },
   "/Users/tibinthomas/my_app/lib/screens/reminders_screen.dart": {
     "mtime": 1778407005.176979,
@@ -48972,8 +48972,8 @@
     "hash": "d4a537148be5a8b731a7954884cf7119"
   },
   "/Users/tibinthomas/my_app/pubspec.yaml": {
-    "mtime": 1778318595.5380368,
-    "hash": "61c07329b97cf118b1be76227d3b05dd"
+    "mtime": 1778409039.5373538,
+    "hash": "c3ccdf21414821c8506d2bde16d74940"
   },
   "/Users/tibinthomas/my_app/analysis_options.yaml": {
     "mtime": 1777687427.381633,
