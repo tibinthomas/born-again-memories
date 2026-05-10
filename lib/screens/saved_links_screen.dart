@@ -33,7 +33,6 @@ class SavedLinksScreen extends ConsumerStatefulWidget {
 class _SavedLinksScreenState extends ConsumerState<SavedLinksScreen> {
   String _searchQuery = '';
   String? _selectedTag;
-  int? _selectedYear;
   bool _showFavoritesOnly = false;
   bool _showSearch = false;
   final ScrollController _scrollController = ScrollController();
@@ -58,7 +57,7 @@ class _SavedLinksScreenState extends ConsumerState<SavedLinksScreen> {
   }
 
   bool get _hasActiveFilters =>
-      _searchQuery.isNotEmpty || _selectedTag != null || _selectedYear != null || _showFavoritesOnly;
+      _searchQuery.isNotEmpty || _selectedTag != null || _showFavoritesOnly;
 
   void _clearAllFilters() {
     _searchController.clear();
@@ -66,7 +65,6 @@ class _SavedLinksScreenState extends ConsumerState<SavedLinksScreen> {
     setState(() {
       _searchQuery = '';
       _selectedTag = null;
-      _selectedYear = null;
       _showFavoritesOnly = false;
       _showSearch = false;
       _resetPagination();
@@ -105,8 +103,6 @@ class _SavedLinksScreenState extends ConsumerState<SavedLinksScreen> {
     final theme = ProfileTheme.forProfile(profile);
     final allLinks = profile.links;
     final allTags = ({for (final link in allLinks) ...link.tags}).toList()..sort();
-    final allYears = ({for (final link in allLinks) link.dateAdded.year}).toSet().toList()
-      ..sort((a, b) => b.compareTo(a));
 
     final filtered = allLinks.where((link) {
       final query = _searchQuery.toLowerCase();
@@ -114,9 +110,8 @@ class _SavedLinksScreenState extends ConsumerState<SavedLinksScreen> {
           link.title.toLowerCase().contains(query) ||
           link.description?.toLowerCase().contains(query) == true;
       final matchesTag = _selectedTag == null || link.tags.contains(_selectedTag);
-      final matchesYear = _selectedYear == null || link.dateAdded.year == _selectedYear;
       final matchesFavorite = !_showFavoritesOnly || link.isFavorite;
-      return matchesSearch && matchesTag && matchesYear && matchesFavorite;
+      return matchesSearch && matchesTag && matchesFavorite;
     }).toList();
 
     final visibleLinks = filtered.take(_loadedItemCount).toList();
@@ -201,109 +196,98 @@ class _SavedLinksScreenState extends ConsumerState<SavedLinksScreen> {
                     child: _showSearch
                         ? Padding(
                             padding: const EdgeInsets.only(bottom: 10),
-                            child: SizedBox(
-                              height: 38,
-                              child: TextField(
-                                controller: _searchController,
-                                focusNode: _searchFocus,
-                                onChanged: (value) => setState(() {
-                                  _searchQuery = value;
-                                  _resetPagination();
-                                }),
-                                decoration: InputDecoration(
-                                  hintText: 'Search title or note…',
-                                  hintStyle: TextStyle(
-                                      color: Colors.grey.shade400, fontSize: 13),
-                                  prefixIcon: Icon(Icons.search_rounded,
-                                      color: Colors.grey.shade400, size: 18),
-                                  suffixIcon: _searchQuery.isNotEmpty
-                                      ? GestureDetector(
-                                          onTap: () {
-                                            _searchController.clear();
-                                            setState(() {
-                                              _searchQuery = '';
-                                              _resetPagination();
-                                            });
-                                          },
-                                          child: Icon(Icons.cancel_rounded,
-                                              color: Colors.grey.shade400, size: 16),
-                                        )
-                                      : null,
-                                  filled: true,
-                                  fillColor: const Color(0xFFEFEFF4),
-                                  contentPadding: EdgeInsets.zero,
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(
-                                        color: theme.accent, width: 1.5),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                SizedBox(
+                                  height: 38,
+                                  child: TextField(
+                                    controller: _searchController,
+                                    focusNode: _searchFocus,
+                                    onChanged: (value) => setState(() {
+                                      _searchQuery = value;
+                                      _resetPagination();
+                                    }),
+                                    decoration: InputDecoration(
+                                      hintText: 'Search title or note…',
+                                      hintStyle: TextStyle(
+                                          color: Colors.grey.shade400, fontSize: 13),
+                                      prefixIcon: Icon(Icons.search_rounded,
+                                          color: Colors.grey.shade400, size: 18),
+                                      suffixIcon: _searchQuery.isNotEmpty
+                                          ? GestureDetector(
+                                              onTap: () {
+                                                _searchController.clear();
+                                                setState(() {
+                                                  _searchQuery = '';
+                                                  _resetPagination();
+                                                });
+                                              },
+                                              child: Icon(Icons.cancel_rounded,
+                                                  color: Colors.grey.shade400, size: 16),
+                                            )
+                                          : null,
+                                      filled: true,
+                                      fillColor: const Color(0xFFEFEFF4),
+                                      contentPadding: EdgeInsets.zero,
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: BorderSide.none,
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: BorderSide.none,
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: BorderSide(
+                                            color: theme.accent, width: 1.5),
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ),
+                                if (allLinks.isNotEmpty) ...[
+                                  const SizedBox(height: 12),
+                                  SizedBox(
+                                    height: 32,
+                                    child: ListView(
+                                      scrollDirection: Axis.horizontal,
+                                      children: [
+                                        _TagChip(
+                                          label: 'Favourites',
+                                          icon: Icons.star_rounded,
+                                          selected: _showFavoritesOnly,
+                                          color: const Color(0xFFF59E0B),
+                                          onTap: () => setState(() {
+                                            _showFavoritesOnly = !_showFavoritesOnly;
+                                            _resetPagination();
+                                          }),
+                                        ),
+                                        if (allTags.isNotEmpty) ...[
+                                          const _FilterDivider(),
+                                          ...allTags.map((tag) => Padding(
+                                                padding:
+                                                    const EdgeInsets.only(right: 8),
+                                                child: _TagChip(
+                                                  label: '#$tag',
+                                                  selected: _selectedTag == tag,
+                                                  color: theme.accent,
+                                                  onTap: () => setState(() {
+                                                    _selectedTag = _selectedTag == tag ? null : tag;
+                                                    _resetPagination();
+                                                  }),
+                                                ),
+                                              )),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ],
                             ),
                           )
                         : const SizedBox.shrink(),
                   ),
-
-                  // ── Filter chips ────────────────────────────────────────
-                  if (allLinks.isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      height: 32,
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        children: [
-                          _TagChip(
-                            label: 'Favourites',
-                            icon: Icons.star_rounded,
-                            selected: _showFavoritesOnly,
-                            color: const Color(0xFFF59E0B),
-                            onTap: () => setState(() {
-                              _showFavoritesOnly = !_showFavoritesOnly;
-                              _resetPagination();
-                            }),
-                          ),
-                          if (allYears.isNotEmpty) ...[
-                            const _FilterDivider(),
-                            ...allYears.map((year) => Padding(
-                                  padding: const EdgeInsets.only(right: 8),
-                                  child: _TagChip(
-                                    label: '$year',
-                                    selected: _selectedYear == year,
-                                    color: theme.accent,
-                                    onTap: () => setState(() {
-                                      _selectedYear = _selectedYear == year ? null : year;
-                                      _resetPagination();
-                                    }),
-                                  ),
-                                )),
-                          ],
-                          if (allTags.isNotEmpty) ...[
-                            const _FilterDivider(),
-                            ...allTags.map((tag) => Padding(
-                                  padding: const EdgeInsets.only(right: 8),
-                                  child: _TagChip(
-                                    label: '#$tag',
-                                    selected: _selectedTag == tag,
-                                    color: theme.accent,
-                                    onTap: () => setState(() {
-                                      _selectedTag = _selectedTag == tag ? null : tag;
-                                      _resetPagination();
-                                    }),
-                                  ),
-                                )),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ],
 
                   // ── Active filter bar: count + clear ────────────────────
                   AnimatedSize(
