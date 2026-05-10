@@ -186,6 +186,28 @@ class FirestoreService {
           .doc('users/$uid/profiles/$profileId/reminders/$reminderId')
           .delete();
 
+  // ── Share invite metadata ──────────────────────────────────────────────────
+
+  /// Records when an invite was sent (or re-sent) for [email].
+  static Future<void> setInviteSentAt(String uid, String email) =>
+      _db.doc('users/$uid').set(
+        {'inviteMeta': {email: {'sentAt': Timestamp.now()}}},
+        SetOptions(merge: true),
+      );
+
+  static Future<void> removeInviteMeta(String uid, String email) =>
+      _db.doc('users/$uid').update({'inviteMeta.$email': FieldValue.delete()});
+
+  /// Returns true if a user account with [email] exists in Firestore.
+  static Future<bool> isEmailRegistered(String email) async {
+    final snap = await _db
+        .collection('users')
+        .where('email', isEqualTo: email.toLowerCase())
+        .limit(1)
+        .get();
+    return snap.docs.isNotEmpty;
+  }
+
   // ── Shared feed ────────────────────────────────────────────────────────────
 
   /// Returns all milestones from users who have added [myEmail] to their

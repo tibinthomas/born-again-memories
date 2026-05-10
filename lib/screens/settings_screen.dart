@@ -7,6 +7,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/kid_profile.dart';
+import '../models/share_invite.dart';
 import '../providers/app_settings_provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/backup_provider.dart';
@@ -117,9 +118,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   _sectionLabel('Share Memories'),
                   _ShareCard(
                     accent: accent,
-                    emails: emails,
+                    invites: emails,
                     onAdd: () => _showAddEmailDialog(accent),
-                    onRemove: (e) => ref.read(sharedEmailsProvider.notifier).remove(e),
+                    onRemove: (e) => _confirmRemoveEmail(accent, e),
+                    onResend: (e) => ref.read(sharedEmailsProvider.notifier).resend(e),
                   ),
                   const SizedBox(height: 22),
 
@@ -194,6 +196,67 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       );
 
   // ── Dialogs ────────────────────────────────────────────────────────────────
+
+  void _confirmRemoveEmail(Color accent, String email) {
+    final ctrl = TextEditingController();
+    bool confirmed = false;
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Text('Remove sharing?'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'They will no longer be able to see your shared memories.',
+                style: TextStyle(fontSize: 13, color: Colors.grey.shade600, height: 1.4),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Type the Gmail address to confirm:',
+                style: TextStyle(
+                    fontSize: 12, fontWeight: FontWeight.w500, color: Colors.grey.shade600),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: ctrl,
+                autofocus: true,
+                keyboardType: TextInputType.emailAddress,
+                onChanged: (v) =>
+                    setState(() => confirmed = v.trim().toLowerCase() == email),
+                decoration: InputDecoration(
+                  hintText: email,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Colors.red, width: 1.5),
+                  ),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            FilledButton(
+              onPressed: confirmed
+                  ? () {
+                      Navigator.pop(ctx);
+                      ref.read(sharedEmailsProvider.notifier).remove(email);
+                    }
+                  : null,
+              style: FilledButton.styleFrom(backgroundColor: Colors.red),
+              child: const Text('Remove'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   void _showAddEmailDialog(Color accent) {
     final ctrl = TextEditingController();
@@ -589,54 +652,37 @@ class _AccountCard extends StatelessWidget {
 
 class _ShareCard extends StatelessWidget {
   final Color accent;
-  final List<String> emails;
+  final List<ShareInvite> invites;
   final VoidCallback onAdd;
   final ValueChanged<String> onRemove;
+  final ValueChanged<String> onResend;
 
   const _ShareCard({
     required this.accent,
-    required this.emails,
+    required this.invites,
     required this.onAdd,
     required this.onRemove,
+    required this.onResend,
   });
 
   @override
   Widget build(BuildContext context) {
     return _Card(children: [
-      if (emails.isEmpty)
+      if (invites.isEmpty)
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
           child: Text('Not shared with anyone yet.',
               style: TextStyle(fontSize: 13, color: Colors.grey.shade400)),
         )
       else
-        ...emails.map((email) => Column(
+        ...invites.map((invite) => Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 14,
-                        backgroundColor: Color.lerp(Colors.white, accent, 0.12),
-                        child: Text(
-                          email[0].toUpperCase(),
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: accent),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(email,
-                            style: const TextStyle(fontSize: 13, color: Color(0xFF1A1A2E))),
-                      ),
-                      GestureDetector(
-                        onTap: () => onRemove(email),
-                        child: Icon(Icons.remove_circle_outline,
-                            size: 20, color: Colors.grey.shade400),
-                      ),
-                    ],
-                  ),
+                _InviteRow(
+                  invite: invite,
+                  accent: accent,
+                  onRemove: () => onRemove(invite.email),
+                  onResend: () => onResend(invite.email),
                 ),
                 _divider(),
               ],
@@ -660,6 +706,181 @@ class _ShareCard extends StatelessWidget {
         ),
       ),
     ]);
+  }
+}
+
+class _InviteRow extends StatelessWidget {
+  final ShareInvite invite;
+  final Color accent;
+  final VoidCallback onRemove;
+  final VoidCallback onResend;
+
+  const _InviteRow({
+    required this.invite,
+    required this.accent,
+    required this.onRemove,
+    required this.onResend,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final (badgeColor, badgeBg, badgeIcon, badgeLabel) = switch (invite.status) {
+      ShareInviteStatus.active => (
+          const Color(0xFF27AE60),
+          const Color(0xFFEAF7EF),
+          Icons.check_circle_rounded,
+          'Active',
+        ),
+      ShareInviteStatus.pending => (
+          const Color(0xFFE67E22),
+          const Color(0xFFFEF3E2),
+          Icons.schedule_rounded,
+          'Pending',
+        ),
+      ShareInviteStatus.expired => (
+          Colors.red.shade400,
+          Colors.red.shade50,
+          Icons.error_outline_rounded,
+          'Expired',
+        ),
+    };
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              // Avatar initial
+              CircleAvatar(
+                radius: 16,
+                backgroundColor: Color.lerp(Colors.white, accent, 0.14),
+                child: Text(
+                  invite.email[0].toUpperCase(),
+                  style: TextStyle(
+                      fontSize: 13, fontWeight: FontWeight.w700, color: accent),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      invite.email,
+                      style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF1A1A2E)),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 3),
+                    // Status badge
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 7, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: badgeBg,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(badgeIcon, size: 11, color: badgeColor),
+                              const SizedBox(width: 3),
+                              Text(
+                                badgeLabel,
+                                style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: badgeColor),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (invite.isActive) ...[
+                          const SizedBox(width: 6),
+                          Text(
+                            'Viewing your memories',
+                            style: TextStyle(
+                                fontSize: 11, color: Colors.grey.shade500),
+                          ),
+                        ] else if (invite.isPending) ...[
+                          const SizedBox(width: 6),
+                          Text(
+                            'Waiting for them to sign up',
+                            style: TextStyle(
+                                fontSize: 11, color: Colors.grey.shade400),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              // Actions
+              if (invite.isExpired)
+                GestureDetector(
+                  onTap: onResend,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: Color.lerp(Colors.white, accent, 0.10),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: accent.withAlpha(60)),
+                    ),
+                    child: Text(
+                      'Resend',
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: accent),
+                    ),
+                  ),
+                ),
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: onRemove,
+                child: Icon(Icons.remove_circle_outline_rounded,
+                    size: 20, color: Colors.grey.shade400),
+              ),
+            ],
+          ),
+          // Expired explanation
+          if (invite.isExpired) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.red.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.red.shade100),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline_rounded,
+                      size: 14, color: Colors.red.shade300),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'This invite expired after 30 days. Tap Resend to refresh it.',
+                      style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.red.shade400,
+                          height: 1.4),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
   }
 }
 
