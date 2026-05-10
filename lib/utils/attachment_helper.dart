@@ -37,7 +37,13 @@ Widget attachmentImageWidget(
     );
   }
   if (!kIsWeb && a.localPath.isNotEmpty && File(a.localPath).existsSync()) {
-    return Image.file(File(a.localPath), width: width, height: height, fit: fit);
+    return Image.file(
+      File(a.localPath),
+      width: width,
+      height: height,
+      fit: fit,
+      errorBuilder: (_, __, ___) => fallback,
+    );
   }
   return fallback;
 }

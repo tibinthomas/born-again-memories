@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:audioplayers/audioplayers.dart';
@@ -260,6 +261,9 @@ class _MilestoneView extends StatelessWidget {
         // Background
         _Background(bgAttachment: firstPhoto, gradient: pTheme.headerGradient),
 
+        // Animated bubble layer (sits above bg, below content)
+        _BubbleLayer(pTheme: pTheme, seed: milestone.id),
+
         // Slideshow: just the cinematic overlay with title
         if (isSlideshow)
           _SlideshowContent(
@@ -333,16 +337,43 @@ class _FloatingTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      top: MediaQuery.of(context).padding.top + 64,
+      top: MediaQuery.of(context).padding.top + 58,
       left: 24,
       right: 24,
       child: Column(
         children: [
+          // Glowing emoji circle
+          Container(
+            width: 86,
+            height: 86,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withAlpha(22),
+              border: Border.all(color: Colors.white.withAlpha(90), width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: pTheme.accent.withAlpha(110),
+                  blurRadius: 44,
+                  spreadRadius: 8,
+                ),
+                BoxShadow(
+                  color: pTheme.secondary.withAlpha(60),
+                  blurRadius: 28,
+                  spreadRadius: 4,
+                ),
+              ],
+            ),
+            child: Center(
+              child: Text(pTheme.decalEmoji,
+                  style: const TextStyle(fontSize: 40)),
+            ),
+          ),
+          const SizedBox(height: 14),
           // Date badge
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
             decoration: BoxDecoration(
-              color: Colors.white.withAlpha(35),
+              color: Colors.white.withAlpha(30),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: Colors.white.withAlpha(60)),
             ),
@@ -360,10 +391,15 @@ class _FloatingTitle extends StatelessWidget {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
+                if (milestone.isFavorite) ...[
+                  const SizedBox(width: 8),
+                  const Icon(Icons.star_rounded,
+                      size: 13, color: Color(0xFFFBBF24)),
+                ],
               ],
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
           // Title
           Text(
             milestone.title,
@@ -374,9 +410,41 @@ class _FloatingTitle extends StatelessWidget {
               fontWeight: FontWeight.w800,
               height: 1.2,
               letterSpacing: -0.3,
-              shadows: [Shadow(color: Colors.black54, blurRadius: 12)],
+              shadows: [
+                Shadow(color: Colors.black54, blurRadius: 14),
+                Shadow(color: Colors.black26, blurRadius: 28),
+              ],
             ),
           ),
+          // Tags
+          if (milestone.tags.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 6,
+              runSpacing: 5,
+              alignment: WrapAlignment.center,
+              children: milestone.tags
+                  .map((tag) => Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withAlpha(22),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                              color: Colors.white.withAlpha(55)),
+                        ),
+                        child: Text(
+                          '#$tag',
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ))
+                  .toList(),
+            ),
+          ],
         ],
       ),
     );
@@ -394,18 +462,28 @@ class _ContentSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pTheme = ProfileTheme.forProfile(profile);
+    final accent = pTheme.accent;
+    final secondary = pTheme.secondary;
 
     return DraggableScrollableSheet(
-      initialChildSize: 0.47,
-      minChildSize: 0.17,
+      initialChildSize: 0.46,
+      minChildSize: 0.16,
       maxChildSize: 0.92,
       snap: true,
-      snapSizes: const [0.17, 0.47, 0.92],
+      snapSizes: const [0.16, 0.46, 0.92],
       builder: (context, scrollController) => Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-          boxShadow: [BoxShadow(color: Colors.black38, blurRadius: 24, spreadRadius: 4)],
+          borderRadius:
+              const BorderRadius.vertical(top: Radius.circular(32)),
+          boxShadow: [
+            BoxShadow(
+                color: accent.withAlpha(50),
+                blurRadius: 30,
+                spreadRadius: 2),
+            const BoxShadow(
+                color: Colors.black26, blurRadius: 20, spreadRadius: 2),
+          ],
         ),
         child: CustomScrollView(
           controller: scrollController,
@@ -414,79 +492,171 @@ class _ContentSheet extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Drag handle
-                  Center(
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(vertical: 12),
-                      width: 44,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade300,
-                        borderRadius: BorderRadius.circular(8),
+                  // Themed gradient header
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Color.lerp(Colors.white, accent, 0.14)!,
+                          Color.lerp(Colors.white, secondary, 0.10)!,
+                        ],
                       ),
+                      borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(32)),
+                    ),
+                    child: Column(
+                      children: [
+                        // Drag handle
+                        Center(
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(vertical: 12),
+                            width: 44,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: accent.withAlpha(70),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                        // Title row
+                        Padding(
+                          padding:
+                              const EdgeInsets.fromLTRB(20, 0, 16, 16),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Icon bubble
+                              Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      accent,
+                                      Color.lerp(accent, secondary, 0.6)!,
+                                    ],
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                        color: accent.withAlpha(80),
+                                        blurRadius: 12,
+                                        offset: const Offset(0, 4)),
+                                  ],
+                                ),
+                                child: const Icon(Icons.auto_awesome,
+                                    color: Colors.white, size: 20),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      milestone.title,
+                                      style: const TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w800,
+                                        color: Color(0xFF1A1A1A),
+                                        height: 1.2,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        Icon(
+                                            Icons.calendar_today_outlined,
+                                            size: 12,
+                                            color: accent),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          formatDate(milestone.date),
+                                          style: TextStyle(
+                                            color: accent,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        if (milestone.isFavorite) ...[
+                                          const SizedBox(width: 8),
+                                          const Icon(Icons.star_rounded,
+                                              size: 14,
+                                              color: Color(0xFFFBBF24)),
+                                        ],
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
 
+                  // Body content
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 4, 24, 0),
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Accent bar + title
-                        Row(
-                          children: [
-                            Container(
-                              width: 4,
-                              height: 28,
-                              decoration: BoxDecoration(
-                                gradient: pTheme.headerGradient,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                milestone.title,
-                                style: const TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w800,
-                                  color: Color(0xFF1A1A1A),
-                                  height: 1.2,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-
-                        // Date row
-                        Row(
-                          children: [
-                            Icon(Icons.calendar_today_outlined,
-                                size: 13, color: pTheme.accent),
-                            const SizedBox(width: 6),
-                            Text(
-                              formatDate(milestone.date),
-                              style: TextStyle(
-                                color: pTheme.accent,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-
-                        // Description
+                        // Description card
                         if (milestone.description.isNotEmpty)
-                          Text(
-                            milestone.description,
-                            style: const TextStyle(
-                              fontSize: 15,
-                              color: Color(0xFF4A4A4A),
-                              height: 1.65,
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Color.lerp(
+                                  Colors.white, accent, 0.05),
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(
+                                  color: accent.withAlpha(30)),
+                            ),
+                            child: Text(
+                              milestone.description,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                color: Color(0xFF4A4A4A),
+                                height: 1.65,
+                              ),
                             ),
                           ),
+
+                        // Tags
+                        if (milestone.tags.isNotEmpty) ...[
+                          const SizedBox(height: 14),
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 6,
+                            children: milestone.tags
+                                .map((tag) => Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 12, vertical: 5),
+                                      decoration: BoxDecoration(
+                                        color: accent.withAlpha(18),
+                                        borderRadius:
+                                            BorderRadius.circular(20),
+                                        border: Border.all(
+                                            color: accent.withAlpha(60)),
+                                      ),
+                                      child: Text(
+                                        '#$tag',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: accent,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ))
+                                .toList(),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -494,8 +664,7 @@ class _ContentSheet extends StatelessWidget {
                   // Media section
                   if (milestone.attachments.isNotEmpty) ...[
                     const SizedBox(height: 24),
-                    _MediaSection(
-                        milestone: milestone, pTheme: pTheme),
+                    _MediaSection(milestone: milestone, pTheme: pTheme),
                   ],
                   const SizedBox(height: 40),
                 ],
@@ -613,7 +782,33 @@ class _PhotoThumbnail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!attachment.isViewable) {
-      return const SizedBox(width: 140, height: 200);
+      return Container(
+        width: 140,
+        height: 200,
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.image_not_supported_outlined,
+                size: 32, color: Colors.grey.shade400),
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Text(
+                attachment.name,
+                style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      );
     }
     return GestureDetector(
       onTap: () => Navigator.push(
@@ -1473,6 +1668,124 @@ class _SlideshowChrome extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+// ── Animated bubble layer ─────────────────────────────────────────────────────
+
+class _BubbleLayer extends StatefulWidget {
+  final ProfileTheme pTheme;
+  final String seed;
+  const _BubbleLayer({required this.pTheme, required this.seed});
+
+  @override
+  State<_BubbleLayer> createState() => _BubbleLayerState();
+}
+
+class _BubbleLayerState extends State<_BubbleLayer>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final List<double> _phases;
+  late final List<double> _amps;
+  late final List<double> _signs;
+
+  @override
+  void initState() {
+    super.initState();
+    final rng = math.Random(widget.seed.hashCode);
+    _phases = List.generate(6, (_) => rng.nextDouble() * 2 * math.pi);
+    _amps   = List.generate(6, (_) => 0.7 + rng.nextDouble() * 0.6);
+    _signs  = List.generate(6, (_) => rng.nextBool() ? 1.0 : -1.0);
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 22),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = widget.pTheme.accent;
+    final secondary = widget.pTheme.secondary;
+    return LayoutBuilder(
+      builder: (_, box) {
+        final w = box.maxWidth;
+        final h = box.maxHeight;
+        return AnimatedBuilder(
+          animation: _ctrl,
+          builder: (_, _) {
+            final t = _ctrl.value * 2 * math.pi;
+            double s(double v) => math.sin(v);
+            double c(double v) => math.cos(v);
+            return Stack(
+              fit: StackFit.expand,
+              children: [
+                // Large accent — horizontal sweep near top
+                Positioned(
+                  left: (s(t + _phases[0]) * 0.5 + 0.5) * (w + 130) - 65,
+                  top: h * 0.04 + s(t * 2 + _phases[0]) * h * 0.05 * _amps[0],
+                  child: _DetailBubble(130, accent, 32),
+                ),
+                // Large secondary — opposite sweep near bottom
+                Positioned(
+                  left: (c(_signs[1] * t + _phases[1]) * 0.5 + 0.5) * (w + 100) - 50,
+                  top: h * 0.68 + s(t * 3 + _phases[1]) * h * 0.05 * _amps[1],
+                  child: _DetailBubble(100, secondary, 28),
+                ),
+                // Mid secondary — diagonal figure-8
+                Positioned(
+                  left: (s(_signs[2] * t * 2 + _phases[2]) * 0.5 + 0.5) * w,
+                  top: (c(t * 2 + _phases[2]) * 0.5 + 0.5) * h,
+                  child: _DetailBubble(55, secondary, 24),
+                ),
+                // Medium accent — wide circular orbit
+                Positioned(
+                  left: w * 0.5 + c(_signs[3] * t + _phases[3]) * w * 0.44 * _amps[3],
+                  top: h * 0.38 + s(t + _phases[3]) * h * 0.32 * _amps[3],
+                  child: _DetailBubble(75, accent, 22),
+                ),
+                // Small accent — fast small orbit
+                Positioned(
+                  left: w * 0.3 + c(_signs[4] * t * 3 + _phases[4]) * w * 0.22 * _amps[4],
+                  top: h * 0.22 + s(t * 3 + _phases[4]) * h * 0.16 * _amps[4],
+                  child: _DetailBubble(32, accent, 20),
+                ),
+                // Tiny secondary — bottom sweep
+                Positioned(
+                  left: (s(t * 2 + _phases[5]) * 0.5 + 0.5) * w * 0.75,
+                  top: h * 0.82 + s(t * 3 + _phases[5]) * h * 0.06 * _amps[5],
+                  child: _DetailBubble(46, secondary, 18),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _DetailBubble extends StatelessWidget {
+  final double size;
+  final Color color;
+  final int alpha;
+  const _DetailBubble(this.size, this.color, this.alpha);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color.withAlpha(alpha),
+      ),
     );
   }
 }

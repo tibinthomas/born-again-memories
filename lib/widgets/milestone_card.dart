@@ -4,7 +4,7 @@ import '../models/milestone.dart';
 import '../models/kid_profile.dart';
 import '../utils/date_formatter.dart';
 import '../utils/profile_theme.dart';
-import 'attachment_preview.dart';
+import '../models/attachment.dart';
 
 class MilestoneCard extends StatefulWidget {
   final Milestone milestone;
@@ -443,32 +443,8 @@ class _CrystalCardState extends State<_CrystalCard>
                   ],
 
                   if (milestone.attachments.isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 10,
-                      runSpacing: 10,
-                      children: milestone.attachments.map((a) {
-                        return Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            AttachmentPreview(attachment: a),
-                            if (a.label != null && a.label!.isNotEmpty)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 4, left: 2),
-                                child: Text(
-                                  a.label!,
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: Colors.grey.shade400,
-                                    fontStyle: FontStyle.italic,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        );
-                      }).toList(),
-                    ),
+                    const SizedBox(height: 10),
+                    _MediaCountRow(milestone: milestone, accent: theme.accent),
                   ],
 
                   if (milestone.tags.isNotEmpty) ...[
@@ -505,6 +481,59 @@ class _CrystalCardState extends State<_CrystalCard>
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _MediaCountRow extends StatelessWidget {
+  final Milestone milestone;
+  final Color accent;
+  const _MediaCountRow({required this.milestone, required this.accent});
+
+  @override
+  Widget build(BuildContext context) {
+    final photos = milestone.attachments.where((a) => a.type == AttachmentType.image).length;
+    final videos = milestone.attachments.where((a) => a.type == AttachmentType.video).length;
+    final audios = milestone.attachments.where((a) => a.type == AttachmentType.audio).length;
+
+    return Row(
+      children: [
+        if (photos > 0) _MediaChip(Icons.photo_camera_outlined, photos, accent),
+        if (photos > 0 && (videos > 0 || audios > 0)) const SizedBox(width: 6),
+        if (videos > 0) _MediaChip(Icons.videocam_outlined, videos, accent),
+        if (videos > 0 && audios > 0) const SizedBox(width: 6),
+        if (audios > 0) _MediaChip(Icons.mic_outlined, audios, accent),
+      ],
+    );
+  }
+}
+
+class _MediaChip extends StatelessWidget {
+  final IconData icon;
+  final int count;
+  final Color accent;
+  const _MediaChip(this.icon, this.count, this.accent);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: accent.withAlpha(18),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: accent.withAlpha(60), width: 0.8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: accent),
+          const SizedBox(width: 4),
+          Text(
+            '$count',
+            style: TextStyle(fontSize: 11, color: accent, fontWeight: FontWeight.w600),
+          ),
+        ],
       ),
     );
   }
