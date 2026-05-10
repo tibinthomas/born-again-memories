@@ -235,7 +235,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _confirmDeleteProfile(Color accent, String profileName, int index) {
-    final ctrl = TextEditingController();
+    final profiles = ref.read(profilesProvider) ?? [];
+    final targetProfile = profiles.length > index ? profiles[index] : null;
+    final displayName = targetProfile?.nickname ?? profileName;
     bool confirmed = false;
     showDialog(
       context: context,
@@ -247,24 +249,116 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              RichText(
-                text: TextSpan(
-                  style: TextStyle(fontSize: 14, color: Colors.grey.shade800, height: 1.4),
-                  children: [
-                    const TextSpan(text: 'This will permanently delete '),
-                    TextSpan(text: profileName,
-                        style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
-                    const TextSpan(text: ' and all their milestones. This cannot be undone.'),
-                  ],
+              // Profile list — target highlighted in red
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: profiles.asMap().entries.map((entry) {
+                    final i = entry.key;
+                    final p = entry.value;
+                    final isTarget = i == index;
+                    final pTheme = ProfileTheme.forProfile(p);
+                    final hasAvatar = p.avatarImagePath != null &&
+                        p.avatarImagePath!.isNotEmpty &&
+                        !kIsWeb &&
+                        File(p.avatarImagePath!).existsSync();
+
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (i > 0)
+                          Divider(height: 1, color: Colors.grey.shade200),
+                        Container(
+                          color: isTarget ? Colors.red.shade50 : null,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 9),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 30,
+                                height: 30,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: isTarget
+                                      ? Colors.red.shade100
+                                      : pTheme.soft,
+                                  image: (!isTarget && hasAvatar)
+                                      ? DecorationImage(
+                                          image: FileImage(
+                                              File(p.avatarImagePath!)),
+                                          fit: BoxFit.cover)
+                                      : null,
+                                ),
+                                child: (!isTarget && hasAvatar)
+                                    ? null
+                                    : Center(
+                                        child: isTarget
+                                            ? Icon(Icons.delete_outline_rounded,
+                                                size: 15,
+                                                color: Colors.red.shade400)
+                                            : Text(pTheme.decalEmoji,
+                                                style: const TextStyle(
+                                                    fontSize: 13)),
+                                      ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  p.nickname ?? p.name,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: isTarget
+                                        ? FontWeight.w700
+                                        : FontWeight.w500,
+                                    color: isTarget
+                                        ? Colors.red.shade600
+                                        : const Color(0xFF1A1A2E),
+                                  ),
+                                ),
+                              ),
+                              if (isTarget)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 7, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red.shade100,
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    'Will be deleted',
+                                    style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.red.shade500),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    );
+                  }).toList(),
                 ),
               ),
-              const SizedBox(height: 16),
-              Text('Type the name to confirm:',
-                  style: TextStyle(fontSize: 13, color: Colors.grey.shade600,
+              const SizedBox(height: 14),
+              Text(
+                'All milestones and memories for $displayName will be permanently removed.',
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade600, height: 1.4),
+              ),
+              const SizedBox(height: 14),
+              Text('Type "$profileName" to confirm:',
+                  style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade600,
                       fontWeight: FontWeight.w500)),
               const SizedBox(height: 8),
               TextField(
-                controller: ctrl,
                 autofocus: true,
                 onChanged: (v) => setState(() => confirmed = v.trim() == profileName),
                 decoration: InputDecoration(
@@ -274,7 +368,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     borderRadius: BorderRadius.circular(10),
                     borderSide: const BorderSide(color: Colors.red, width: 1.5),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 ),
               ),
             ],
