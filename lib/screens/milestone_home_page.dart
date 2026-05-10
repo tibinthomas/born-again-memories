@@ -505,7 +505,6 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
           _ProfileHeader(
             profile: currentProfile,
             profileTheme: profileTheme,
-            milestoneCount: allMilestones.length,
             allProfiles: profiles,
             profileIndex: safeIndex,
             onSettings: () => Navigator.push(
@@ -999,7 +998,6 @@ class _EmptyProfilesScreen extends StatelessWidget {
 class _ProfileHeader extends StatelessWidget {
   final KidProfile profile;
   final ProfileTheme profileTheme;
-  final int milestoneCount;
   final List<KidProfile> allProfiles;
   final int profileIndex;
   final VoidCallback onSettings;
@@ -1013,7 +1011,6 @@ class _ProfileHeader extends StatelessWidget {
   const _ProfileHeader({
     required this.profile,
     required this.profileTheme,
-    required this.milestoneCount,
     required this.allProfiles,
     required this.profileIndex,
     required this.onSettings,
@@ -1081,136 +1078,78 @@ class _ProfileHeader extends StatelessWidget {
               // Content
               SafeArea(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 14),
+                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // ── Top bar: Settings only ───────────────────
-                      Row(
-                        children: [
-                          const Spacer(),
-                          _HeaderIconBtn(
-                            icon: Icons.settings_outlined,
-                            onTap: onSettings,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 14),
-
-                      // ── Profile info ─────────────────────────────
+                      // ── Profile info + settings ───────────────────
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          // Avatar column: main avatar + mini switcher row
-                          Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              // Main avatar with edit badge
-                              GestureDetector(
-                                onTap: onEditProfile,
-                                child: Stack(
-                                  clipBehavior: Clip.none,
-                                  children: [
-                                    Container(
-                                      width: 70,
-                                      height: 70,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: Colors.white.withAlpha(30),
-                                        border: Border.all(
-                                            color: Colors.white, width: 2.5),
-                                        image: hasAvatar
-                                            ? DecorationImage(
-                                                image: FileImage(
-                                                    File(profile.avatarImagePath!)),
-                                                fit: BoxFit.cover,
-                                              )
-                                            : null,
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withAlpha(40),
-                                            blurRadius: 16,
-                                            offset: const Offset(0, 6),
+                          // Avatar only — fixed 68px so name never shifts
+                          GestureDetector(
+                            onTap: onEditProfile,
+                            child: Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                Container(
+                                  width: 76,
+                                  height: 76,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.white.withAlpha(30),
+                                    border: Border.all(color: Colors.white, width: 2),
+                                    image: hasAvatar
+                                        ? DecorationImage(
+                                            image: FileImage(File(profile.avatarImagePath!)),
+                                            fit: BoxFit.cover,
+                                          )
+                                        : null,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withAlpha(40),
+                                        blurRadius: 12,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  child: hasAvatar
+                                      ? null
+                                      : Center(
+                                          child: Text(
+                                            profileTheme.decalEmoji,
+                                            style: const TextStyle(fontSize: 32),
                                           ),
-                                        ],
-                                      ),
-                                      child: hasAvatar
-                                          ? null
-                                          : Center(
-                                              child: Text(
-                                                profileTheme.decalEmoji,
-                                                style: const TextStyle(
-                                                    fontSize: 30),
-                                              ),
-                                            ),
-                                    ),
-                                    Positioned(
-                                      bottom: 0,
-                                      right: 0,
-                                      child: Container(
-                                        width: 22,
-                                        height: 22,
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          shape: BoxShape.circle,
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color:
-                                                  Colors.black.withAlpha(30),
-                                              blurRadius: 4,
-                                            ),
-                                          ],
                                         ),
-                                        child: Icon(
-                                          Icons.edit_outlined,
-                                          size: 12,
-                                          color: profileTheme.accent,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
                                 ),
-                              ),
-                              // Mini profile switcher row + add button
-                              const SizedBox(height: 10),
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  for (int i = 0; i < allProfiles.length; i++)
-                                    if (i != profileIndex)
-                                      Padding(
-                                        padding: const EdgeInsets.only(right: 6),
-                                        child: _MiniProfileAvatar(
-                                          profile: allProfiles[i],
-                                          onTap: () => onSelectProfile(i),
+                                Positioned(
+                                  bottom: 0,
+                                  right: 0,
+                                  child: Container(
+                                    width: 20,
+                                    height: 20,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      shape: BoxShape.circle,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withAlpha(30),
+                                          blurRadius: 4,
                                         ),
-                                      ),
-                                  // Add profile button
-                                  GestureDetector(
-                                    onTap: onAddProfile,
-                                    child: ClipOval(
-                                      child: BackdropFilter(
-                                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                                        child: Container(
-                                          width: 30,
-                                          height: 30,
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: Colors.white.withAlpha(30),
-                                            border: Border.all(
-                                                color: Colors.white.withAlpha(140), width: 1.5),
-                                          ),
-                                          child: const Icon(Icons.add, color: Colors.white, size: 16),
-                                        ),
-                                      ),
+                                      ],
+                                    ),
+                                    child: Icon(
+                                      Icons.edit_outlined,
+                                      size: 11,
+                                      color: profileTheme.accent,
                                     ),
                                   ),
-                                ],
-                              ),
-                            ],
+                                ),
+                              ],
+                            ),
                           ),
-                          const SizedBox(width: 16),
+                          const SizedBox(width: 10),
 
                           // Name + age
                           Expanded(
@@ -1222,12 +1161,10 @@ class _ProfileHeader extends StatelessWidget {
                                   profile.nickname ?? profile.name,
                                   style: const TextStyle(
                                     color: Colors.white,
-                                    fontSize: 22,
+                                    fontSize: 20,
                                     fontWeight: FontWeight.w800,
                                     letterSpacing: 0.2,
-                                    shadows: [
-                                      Shadow(color: Colors.black38, blurRadius: 4),
-                                    ],
+                                    shadows: [Shadow(color: Colors.black38, blurRadius: 4)],
                                   ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -1239,24 +1176,24 @@ class _ProfileHeader extends StatelessWidget {
                                       profile.name,
                                       style: TextStyle(
                                         color: Colors.white.withAlpha(180),
-                                        fontSize: 12,
+                                        fontSize: 11,
                                       ),
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
-                                const SizedBox(height: 6),
+                                const SizedBox(height: 4),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 10, vertical: 4),
+                                      horizontal: 8, vertical: 3),
                                   decoration: BoxDecoration(
                                     color: Colors.white.withAlpha(35),
-                                    borderRadius: BorderRadius.circular(10),
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
                                     profile.ageText,
                                     style: const TextStyle(
                                       color: Colors.white,
-                                      fontSize: 12,
+                                      fontSize: 11,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
@@ -1264,47 +1201,79 @@ class _ProfileHeader extends StatelessWidget {
                               ],
                             ),
                           ),
+
+                          // Settings inline top-right
+                          _HeaderIconBtn(
+                            icon: Icons.settings_outlined,
+                            onTap: onSettings,
+                          ),
                         ],
                       ),
-                      const SizedBox(height: 18),
+                      const SizedBox(height: 10),
+
+                      // ── Mini profile switcher (own row, never affects name position) ──
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          for (int i = 0; i < allProfiles.length; i++)
+                            if (i != profileIndex)
+                              Padding(
+                                padding: const EdgeInsets.only(right: 5),
+                                child: _MiniProfileAvatar(
+                                  profile: allProfiles[i],
+                                  onTap: () => onSelectProfile(i),
+                                ),
+                              ),
+                          GestureDetector(
+                            onTap: onAddProfile,
+                            child: ClipOval(
+                              child: BackdropFilter(
+                                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                child: Container(
+                                  width: 26,
+                                  height: 26,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.white.withAlpha(30),
+                                    border: Border.all(
+                                        color: Colors.white.withAlpha(140), width: 1.5),
+                                  ),
+                                  child: const Icon(Icons.add, color: Colors.white, size: 14),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
 
                       // ── Quick-access strip ────────────────────────
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        physics: const BouncingScrollPhysics(),
-                        child: Row(
-                          children: [
-                            _QuickPill(
-                              icon: Icons.auto_awesome,
-                              label: '$milestoneCount',
-                              sublabel: 'Moments',
-                            ),
-                            const SizedBox(width: 8),
-                            _QuickPill(
-                              icon: Icons.folder_outlined,
-                              label: '${profile.documents.length}',
-                              sublabel: 'Docs',
-                              onTap: onDocuments,
-                            ),
-                            const SizedBox(width: 8),
-                            _QuickPill(
-                              icon: Icons.link_outlined,
-                              label: 'Links',
-                              onTap: onLinks,
-                            ),
-                            const SizedBox(width: 8),
-                            _QuickPill(
-                              icon: Icons.people_outline_rounded,
-                              label: 'Feed',
-                              onTap: onSharedFeed,
-                            ),
-                            const SizedBox(width: 8),
-                            _RemindersQuickPill(
-                              profile: profile,
-                              profileIndex: profileIndex,
-                            ),
-                          ],
-                        ),
+                      Row(
+                        children: [
+                          Expanded(child: _QuickPill(
+                            icon: Icons.auto_awesome,
+                            label: 'Moments',
+                          )),
+                          Expanded(child: _QuickPill(
+                            icon: Icons.folder_outlined,
+                            label: 'Docs',
+                            onTap: onDocuments,
+                          )),
+                          Expanded(child: _QuickPill(
+                            icon: Icons.link_outlined,
+                            label: 'Links',
+                            onTap: onLinks,
+                          )),
+                          Expanded(child: _QuickPill(
+                            icon: Icons.people_outline_rounded,
+                            label: 'Feed',
+                            onTap: onSharedFeed,
+                          )),
+                          Expanded(child: _RemindersQuickPill(
+                            profile: profile,
+                            profileIndex: profileIndex,
+                          )),
+                        ],
                       ),
                     ],
                   ),
@@ -1373,13 +1342,11 @@ class _HeaderIconBtn extends StatelessWidget {
 class _QuickPill extends StatelessWidget {
   final IconData icon;
   final String label;
-  final String? sublabel;
   final VoidCallback? onTap;
 
   const _QuickPill({
     required this.icon,
     required this.label,
-    this.sublabel,
     this.onTap,
   });
 
@@ -1387,57 +1354,37 @@ class _QuickPill extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-            decoration: BoxDecoration(
-              color: Colors.white.withAlpha(onTap != null ? 50 : 30),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: Colors.white.withAlpha(onTap != null ? 80 : 45),
-                width: 0.8,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ClipOval(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+              child: Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withAlpha(onTap != null ? 45 : 25),
+                  border: Border.all(
+                    color: Colors.white.withAlpha(onTap != null ? 80 : 45),
+                    width: 0.8,
+                  ),
+                ),
+                child: Icon(icon, color: Colors.white, size: 17),
               ),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(icon, color: Colors.white, size: 15),
-                const SizedBox(width: 6),
-                if (sublabel != null) ...[
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      height: 1,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    sublabel!,
-                    style: TextStyle(
-                      color: Colors.white.withAlpha(200),
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ] else
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-              ],
+          ),
+          const SizedBox(height: 5),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
             ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -1464,8 +1411,8 @@ class _MiniProfileAvatar extends StatelessWidget {
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Container(
-            width: 30,
-            height: 30,
+            width: 26,
+            height: 26,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: Colors.white.withAlpha(35),
@@ -1482,7 +1429,7 @@ class _MiniProfileAvatar extends StatelessWidget {
                 : Center(
                     child: Text(
                       pTheme.decalEmoji,
-                      style: const TextStyle(fontSize: 14),
+                      style: const TextStyle(fontSize: 12),
                     ),
                   ),
           ),
@@ -1514,48 +1461,77 @@ class _RemindersQuickPill extends StatelessWidget {
           builder: (_) => RemindersScreen(profileIndex: profileIndex),
         ),
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-            decoration: BoxDecoration(
-              color: overdue > 0
-                  ? Colors.orange.withAlpha(60)
-                  : Colors.white.withAlpha(50),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: overdue > 0
-                    ? Colors.orange.shade300.withAlpha(180)
-                    : Colors.white.withAlpha(80),
-                width: 0.8,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  overdue > 0
-                      ? Icons.alarm_outlined
-                      : Icons.notifications_outlined,
-                  color: overdue > 0 ? Colors.orange.shade200 : Colors.white,
-                  size: 15,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  badgeCount > 0 ? 'Reminders · $badgeCount' : 'Reminders',
-                  style: TextStyle(
-                    color:
-                        overdue > 0 ? Colors.orange.shade100 : Colors.white,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              ClipOval(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                  child: Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: overdue > 0
+                          ? Colors.orange.withAlpha(60)
+                          : Colors.white.withAlpha(45),
+                      border: Border.all(
+                        color: overdue > 0
+                            ? Colors.orange.shade300.withAlpha(180)
+                            : Colors.white.withAlpha(80),
+                        width: 0.8,
+                      ),
+                    ),
+                    child: Icon(
+                      overdue > 0
+                          ? Icons.alarm_outlined
+                          : Icons.notifications_outlined,
+                      color: overdue > 0 ? Colors.orange.shade200 : Colors.white,
+                      size: 17,
+                    ),
                   ),
                 ),
-              ],
+              ),
+              if (badgeCount > 0)
+                Positioned(
+                  top: -3,
+                  right: -3,
+                  child: Container(
+                    width: 16,
+                    height: 16,
+                    decoration: BoxDecoration(
+                      color: overdue > 0 ? Colors.orange : Colors.white,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                          color: Colors.white.withAlpha(120), width: 1),
+                    ),
+                    child: Center(
+                      child: Text(
+                        '$badgeCount',
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                          color: overdue > 0 ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 5),
+          Text(
+            'Remind',
+            style: TextStyle(
+              color: overdue > 0 ? Colors.orange.shade100 : Colors.white,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
             ),
           ),
-        ),
+        ],
       ),
     );
   }

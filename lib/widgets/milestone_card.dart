@@ -193,20 +193,6 @@ class _CrystalCard extends StatelessWidget {
               ),
             ),
 
-            // ── Left accent bar ────────────────────────────────────
-            Positioned(
-              left: 0, top: 0, bottom: 0, width: 4,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [theme.accent, theme.secondary],
-                  ),
-                ),
-              ),
-            ),
-
             // ── Specular top-edge glint ────────────────────────────
             Positioned(
               top: 0, left: 20, right: 20, height: 1.5,
