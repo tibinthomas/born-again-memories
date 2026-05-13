@@ -46,6 +46,7 @@ class Reminder {
   final ReminderType type;
   final bool isDone;
   final ReminderRepeat repeat;
+  final bool isMuted;
 
   const Reminder({
     required this.id,
@@ -55,6 +56,7 @@ class Reminder {
     this.type = ReminderType.other,
     this.isDone = false,
     this.repeat = ReminderRepeat.none,
+    this.isMuted = false,
   });
 
   bool get isUpcoming => !isDone && dateTime.isAfter(DateTime.now());
@@ -67,6 +69,7 @@ class Reminder {
     ReminderType? type,
     bool? isDone,
     ReminderRepeat? repeat,
+    bool? isMuted,
     bool clearNotes = false,
   }) =>
       Reminder(
@@ -77,6 +80,7 @@ class Reminder {
         type: type ?? this.type,
         isDone: isDone ?? this.isDone,
         repeat: repeat ?? this.repeat,
+        isMuted: isMuted ?? this.isMuted,
       );
 
   Map<String, dynamic> toJson() => {
@@ -87,6 +91,7 @@ class Reminder {
         'type': type.name,
         'isDone': isDone,
         'repeat': repeat.name,
+        'isMuted': isMuted,
       };
 
   factory Reminder.fromJson(Map<String, dynamic> j) => Reminder(
@@ -103,5 +108,6 @@ class Reminder {
           (e) => e.name == (j['repeat'] as String? ?? 'none'),
           orElse: () => ReminderRepeat.none,
         ),
+        isMuted: j['isMuted'] as bool? ?? false,
       );
 }

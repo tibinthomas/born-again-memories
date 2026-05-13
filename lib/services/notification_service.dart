@@ -8,6 +8,10 @@ class NotificationService {
   static final _plugin = FlutterLocalNotificationsPlugin();
   static bool _initialized = false;
 
+  // 25 slots per reminder: initial + 24 follow-ups every 30 min.
+  // 85 000 000 * 25 = 2 125 000 000 < Int32 max (2 147 483 647).
+  static int _baseId(String id) => (id.hashCode.abs() % 85000000) * 25;
+
   static Future<void> initialize() async {
     if (kIsWeb || _initialized) return;
     tz.initializeTimeZones();
@@ -52,10 +56,15 @@ class NotificationService {
 
   static Future<void> scheduleReminder(Reminder reminder, String kidName) async {
     if (kIsWeb || !_initialized) return;
-    if (reminder.dateTime.isBefore(DateTime.now())) return;
+    if (reminder.isMuted) return;
 
-    final tzDateTime = tz.TZDateTime.from(reminder.dateTime, tz.local);
-    final id = reminder.id.hashCode.abs() % 2147483647;
+    final now = DateTime.now();
+    if (reminder.dateTime.isBefore(now)) return;
+
+    final base = _baseId(reminder.id);
+    final tzTime = tz.TZDateTime.from(reminder.dateTime, tz.local);
+    final title = '${reminder.type.emoji} $kidName — ${reminder.title}';
+    final body = reminder.notes ?? reminder.type.label;
 
     final androidDetails = AndroidNotificationDetails(
       'reminders',
@@ -78,11 +87,11 @@ class NotificationService {
       _ => null,
     };
 
-    if (repeatInterval != null && reminder.repeat != ReminderRepeat.monthly && reminder.repeat != ReminderRepeat.yearly) {
+    if (repeatInterval != null) {
       await _plugin.periodicallyShowWithDuration(
-        id,
-        '${reminder.type.emoji} $kidName — ${reminder.title}',
-        reminder.notes ?? reminder.type.label,
+        base,
+        title,
+        body,
         repeatInterval == RepeatInterval.daily
             ? const Duration(days: 1)
             : const Duration(days: 7),
@@ -90,10 +99,10 @@ class NotificationService {
       );
     } else {
       await _plugin.zonedSchedule(
-        id,
-        '${reminder.type.emoji} $kidName — ${reminder.title}',
-        reminder.notes ?? reminder.type.label,
-        tzDateTime,
+        base,
+        title,
+        body,
+        tzTime,
         details,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         uiLocalNotificationDateInterpretation:
@@ -104,13 +113,33 @@ class NotificationService {
                 ? DateTimeComponents.dateAndTime
                 : null,
       );
+
+      // Follow-up pings every 30 min (up to 12 hours) for one-time reminders.
+      if (reminder.repeat == ReminderRepeat.none) {
+        for (int i = 1; i <= 24; i++) {
+          final followUp = reminder.dateTime.add(Duration(minutes: 30 * i));
+          if (followUp.isBefore(now)) continue;
+          await _plugin.zonedSchedule(
+            base + i,
+            title,
+            body,
+            tz.TZDateTime.from(followUp, tz.local),
+            details,
+            androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+            uiLocalNotificationDateInterpretation:
+                UILocalNotificationDateInterpretation.absoluteTime,
+          );
+        }
+      }
     }
   }
 
   static Future<void> cancelReminder(String reminderId) async {
     if (kIsWeb || !_initialized) return;
-    final id = reminderId.hashCode.abs() % 2147483647;
-    await _plugin.cancel(id);
+    final base = _baseId(reminderId);
+    for (int i = 0; i < 25; i++) {
+      await _plugin.cancel(base + i);
+    }
   }
 
   static Future<void> cancelAll() async {

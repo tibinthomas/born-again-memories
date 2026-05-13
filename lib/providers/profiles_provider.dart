@@ -145,6 +145,28 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>?> {
     }
   }
 
+  Future<void> muteReminder(int profileIndex, String reminderId) async {
+    final profile = (state ?? <KidProfile>[])[profileIndex];
+    final reminders = profile.reminders
+        .map((r) => r.id == reminderId ? r.copyWith(isMuted: true) : r)
+        .toList();
+    _setProfile(profileIndex, profile.copyWith(reminders: reminders));
+    final reminder = reminders.firstWhere((r) => r.id == reminderId);
+    await FirestoreService.saveReminder(uid, profile.id, reminder);
+    await NotificationService.cancelReminder(reminderId);
+  }
+
+  Future<void> unmuteReminder(int profileIndex, String reminderId) async {
+    final profile = (state ?? <KidProfile>[])[profileIndex];
+    final reminders = profile.reminders
+        .map((r) => r.id == reminderId ? r.copyWith(isMuted: false) : r)
+        .toList();
+    _setProfile(profileIndex, profile.copyWith(reminders: reminders));
+    final reminder = reminders.firstWhere((r) => r.id == reminderId);
+    await FirestoreService.saveReminder(uid, profile.id, reminder);
+    await NotificationService.scheduleReminder(reminder, profile.name);
+  }
+
   // ── Documents ─────────────────────────────────────────────────────────────
 
   Future<void> addDocument(int profileIndex, BabyDocument doc) async {

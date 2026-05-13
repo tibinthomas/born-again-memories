@@ -258,6 +258,7 @@ class _ReminderCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isDone = reminder.isDone;
     final isOverdue = reminder.isOverdue;
+    final isMuted = reminder.isMuted;
     final dateLabel = _formatDateTime(reminder.dateTime);
 
     return Dismissible(
@@ -397,6 +398,27 @@ class _ReminderCard extends ConsumerWidget {
                                 ),
                               ),
                             ],
+                            if (isMuted) ...[
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                                decoration: BoxDecoration(
+                                  color: Colors.orange.shade50,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.notifications_off_outlined, size: 10, color: Colors.orange.shade600),
+                                    const SizedBox(width: 2),
+                                    Text(
+                                      'Muted',
+                                      style: TextStyle(fontSize: 10, color: Colors.orange.shade600, fontWeight: FontWeight.w600),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                         if (reminder.notes != null && reminder.notes!.isNotEmpty) ...[
@@ -445,6 +467,21 @@ class _ReminderCard extends ConsumerWidget {
                           child: Padding(
                             padding: const EdgeInsets.only(bottom: 4),
                             child: Icon(Icons.edit_outlined, size: 17, color: Colors.grey.shade400),
+                          ),
+                        ),
+                      // Mute / unmute button
+                      if (!isDone)
+                        GestureDetector(
+                          onTap: () => isMuted
+                              ? ref.read(profilesProvider.notifier).unmuteReminder(profileIndex, reminder.id)
+                              : ref.read(profilesProvider.notifier).muteReminder(profileIndex, reminder.id),
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: Icon(
+                              isMuted ? Icons.notifications_active_outlined : Icons.notifications_off_outlined,
+                              size: 17,
+                              color: isMuted ? Colors.orange.shade400 : Colors.grey.shade400,
+                            ),
                           ),
                         ),
                     ],
@@ -621,18 +658,25 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
 
     setState(() => _saving = true);
 
-    final reminder = Reminder(
-      id: widget.existing?.id ?? 'rem_${DateTime.now().microsecondsSinceEpoch}',
-      title: title,
-      notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
-      dateTime: _dateTime,
-      type: _type,
-      repeat: _repeat,
-    );
-
     if (_isEditing) {
+      final reminder = widget.existing!.copyWith(
+        title: title,
+        notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
+        dateTime: _dateTime,
+        type: _type,
+        repeat: _repeat,
+        clearNotes: _notesCtrl.text.trim().isEmpty,
+      );
       await ref.read(profilesProvider.notifier).updateReminder(widget.profileIndex, reminder);
     } else {
+      final reminder = Reminder(
+        id: 'rem_${DateTime.now().microsecondsSinceEpoch}',
+        title: title,
+        notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
+        dateTime: _dateTime,
+        type: _type,
+        repeat: _repeat,
+      );
       if (_selectedProfileIndices.length == 1) {
         await ref.read(profilesProvider.notifier).addReminder(_selectedProfileIndices.first, reminder);
       } else {

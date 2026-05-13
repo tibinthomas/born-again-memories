@@ -48788,8 +48788,8 @@
     "hash": "e4a9c924d2608024e754e64fd8c27a1e"
   },
   "/Users/tibinthomas/my_app/lib/providers/profiles_provider.dart": {
-    "mtime": 1778423971.9875135,
-    "hash": "5dc60564da234baab6dcf6385543fb2b"
+    "mtime": 1778685751.860133,
+    "hash": "300fd3428ed527b7ae007a8c46757222"
   },
   "/Users/tibinthomas/my_app/lib/providers/backup_provider.dart": {
     "mtime": 1778685138.883334,
@@ -48844,8 +48844,8 @@
     "hash": "4d7746f9ddd3555ad41aff2c026c4912"
   },
   "/Users/tibinthomas/my_app/lib/models/reminder.dart": {
-    "mtime": 1778315182.7085702,
-    "hash": "3e3550463509582170ac2841f294b636"
+    "mtime": 1778685705.1660697,
+    "hash": "1bd5fda669c787ed8232e3fb7bbea67e"
   },
   "/Users/tibinthomas/my_app/lib/models/attachment.dart": {
     "mtime": 1778309957.9289885,
@@ -48888,8 +48888,8 @@
     "hash": "8738f93e5b6d86664c6f7a31990d4d6e"
   },
   "/Users/tibinthomas/my_app/lib/screens/reminders_screen.dart": {
-    "mtime": 1778423972.092025,
-    "hash": "5d8acb7900050245950fcbbf43c46673"
+    "mtime": 1778685805.622961,
+    "hash": "43c32bbbba9922cae551d7623d2bdeaf"
   },
   "/Users/tibinthomas/my_app/lib/screens/shared_feed_screen.dart": {
     "mtime": 1778411203.2514083,
@@ -48904,8 +48904,8 @@
     "hash": "0707c04d27fdf996d0b736469905afba"
   },
   "/Users/tibinthomas/my_app/lib/services/notification_service.dart": {
-    "mtime": 1778314258.1559088,
-    "hash": "920390073d23a9cd84423c059920328c"
+    "mtime": 1778685731.2450318,
+    "hash": "28a3ec5ebd1ec015c0803fc0219f8e25"
   },
   "/Users/tibinthomas/my_app/lib/services/drive_service.dart": {
     "mtime": 1778685065.0930762,
