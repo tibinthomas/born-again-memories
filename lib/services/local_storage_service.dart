@@ -33,6 +33,17 @@ class LocalStorageService {
     return dest.path;
   }
 
+  static Future<String> copyBackgroundToStorage(
+      String sourcePath, String filename) async {
+    final dir = await getApplicationDocumentsDirectory();
+    final bgDir = Directory('${dir.path}/backgrounds');
+    await bgDir.create(recursive: true);
+    final ext = sourcePath.contains('.') ? sourcePath.split('.').last : 'jpg';
+    final dest = File('${bgDir.path}/$filename.$ext');
+    await File(sourcePath).copy(dest.path);
+    return dest.path;
+  }
+
   static Future<void> delete(String filePath) async {
     try {
       final f = File(filePath);

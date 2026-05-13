@@ -159,6 +159,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
     DateTime? selectedTob = profile.timeOfBirth;
     Gender selectedGender = profile.gender;
     String? avatarPath = profile.avatarImagePath;
+    String? backgroundPath = profile.backgroundImagePath;
     String selectedPresetId = profile.themePresetId ??
         ThemePreset.defaultIdForGender(profile.gender.name);
 
@@ -175,6 +176,10 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
               avatarPath!.isNotEmpty &&
               !kIsWeb &&
               File(avatarPath!).existsSync();
+          final hasBackground = backgroundPath != null &&
+              backgroundPath!.isNotEmpty &&
+              !kIsWeb &&
+              File(backgroundPath!).existsSync();
 
           return Container(
             height: MediaQuery.of(context).size.height * 0.85,
@@ -214,6 +219,8 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                             gender: selectedGender,
                             avatarImagePath: avatarPath,
                             clearAvatar: avatarPath == null && profile.avatarImagePath != null,
+                            backgroundImagePath: backgroundPath,
+                            clearBackground: backgroundPath == null && profile.backgroundImagePath != null,
                           );
                           ref.read(profilesProvider.notifier).updateProfile(profileIndex, updated);
                           Navigator.pop(ctx);
@@ -302,6 +309,92 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                           ),
                         ),
                       const SizedBox(height: 16),
+                      if (!kIsWeb) ...[
+                        Row(
+                          children: [
+                            Text('Background photo',
+                                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey.shade700)),
+                            const Spacer(),
+                            if (hasBackground)
+                              TextButton(
+                                onPressed: () => setState(() => backgroundPath = null),
+                                child: Text('Remove',
+                                    style: TextStyle(color: Colors.red.shade400, fontSize: 12)),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        GestureDetector(
+                          onTap: () async {
+                            String? pickedPath;
+                            if (Platform.isIOS || Platform.isAndroid) {
+                              final picker = ImagePicker();
+                              final file = await picker.pickImage(source: ImageSource.gallery);
+                              pickedPath = file?.path;
+                            } else {
+                              final result = await FilePicker.platform.pickFiles(
+                                type: FileType.image,
+                                allowMultiple: false,
+                              );
+                              pickedPath = result?.files.firstOrNull?.path;
+                            }
+                            if (pickedPath != null) {
+                              final permanent = await LocalStorageService.copyBackgroundToStorage(
+                                pickedPath,
+                                'bg_${profile.id}_${DateTime.now().millisecondsSinceEpoch}',
+                              );
+                              if (backgroundPath != null && backgroundPath != profile.backgroundImagePath) {
+                                LocalStorageService.delete(backgroundPath!);
+                              }
+                              setState(() => backgroundPath = permanent);
+                            }
+                          },
+                          child: Container(
+                            height: 90,
+                            decoration: BoxDecoration(
+                              color: pTheme.soft,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: pTheme.accent.withAlpha(80), width: 1.5),
+                              image: hasBackground
+                                  ? DecorationImage(
+                                      image: FileImage(File(backgroundPath!)),
+                                      fit: BoxFit.cover,
+                                      colorFilter: ColorFilter.mode(
+                                        Colors.black.withAlpha(30),
+                                        BlendMode.darken,
+                                      ),
+                                    )
+                                  : null,
+                            ),
+                            child: Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    hasBackground
+                                        ? Icons.check_circle
+                                        : Icons.add_photo_alternate_outlined,
+                                    color: hasBackground ? Colors.white : pTheme.accent,
+                                    size: 28,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    hasBackground
+                                        ? 'Photo selected — tap to change'
+                                        : 'Tap to pick a photo',
+                                    style: TextStyle(
+                                      color: hasBackground ? Colors.white : pTheme.accent,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
                       Text('Gender', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey.shade700)),
                       const SizedBox(height: 8),
                       Row(
