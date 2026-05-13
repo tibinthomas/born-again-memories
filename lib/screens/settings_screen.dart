@@ -16,6 +16,7 @@ import '../providers/sharing_provider.dart';
 import '../services/local_storage_service.dart';
 import '../utils/chime.dart';
 import '../utils/profile_theme.dart';
+import 'login_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -476,6 +477,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             onPressed: () async {
               Navigator.pop(ctx);
               await ref.read(authServiceProvider).signOut();
+              if (mounted) {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  (_) => false,
+                );
+              }
             },
             child: const Text('Sign out', style: TextStyle(color: Colors.red)),
           ),
@@ -511,6 +518,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Future<void> _reauthAndDelete() async {
     try {
       await ref.read(authServiceProvider).reauthenticateAndDelete();
+      if (mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+          (_) => false,
+        );
+      }
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
       final msg = switch (e.code) {
