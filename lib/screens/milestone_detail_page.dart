@@ -1368,20 +1368,34 @@ class _AudioTileState extends State<_AudioTile> {
   Future<void> _togglePlayback() async {
     if (_state == PlayerState.playing) {
       await _player.pause();
-    } else {
-      if (_state == PlayerState.completed) {
-        await _player.seek(Duration.zero);
-      }
+      return;
+    }
+
+    try {
       // The `record` package leaves AVAudioSession in .record category after
-      // stopping. Reset it to .playback so audioplayers can acquire the session.
+      // stopping. Reset it on this player instance before play() so the
+      // platform-side AVPlayer can acquire the session. Using the instance
+      // method (not AudioPlayer.global) ensures the context is applied to
+      // this player's platform object, not just the OS-level category.
       if (!kIsWeb && (Platform.isIOS || Platform.isMacOS)) {
-        await AudioPlayer.global.setAudioContext(AudioContext(
+        await _player.setAudioContext(AudioContext(
           iOS: AudioContextIOS(
             category: AVAudioSessionCategory.playback,
           ),
         ));
       }
+
+      if (_state == PlayerState.completed) {
+        await _player.seek(Duration.zero);
+      }
+
       await _player.play(DeviceFileSource(widget.attachment.localPath));
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not play audio. Try again.')),
+        );
+      }
     }
   }
 
