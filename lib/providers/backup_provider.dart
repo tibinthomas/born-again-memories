@@ -104,8 +104,22 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
     final gs = _ref.read(authServiceProvider).googleSignIn;
     final client = await gs.authenticatedClient();
     if (!mounted) return;
-    state = state.copyWith(driveAccessGranted: client != null);
-    if (client != null) _runSync();
+
+    // A non-null client only means the user has *some* Google session (e.g. email
+    // scope). Verify that the Drive scope was actually granted before starting
+    // sync — otherwise uploads silently fail with 403 and every attachment gets
+    // marked as BackupStatus.failed.
+    bool driveGranted = false;
+    if (client != null) {
+      try {
+        driveGranted = await gs.canAccessScopes([DriveApi.driveFileScope]);
+      } catch (_) {
+        driveGranted = false;
+      }
+    }
+
+    state = state.copyWith(driveAccessGranted: driveGranted);
+    if (driveGranted) _runSync();
   }
 
   // Called from settings — requests Drive scope, falls back to full re-auth.
@@ -226,14 +240,16 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
               }
               return;
             } catch (_) {
-              await FirestoreService.updateAttachmentBackup(
-                uid: uid,
-                profileId: profile.id,
-                milestoneId: milestone.id,
-                attachmentId: attachment.id,
-                driveFileId: null,
-                status: BackupStatus.failed,
-              );
+              try {
+                await FirestoreService.updateAttachmentBackup(
+                  uid: uid,
+                  profileId: profile.id,
+                  milestoneId: milestone.id,
+                  attachmentId: attachment.id,
+                  driveFileId: null,
+                  status: BackupStatus.failed,
+                );
+              } catch (_) {}
               _ref.read(profilesProvider.notifier).updateAttachmentBackupStatus(
                     profile.id, milestone.id, attachment.id, null, BackupStatus.failed);
             }
@@ -245,13 +261,11 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
       final quota =
           await DriveService.getQuota(authService.googleSignIn);
       final now = DateTime.now();
-      if (quota != null) {
-        await FirestoreService.updateUserDoc(uid, {
-          'driveUsedBytes': quota.usedBytes,
-          'driveLimitBytes': quota.limitBytes ?? 0,
-          'lastSyncedAt': now.millisecondsSinceEpoch,
-        });
-      }
+      await FirestoreService.updateUserDoc(uid, {
+        if (quota != null) 'driveUsedBytes': quota.usedBytes,
+        if (quota != null) 'driveLimitBytes': quota.limitBytes ?? 0,
+        'lastSyncedAt': now.millisecondsSinceEpoch,
+      });
       if (mounted) {
         state = state.copyWith(
           quota: quota,

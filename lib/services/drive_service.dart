@@ -18,6 +18,17 @@ class DriveQuota {
 
 class DriveNotAuthorizedException implements Exception {}
 
+// 401 / 403 from the Drive REST API → treat as "no access, re-authorize".
+bool _isDriveAuthError(Object e) {
+  final s = e.toString().toLowerCase();
+  return s.contains('401') ||
+      s.contains('403') ||
+      s.contains('unauthorized') ||
+      s.contains('forbidden') ||
+      s.contains('invalid_grant') ||
+      s.contains('accessdenied');
+}
+
 class DriveService {
   static const _appFolderName = 'Born Again Memories';
 
@@ -49,7 +60,7 @@ class DriveService {
   static String _contentType(AttachmentType type) => switch (type) {
         AttachmentType.image => 'image/jpeg',
         AttachmentType.video => 'video/mp4',
-        AttachmentType.audio => 'audio/m4a',
+        AttachmentType.audio => 'audio/mp4',
         _ => 'application/octet-stream',
       };
 
@@ -61,28 +72,35 @@ class DriveService {
     required String milestoneId,
     required AttachmentType type,
   }) async {
-    final api = await _api(googleSignIn);
-    final root = await _ensureFolder(api, _appFolderName);
-    final profileFolder =
-        await _ensureFolder(api, profileName, parentId: root);
-    final msFolder =
-        await _ensureFolder(api, milestoneId, parentId: profileFolder);
+    try {
+      final api = await _api(googleSignIn);
+      final root = await _ensureFolder(api, _appFolderName);
+      final profileFolder =
+          await _ensureFolder(api, profileName, parentId: root);
+      final msFolder =
+          await _ensureFolder(api, milestoneId, parentId: profileFolder);
 
-    final file = File(localPath);
-    final meta = drive.File()
-      ..name = fileName
-      ..parents = [msFolder];
+      final file = File(localPath);
+      final meta = drive.File()
+        ..name = fileName
+        ..parents = [msFolder];
 
-    final result = await api.files.create(
-      meta,
-      uploadMedia: drive.Media(
-        file.openRead(),
-        await file.length(),
-        contentType: _contentType(type),
-      ),
-      $fields: 'id',
-    );
-    return result.id!;
+      final result = await api.files.create(
+        meta,
+        uploadMedia: drive.Media(
+          file.openRead(),
+          await file.length(),
+          contentType: _contentType(type),
+        ),
+        $fields: 'id',
+      );
+      return result.id!;
+    } on DriveNotAuthorizedException {
+      rethrow;
+    } catch (e) {
+      if (_isDriveAuthError(e)) throw DriveNotAuthorizedException();
+      rethrow;
+    }
   }
 
   static Future<void> deleteFile({
