@@ -1006,6 +1006,22 @@ class _BackupCard extends StatelessWidget {
                 ),
               ),
             ],
+            if (sync.driveAccessGranted) ...[
+              const SizedBox(height: 8),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.warning_amber_rounded, size: 13, color: Colors.amber.shade700),
+                  const SizedBox(width: 5),
+                  Expanded(
+                    child: Text(
+                      'Files are stored in "Born Again Memories" in your Google Drive. Do not rename or delete this folder — doing so will break backup and may cause data loss.',
+                      style: TextStyle(fontSize: 11, color: Colors.amber.shade800, height: 1.4),
+                    ),
+                  ),
+                ],
+              ),
+            ],
             if (!sync.driveAccessGranted) ...[
               const SizedBox(height: 12),
               Text(
