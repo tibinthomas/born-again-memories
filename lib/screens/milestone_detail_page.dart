@@ -539,113 +539,128 @@ class _ContentSheet extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Themed gradient header
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Color.lerp(Colors.white, accent, 0.14)!,
-                          Color.lerp(Colors.white, secondary, 0.10)!,
-                        ],
-                      ),
-                      borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(32)),
-                    ),
-                    child: Column(
+                  // Themed gradient header with animated bubbles
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(32)),
+                    child: Stack(
                       children: [
-                        // Drag handle
-                        Center(
+                        // Gradient background
+                        Positioned.fill(
                           child: Container(
-                            margin: const EdgeInsets.symmetric(vertical: 12),
-                            width: 44,
-                            height: 4,
                             decoration: BoxDecoration(
-                              color: accent.withAlpha(70),
-                              borderRadius: BorderRadius.circular(8),
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  Color.lerp(Colors.white, accent, 0.14)!,
+                                  Color.lerp(Colors.white, secondary, 0.10)!,
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                        // Title row
-                        Padding(
-                          padding:
-                              const EdgeInsets.fromLTRB(20, 0, 16, 16),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Icon bubble
-                              Container(
+                        // Floating bubbles
+                        Positioned.fill(
+                          child: _TitleBubbleLayer(
+                              accent: accent, secondary: secondary, seed: milestone.id),
+                        ),
+                        // Content on top
+                        Column(
+                          children: [
+                            // Drag handle
+                            Center(
+                              child: Container(
+                                margin: const EdgeInsets.symmetric(vertical: 12),
                                 width: 44,
-                                height: 44,
+                                height: 4,
                                 decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      accent,
-                                      Color.lerp(accent, secondary, 0.6)!,
-                                    ],
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                        color: accent.withAlpha(80),
-                                        blurRadius: 12,
-                                        offset: const Offset(0, 4)),
-                                  ],
+                                  color: accent.withAlpha(70),
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: const Icon(Icons.auto_awesome,
-                                    color: Colors.white, size: 20),
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      milestone.title,
-                                      style: const TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w800,
-                                        color: Color(0xFF1A1A1A),
-                                        height: 1.2,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Row(
-                                      children: [
-                                        Icon(
-                                            Icons.calendar_today_outlined,
-                                            size: 12,
-                                            color: accent),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          formatDate(milestone.date),
-                                          style: TextStyle(
-                                            color: accent,
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                        if (milestone.isFavorite) ...[
-                                          const SizedBox(width: 8),
-                                          const Icon(Icons.star_rounded,
-                                              size: 14,
-                                              color: Color(0xFFFBBF24)),
+                            ),
+                            // Title row
+                            Padding(
+                              padding:
+                                  const EdgeInsets.fromLTRB(20, 0, 16, 16),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Icon bubble
+                                  Container(
+                                    width: 44,
+                                    height: 44,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                        colors: [
+                                          accent,
+                                          Color.lerp(accent, secondary, 0.6)!,
                                         ],
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                            color: accent.withAlpha(80),
+                                            blurRadius: 12,
+                                            offset: const Offset(0, 4)),
                                       ],
                                     ),
-                                  ],
-                                ),
+                                    child: const Icon(Icons.auto_awesome,
+                                        color: Colors.white, size: 20),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          milestone.title,
+                                          style: const TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.w800,
+                                            color: Color(0xFF1A1A1A),
+                                            height: 1.2,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Row(
+                                          children: [
+                                            Icon(
+                                                Icons.calendar_today_outlined,
+                                                size: 12,
+                                                color: accent),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              formatDate(milestone.date),
+                                              style: TextStyle(
+                                                color: accent,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                            if (milestone.isFavorite) ...[
+                                              const SizedBox(width: 8),
+                                              const Icon(Icons.star_rounded,
+                                                  size: 14,
+                                                  color: Color(0xFFFBBF24)),
+                                            ],
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
+                      ],   // closes Stack children
+                    ),     // closes Stack
+                  ),       // closes ClipRRect
 
                   // Body content
                   Padding(
@@ -1744,6 +1759,95 @@ class _SlideshowChrome extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+// ── Title header bubble layer ─────────────────────────────────────────────────
+
+class _TitleBubbleLayer extends StatefulWidget {
+  final Color accent;
+  final Color secondary;
+  final String seed;
+  const _TitleBubbleLayer(
+      {required this.accent, required this.secondary, required this.seed});
+
+  @override
+  State<_TitleBubbleLayer> createState() => _TitleBubbleLayerState();
+}
+
+class _TitleBubbleLayerState extends State<_TitleBubbleLayer>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final List<double> _phases;
+
+  @override
+  void initState() {
+    super.initState();
+    final rng = math.Random(widget.seed.hashCode ^ 0xABCD);
+    _phases = List.generate(5, (_) => rng.nextDouble() * 2 * math.pi);
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 6),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (_, box) {
+        final w = box.maxWidth;
+        final h = box.maxHeight;
+        return AnimatedBuilder(
+          animation: _ctrl,
+          builder: (_, __) {
+            final t = _ctrl.value * 2 * math.pi;
+            double s(double v) => math.sin(v);
+            double c(double v) => math.cos(v);
+            return Stack(
+              clipBehavior: Clip.hardEdge,
+              children: [
+                // Large accent blob — drifts right-to-left near top
+                Positioned(
+                  right: -30 + s(t + _phases[0]) * 18,
+                  top: -20 + c(t * 0.7 + _phases[0]) * 10,
+                  child: _DetailBubble(90, widget.accent, 28),
+                ),
+                // Medium secondary — bottom-left drift
+                Positioned(
+                  left: -20 + c(t * 0.8 + _phases[1]) * 14,
+                  bottom: -18 + s(t + _phases[1]) * 8,
+                  child: _DetailBubble(64, widget.secondary, 22),
+                ),
+                // Small accent — gentle mid-right float
+                Positioned(
+                  right: w * 0.28 + s(t * 1.2 + _phases[2]) * 12,
+                  top: h * 0.1 + c(t * 0.9 + _phases[2]) * 10,
+                  child: _DetailBubble(28, widget.accent, 30),
+                ),
+                // Tiny secondary — near drag handle
+                Positioned(
+                  left: w * 0.55 + c(t * 1.3 + _phases[3]) * 10,
+                  top: 6 + s(t + _phases[3]) * 6,
+                  child: _DetailBubble(16, widget.secondary, 35),
+                ),
+                // Tiny accent — bottom centre
+                Positioned(
+                  left: w * 0.42 + s(t * 1.1 + _phases[4]) * 14,
+                  bottom: 4 + c(t * 0.8 + _phases[4]) * 6,
+                  child: _DetailBubble(20, widget.accent, 25),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }
