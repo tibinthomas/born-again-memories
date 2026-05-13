@@ -573,7 +573,7 @@ class _LinkCard extends ConsumerWidget {
     required this.onFavorite,
   });
 
-  Future<void> _openLink(BuildContext context) async {
+  Future<void> _openLink(BuildContext context, {bool external = false}) async {
     final uri = Uri.tryParse(link.url);
     if (uri == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -582,7 +582,8 @@ class _LinkCard extends ConsumerWidget {
       return;
     }
 
-    final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    final mode = external ? LaunchMode.externalApplication : LaunchMode.inAppBrowserView;
+    final launched = await launchUrl(uri, mode: mode);
     if (!launched && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Unable to open link.')),
@@ -668,6 +669,14 @@ class _LinkCard extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(12)),
                         itemBuilder: (_) => [
                           const PopupMenuItem(
+                            value: 'open_external',
+                            child: Row(children: [
+                              Icon(Icons.open_in_browser_outlined, size: 16),
+                              SizedBox(width: 10),
+                              Text('Open in browser'),
+                            ]),
+                          ),
+                          const PopupMenuItem(
                             value: 'edit',
                             child: Row(children: [
                               Icon(Icons.edit_outlined, size: 16),
@@ -687,7 +696,9 @@ class _LinkCard extends ConsumerWidget {
                           ),
                         ],
                         onSelected: (value) {
-                          if (value == 'edit') {
+                          if (value == 'open_external') {
+                            _openLink(context, external: true);
+                          } else if (value == 'edit') {
                             onEdit();
                           } else if (value == 'delete') {
                             showDialog<bool>(
