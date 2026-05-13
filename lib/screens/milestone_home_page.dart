@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
@@ -250,8 +251,14 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                               pickedPath = result?.files.firstOrNull?.path;
                             }
                             if (pickedPath != null) {
-                              final permanent = await LocalStorageService.copyAvatarToStorage(
+                              final croppedPath = await _cropImage(
                                 pickedPath,
+                                isAvatar: true,
+                                accent: pTheme.accent,
+                              );
+                              if (croppedPath == null) return;
+                              final permanent = await LocalStorageService.copyAvatarToStorage(
+                                croppedPath,
                                 'avatar_${profile.id}_${DateTime.now().millisecondsSinceEpoch}',
                               );
                               // Delete previously picked (unsaved) avatar to avoid orphans
@@ -339,8 +346,14 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                               pickedPath = result?.files.firstOrNull?.path;
                             }
                             if (pickedPath != null) {
-                              final permanent = await LocalStorageService.copyBackgroundToStorage(
+                              final croppedPath = await _cropImage(
                                 pickedPath,
+                                isAvatar: false,
+                                accent: pTheme.accent,
+                              );
+                              if (croppedPath == null) return;
+                              final permanent = await LocalStorageService.copyBackgroundToStorage(
+                                croppedPath,
                                 'bg_${profile.id}_${DateTime.now().millisecondsSinceEpoch}',
                               );
                               if (backgroundPath != null && backgroundPath != profile.backgroundImagePath) {
@@ -1798,17 +1811,20 @@ class _AddProfileSheetState extends ConsumerState<_AddProfileSheet> {
   }
 
   Future<void> _pickBackground() async {
+    String? pickedPath;
     if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
       final file = await _picker.pickImage(source: ImageSource.gallery);
-      if (file != null) {
-        ref.read(addProfileFormProvider.notifier).setBackgroundImagePath(file.path);
-      }
+      pickedPath = file?.path;
     } else if (!kIsWeb) {
       final result = await FilePicker.platform.pickFiles(type: FileType.image);
-      if (result?.files.first.path != null) {
-        ref.read(addProfileFormProvider.notifier)
-            .setBackgroundImagePath(result!.files.first.path!);
-      }
+      pickedPath = result?.files.first.path;
+    }
+    if (pickedPath != null) {
+      final form = ref.read(addProfileFormProvider);
+      final accent = ProfileTheme.forGender(form.gender).accent;
+      final croppedPath = await _cropImage(pickedPath, isAvatar: false, accent: accent);
+      if (croppedPath == null) return;
+      ref.read(addProfileFormProvider.notifier).setBackgroundImagePath(croppedPath);
     }
   }
 
@@ -3030,6 +3046,51 @@ class _RecordingDialogState extends State<_RecordingDialog> {
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
+
+/// Launches the native crop UI after picking. Returns the cropped path, or
+/// null if the user cancelled. Passes [sourcePath] through unchanged on web/desktop.
+Future<String?> _cropImage(
+  String sourcePath, {
+  required bool isAvatar,
+  required Color accent,
+}) async {
+  if (kIsWeb) return sourcePath;
+  if (!Platform.isIOS && !Platform.isAndroid) return sourcePath;
+  final cropped = await ImageCropper().cropImage(
+    sourcePath: sourcePath,
+    aspectRatio: isAvatar ? const CropAspectRatio(ratioX: 1, ratioY: 1) : null,
+    uiSettings: [
+      AndroidUiSettings(
+        toolbarTitle: isAvatar ? 'Crop Profile Photo' : 'Crop Background',
+        toolbarColor: accent,
+        toolbarWidgetColor: Colors.white,
+        lockAspectRatio: isAvatar,
+        initAspectRatio: isAvatar
+            ? CropAspectRatioPreset.square
+            : CropAspectRatioPreset.ratio16x9,
+        aspectRatioPresets: isAvatar
+            ? [CropAspectRatioPreset.square]
+            : [
+                CropAspectRatioPreset.original,
+                CropAspectRatioPreset.ratio16x9,
+                CropAspectRatioPreset.ratio4x3,
+              ],
+      ),
+      IOSUiSettings(
+        title: isAvatar ? 'Crop Profile Photo' : 'Crop Background',
+        aspectRatioLockEnabled: isAvatar,
+        aspectRatioPresets: isAvatar
+            ? [CropAspectRatioPreset.square]
+            : [
+                CropAspectRatioPreset.original,
+                CropAspectRatioPreset.ratio16x9,
+                CropAspectRatioPreset.ratio4x3,
+              ],
+      ),
+    ],
+  );
+  return cropped?.path;
+}
 
 Widget _sectionLabel(String text) => Text(
       text.toUpperCase(),
