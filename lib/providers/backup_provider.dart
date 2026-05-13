@@ -1,5 +1,6 @@
 import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart' show debugPrint;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:googleapis/drive/v3.dart' show DriveApi;
 import '../models/attachment.dart';
@@ -137,9 +138,13 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
 
       // Step 1: try lightweight scope request on existing session
       bool granted = false;
+      String? scopeError;
       try {
         granted = await gs.requestScopes([DriveApi.driveFileScope]);
-      } catch (_) {}
+      } catch (e, st) {
+        scopeError = e.toString();
+        debugPrint('[BackupSync] requestScopes error: $e\n$st');
+      }
 
       // Step 2: if that didn't work, trigger a full sign-in — the constructor
       //         scopes now include drive.file so the consent screen will show it.
@@ -147,16 +152,20 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
         try {
           final account = await gs.signIn();
           granted = account != null;
-        } catch (_) {}
+          if (granted) scopeError = null;
+        } catch (e, st) {
+          scopeError ??= e.toString();
+          debugPrint('[BackupSync] signIn error: $e\n$st');
+        }
       }
 
       if (!mounted) return;
 
       if (!granted) {
-        state = state.copyWith(
-          isRequestingAccess: false,
-          accessError: 'Drive access was not granted. Please try again.',
-        );
+        final msg = scopeError != null
+            ? 'Drive access not granted.\n$scopeError'
+            : 'Drive access was not granted. Please try again.';
+        state = state.copyWith(isRequestingAccess: false, accessError: msg);
         return;
       }
 
@@ -167,7 +176,7 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
       if (client == null) {
         state = state.copyWith(
           isRequestingAccess: false,
-          accessError: 'Could not connect to Drive. Sign out and sign in again.',
+          accessError: 'authenticatedClient() returned null — sign out and sign in again.',
         );
         return;
       }
@@ -175,11 +184,12 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
       state = state.copyWith(
           driveAccessGranted: true, isRequestingAccess: false, clearError: true);
       _runSync();
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('[BackupSync] grantAndSync error: $e\n$st');
       if (mounted) {
         state = state.copyWith(
           isRequestingAccess: false,
-          accessError: 'Something went wrong. Please try again.',
+          accessError: e.toString(),
         );
       }
     }
@@ -196,7 +206,8 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
     _active = true;
     if (mounted) state = state.copyWith(isSyncing: true, clearSyncError: true);
 
-    String? lastError;
+    // Tracks the first upload failure with full context for display.
+    String? firstError;
 
     try {
       final authService = _ref.read(authServiceProvider);
@@ -207,13 +218,17 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
           for (final attachment in milestone.attachments) {
             if (!mounted) return;
             if (attachment.backupStatus == BackupStatus.backedUp) continue;
-            if (!attachment.localExists) continue;
+            if (!attachment.localExists) {
+              debugPrint('[BackupSync] skipping "${attachment.name}" — file not found at ${attachment.localPath}');
+              continue;
+            }
 
             if (mounted) {
               state = state.copyWith(currentUploadName: attachment.name);
             }
 
             try {
+              debugPrint('[BackupSync] uploading "${attachment.name}" from ${attachment.localPath}');
               final fileId = await DriveService.uploadFile(
                 googleSignIn: authService.googleSignIn,
                 localPath: attachment.localPath,
@@ -222,6 +237,7 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
                 milestoneId: milestone.id,
                 type: attachment.type,
               );
+              debugPrint('[BackupSync] uploaded "${attachment.name}" → driveId=$fileId');
 
               await FirestoreService.updateAttachmentBackup(
                 uid: uid,
@@ -240,17 +256,19 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
                     BackupStatus.backedUp,
                   );
             } on DriveNotAuthorizedException {
-              // Stop processing — user revoked access
+              debugPrint('[BackupSync] DriveNotAuthorizedException on "${attachment.name}" — stopping sync');
               if (mounted) {
                 state = state.copyWith(
                   driveAccessGranted: false,
                   clearCurrentUpload: true,
-                  syncError: 'Drive access was revoked. Tap "Enable Drive Backup" to reconnect.',
+                  syncError: 'Drive access revoked. Tap "Enable Drive Backup" to reconnect.',
                 );
               }
               return;
-            } catch (e) {
-              lastError = _userFacingError(e);
+            } catch (e, st) {
+              final detail = '"${attachment.name}": ${e.runtimeType}: $e';
+              debugPrint('[BackupSync] upload failed — $detail\n$st');
+              firstError ??= detail;
               try {
                 await FirestoreService.updateAttachmentBackup(
                   uid: uid,
@@ -260,7 +278,9 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
                   driveFileId: null,
                   status: BackupStatus.failed,
                 );
-              } catch (_) {}
+              } catch (fe, fst) {
+                debugPrint('[BackupSync] Firestore status update failed: $fe\n$fst');
+              }
               _ref.read(profilesProvider.notifier).updateAttachmentBackupStatus(
                     profile.id, milestone.id, attachment.id, null, BackupStatus.failed);
             }
@@ -268,18 +288,20 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
         }
       }
 
-      // Refresh Drive quota after sync (non-fatal if it fails)
+      // Refresh Drive quota after sync (non-fatal if it fails).
       DriveQuota? quota;
       DateTime? now;
       try {
         quota = await DriveService.getQuota(authService.googleSignIn);
+        debugPrint('[BackupSync] quota: used=${quota?.usedBytes} limit=${quota?.limitBytes}');
         now = DateTime.now();
         await FirestoreService.updateUserDoc(uid, {
           if (quota != null) 'driveUsedBytes': quota.usedBytes,
           if (quota != null) 'driveLimitBytes': quota.limitBytes ?? 0,
           'lastSyncedAt': now.millisecondsSinceEpoch,
         });
-      } catch (_) {
+      } catch (e, st) {
+        debugPrint('[BackupSync] post-sync update failed: $e\n$st');
         now ??= DateTime.now();
       }
 
@@ -289,15 +311,16 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
           lastSyncedAt: now,
           isSyncing: false,
           clearCurrentUpload: true,
-          syncError: lastError,
+          syncError: firstError,
         );
       }
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('[BackupSync] unexpected sync error: $e\n$st');
       if (mounted) {
         state = state.copyWith(
           isSyncing: false,
           clearCurrentUpload: true,
-          syncError: _userFacingError(e),
+          syncError: '${e.runtimeType}: $e',
         );
       }
     } finally {
@@ -306,26 +329,6 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
         state = state.copyWith(isSyncing: false, clearCurrentUpload: true);
       }
     }
-  }
-
-  static String _userFacingError(Object e) {
-    final s = e.toString().toLowerCase();
-    if (s.contains('quota') || s.contains('storagequota')) {
-      return 'Google Drive storage is full.';
-    }
-    if (s.contains('socketexception') ||
-        s.contains('failed host') ||
-        s.contains('network is unreachable') ||
-        s.contains('connection refused')) {
-      return 'No internet connection.';
-    }
-    if (s.contains('403') || s.contains('forbidden') || s.contains('permission')) {
-      return 'Drive permission denied. Re-enable backup.';
-    }
-    if (s.contains('500') || s.contains('503') || s.contains('backend')) {
-      return 'Google Drive temporarily unavailable. Tap Sync to retry.';
-    }
-    return 'Upload failed. Tap Sync to retry.';
   }
 
   Future<void> _loadCachedState() async {

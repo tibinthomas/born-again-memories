@@ -1051,19 +1051,40 @@ class _BackupCard extends StatelessWidget {
               ]),
             ],
             if (sync.syncError != null) ...[
-              const SizedBox(height: 6),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(Icons.error_outline_rounded, size: 13, color: Colors.red.shade400),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      sync.syncError!,
-                      style: TextStyle(fontSize: 11, color: Colors.red.shade400),
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.red.shade100),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.error_outline_rounded, size: 13, color: Colors.red.shade500),
+                        const SizedBox(width: 5),
+                        Text(
+                          '${stats.failed > 0 ? "${stats.failed} file${stats.failed == 1 ? "" : "s"} failed — " : ""}Backup error',
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.red.shade500),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 6),
+                    SelectableText(
+                      sync.syncError!,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.red.shade700,
+                        fontFamily: 'monospace',
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ] else if (stats.failed > 0) ...[
               const SizedBox(height: 6),
