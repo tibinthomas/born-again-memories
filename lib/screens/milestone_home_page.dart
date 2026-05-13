@@ -1426,19 +1426,53 @@ class _ProfileHeader extends StatelessWidget {
 
 // ── Decorative bubble ─────────────────────────────────────────────────────────
 
-class _Bubble extends StatelessWidget {
+class _Bubble extends StatefulWidget {
   final double size;
   final int alpha;
   const _Bubble(this.size, this.alpha);
 
   @override
+  State<_Bubble> createState() => _BubbleState();
+}
+
+class _BubbleState extends State<_Bubble> with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _float;
+
+  @override
+  void initState() {
+    super.initState();
+    final ms = (2200 + widget.size * 12).toInt();
+    _ctrl = AnimationController(vsync: this, duration: Duration(milliseconds: ms))
+      ..repeat(reverse: true);
+    // Start at a phase offset derived from size so bubbles are out of sync
+    _ctrl.forward(from: (widget.size % 100) / 100);
+    final travel = (widget.size * 0.12).clamp(6.0, 20.0);
+    _float = Tween<double>(begin: 0, end: -travel).animate(
+      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.white.withAlpha(alpha),
+    return AnimatedBuilder(
+      animation: _float,
+      builder: (_, __) => Transform.translate(
+        offset: Offset(0, _float.value),
+        child: Container(
+          width: widget.size,
+          height: widget.size,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.white.withAlpha(widget.alpha),
+          ),
+        ),
       ),
     );
   }
