@@ -169,17 +169,7 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
         return;
       }
 
-      // Verify we can actually get an authenticated client
-      final client = await gs.authenticatedClient();
       if (!mounted) return;
-
-      if (client == null) {
-        state = state.copyWith(
-          isRequestingAccess: false,
-          accessError: 'authenticatedClient() returned null — sign out and sign in again.',
-        );
-        return;
-      }
 
       state = state.copyWith(
           driveAccessGranted: true, isRequestingAccess: false, clearError: true);

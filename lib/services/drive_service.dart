@@ -35,7 +35,9 @@ class DriveService {
   static const _appFolderName = '⚠️ Born Again Memories — App Data (Do Not Delete)';
 
   static Future<drive.DriveApi> _api(GoogleSignIn gs) async {
-    final client = await gs.authenticatedClient();
+    final client = await gs
+        .authenticatedClient()
+        .timeout(const Duration(seconds: 20));
     if (client == null) throw DriveNotAuthorizedException();
     return drive.DriveApi(client);
   }
