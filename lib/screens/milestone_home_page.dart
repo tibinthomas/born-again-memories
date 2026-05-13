@@ -1132,7 +1132,7 @@ class _EmptyProfilesScreen extends StatelessWidget {
 
 // ── Profile header ─────────────────────────────────────────────────────────────
 
-class _ProfileHeader extends StatelessWidget {
+class _ProfileHeader extends ConsumerWidget {
   final KidProfile profile;
   final ProfileTheme profileTheme;
   final List<KidProfile> allProfiles;
@@ -1160,7 +1160,8 @@ class _ProfileHeader extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final sync = ref.watch(backupSyncProvider);
     final hasBackground = !kIsWeb &&
         profile.backgroundImagePath != null &&
         profile.backgroundImagePath!.isNotEmpty &&
@@ -1339,6 +1340,12 @@ class _ProfileHeader extends StatelessWidget {
                             ),
                           ),
 
+                          // Backup status indicator
+                          if (sync.driveAccessGranted) ...[
+                            _BackupHeaderIndicator(sync: sync),
+                            const SizedBox(width: 6),
+                          ],
+
                           // Settings inline top-right
                           _HeaderIconBtn(
                             icon: Icons.settings_outlined,
@@ -1501,6 +1508,62 @@ class _HeaderIconBtn extends StatelessWidget {
               border: Border.all(color: Colors.white.withAlpha(70), width: 0.8),
             ),
             child: Icon(icon, color: Colors.white, size: 20),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Backup status indicator (header) ─────────────────────────────────────────
+
+class _BackupHeaderIndicator extends StatelessWidget {
+  final BackupSyncState sync;
+  const _BackupHeaderIndicator({required this.sync});
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.white.withAlpha(45),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.white.withAlpha(70), width: 0.8),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (sync.isSyncing)
+                const SizedBox(
+                  width: 12,
+                  height: 12,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 1.8,
+                    color: Colors.white,
+                  ),
+                )
+              else
+                Icon(
+                  Icons.cloud_done_outlined,
+                  color: Colors.white.withAlpha(200),
+                  size: 14,
+                ),
+              const SizedBox(width: 5),
+              Text(
+                sync.isSyncing
+                    ? (sync.currentUploadName != null ? 'Backing up…' : 'Syncing…')
+                    : 'Backed up',
+                style: TextStyle(
+                  color: Colors.white.withAlpha(220),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
           ),
         ),
       ),
