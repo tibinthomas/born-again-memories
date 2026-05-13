@@ -1372,6 +1372,15 @@ class _AudioTileState extends State<_AudioTile> {
       if (_state == PlayerState.completed) {
         await _player.seek(Duration.zero);
       }
+      // The `record` package leaves AVAudioSession in .record category after
+      // stopping. Reset it to .playback so audioplayers can acquire the session.
+      if (!kIsWeb && (Platform.isIOS || Platform.isMacOS)) {
+        await AudioPlayer.global.setAudioContext(AudioContext(
+          iOS: AudioContextIOS(
+            category: AVAudioSessionCategory.playback,
+          ),
+        ));
+      }
       await _player.play(DeviceFileSource(widget.attachment.localPath));
     }
   }
