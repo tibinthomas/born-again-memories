@@ -1015,7 +1015,7 @@ class _BackupCard extends StatelessWidget {
                   const SizedBox(width: 5),
                   Expanded(
                     child: Text(
-                      'Files are stored in "Born Again Memories" in your Google Drive. Do not rename or delete this folder — doing so will break backup and may cause data loss.',
+                      'Files are stored in "⚠️ Born Again Memories — App Data (Do Not Delete)" in your Google Drive. Do not rename or delete this folder — doing so will break backup and may cause data loss.',
                       style: TextStyle(fontSize: 11, color: Colors.amber.shade800, height: 1.4),
                     ),
                   ),

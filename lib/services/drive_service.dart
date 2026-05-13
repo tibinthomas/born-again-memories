@@ -32,7 +32,7 @@ bool _isDriveAuthError(Object e) {
 }
 
 class DriveService {
-  static const _appFolderName = 'Born Again Memories';
+  static const _appFolderName = '⚠️ Born Again Memories — App Data (Do Not Delete)';
 
   static Future<drive.DriveApi> _api(GoogleSignIn gs) async {
     final client = await gs.authenticatedClient();
