@@ -54,6 +54,7 @@ class BackupSyncState {
   final bool driveAccessGranted;
   final String? currentUploadName;
   final String? accessError;
+  final String? syncError;
   final DriveQuota? quota;
   final DateTime? lastSyncedAt;
 
@@ -63,6 +64,7 @@ class BackupSyncState {
     this.driveAccessGranted = false,
     this.currentUploadName,
     this.accessError,
+    this.syncError,
     this.quota,
     this.lastSyncedAt,
   });
@@ -73,10 +75,12 @@ class BackupSyncState {
     bool? driveAccessGranted,
     String? currentUploadName,
     String? accessError,
+    String? syncError,
     DriveQuota? quota,
     DateTime? lastSyncedAt,
     bool clearCurrentUpload = false,
     bool clearError = false,
+    bool clearSyncError = false,
   }) =>
       BackupSyncState(
         isSyncing: isSyncing ?? this.isSyncing,
@@ -85,6 +89,7 @@ class BackupSyncState {
         currentUploadName:
             clearCurrentUpload ? null : currentUploadName ?? this.currentUploadName,
         accessError: clearError ? null : accessError ?? this.accessError,
+        syncError: clearSyncError ? null : syncError ?? this.syncError,
         quota: quota ?? this.quota,
         lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
       );
@@ -189,7 +194,9 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
     if (uid == null) return;
 
     _active = true;
-    if (mounted) state = state.copyWith(isSyncing: true);
+    if (mounted) state = state.copyWith(isSyncing: true, clearSyncError: true);
+
+    String? lastError;
 
     try {
       final authService = _ref.read(authServiceProvider);
@@ -236,10 +243,14 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
               // Stop processing — user revoked access
               if (mounted) {
                 state = state.copyWith(
-                    driveAccessGranted: false, clearCurrentUpload: true);
+                  driveAccessGranted: false,
+                  clearCurrentUpload: true,
+                  syncError: 'Drive access was revoked. Tap "Enable Drive Backup" to reconnect.',
+                );
               }
               return;
-            } catch (_) {
+            } catch (e) {
+              lastError = _userFacingError(e);
               try {
                 await FirestoreService.updateAttachmentBackup(
                   uid: uid,
@@ -257,27 +268,64 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
         }
       }
 
-      // Refresh Drive quota after sync
-      final quota =
-          await DriveService.getQuota(authService.googleSignIn);
-      final now = DateTime.now();
-      await FirestoreService.updateUserDoc(uid, {
-        if (quota != null) 'driveUsedBytes': quota.usedBytes,
-        if (quota != null) 'driveLimitBytes': quota.limitBytes ?? 0,
-        'lastSyncedAt': now.millisecondsSinceEpoch,
-      });
+      // Refresh Drive quota after sync (non-fatal if it fails)
+      DriveQuota? quota;
+      DateTime? now;
+      try {
+        quota = await DriveService.getQuota(authService.googleSignIn);
+        now = DateTime.now();
+        await FirestoreService.updateUserDoc(uid, {
+          if (quota != null) 'driveUsedBytes': quota.usedBytes,
+          if (quota != null) 'driveLimitBytes': quota.limitBytes ?? 0,
+          'lastSyncedAt': now.millisecondsSinceEpoch,
+        });
+      } catch (_) {
+        now ??= DateTime.now();
+      }
+
       if (mounted) {
         state = state.copyWith(
           quota: quota,
           lastSyncedAt: now,
           isSyncing: false,
           clearCurrentUpload: true,
+          syncError: lastError,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        state = state.copyWith(
+          isSyncing: false,
+          clearCurrentUpload: true,
+          syncError: _userFacingError(e),
         );
       }
     } finally {
       _active = false;
-      if (mounted) state = state.copyWith(isSyncing: false, clearCurrentUpload: true);
+      if (mounted && state.isSyncing) {
+        state = state.copyWith(isSyncing: false, clearCurrentUpload: true);
+      }
     }
+  }
+
+  static String _userFacingError(Object e) {
+    final s = e.toString().toLowerCase();
+    if (s.contains('quota') || s.contains('storagequota')) {
+      return 'Google Drive storage is full.';
+    }
+    if (s.contains('socketexception') ||
+        s.contains('failed host') ||
+        s.contains('network is unreachable') ||
+        s.contains('connection refused')) {
+      return 'No internet connection.';
+    }
+    if (s.contains('403') || s.contains('forbidden') || s.contains('permission')) {
+      return 'Drive permission denied. Re-enable backup.';
+    }
+    if (s.contains('500') || s.contains('503') || s.contains('backend')) {
+      return 'Google Drive temporarily unavailable. Tap Sync to retry.';
+    }
+    return 'Upload failed. Tap Sync to retry.';
   }
 
   Future<void> _loadCachedState() async {

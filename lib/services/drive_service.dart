@@ -19,8 +19,10 @@ class DriveQuota {
 class DriveNotAuthorizedException implements Exception {}
 
 // 401 / 403 from the Drive REST API → treat as "no access, re-authorize".
+// Quota-exceeded 403s are NOT auth errors — they need a different error message.
 bool _isDriveAuthError(Object e) {
   final s = e.toString().toLowerCase();
+  if (s.contains('quota') || s.contains('storagequota')) return false;
   return s.contains('401') ||
       s.contains('403') ||
       s.contains('unauthorized') ||

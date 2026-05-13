@@ -1050,7 +1050,22 @@ class _BackupCard extends StatelessWidget {
                 ),
               ]),
             ],
-            if (stats.failed > 0) ...[
+            if (sync.syncError != null) ...[
+              const SizedBox(height: 6),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.error_outline_rounded, size: 13, color: Colors.red.shade400),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      sync.syncError!,
+                      style: TextStyle(fontSize: 11, color: Colors.red.shade400),
+                    ),
+                  ),
+                ],
+              ),
+            ] else if (stats.failed > 0) ...[
               const SizedBox(height: 6),
               Row(children: [
                 const Icon(Icons.warning_amber_rounded, size: 12, color: Colors.orange),
