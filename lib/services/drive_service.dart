@@ -134,6 +134,20 @@ class DriveService {
   static Future<bool> requestDriveScope(GoogleSignIn googleSignIn) =>
       googleSignIn.requestScopes([drive.DriveApi.driveFileScope]);
 
+  // Deletes the entire app backup folder from the user's Drive (and all contents).
+  static Future<void> deleteAllBackups(GoogleSignIn googleSignIn) async {
+    try {
+      final api = await _api(googleSignIn);
+      final q =
+          "name='$_appFolderName' and mimeType='application/vnd.google-apps.folder' and trashed=false";
+      final list =
+          await api.files.list(q: q, spaces: 'drive', $fields: 'files(id)');
+      for (final f in list.files ?? []) {
+        await api.files.delete(f.id!);
+      }
+    } catch (_) {}
+  }
+
   // Makes a Drive file viewable by anyone with the link.
   // Returns the thumbnail URL suitable for Image.network display.
   static Future<String> makeShareable(

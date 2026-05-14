@@ -37,6 +37,21 @@ class FirestoreService {
   static Future<void> updateUserDoc(String uid, Map<String, dynamic> data) =>
       _db.doc('users/$uid').set(data, SetOptions(merge: true));
 
+  static Future<void> markAccountForDeletion({
+    required String uid,
+    required bool deleteDriveBackup,
+  }) =>
+      updateUserDoc(uid, {
+        'deletedAt': DateTime.now().millisecondsSinceEpoch,
+        'deleteDriveBackup': deleteDriveBackup,
+      });
+
+  static Future<void> recoverAccount(String uid) =>
+      _db.doc('users/$uid').update({
+        'deletedAt': FieldValue.delete(),
+        'deleteDriveBackup': FieldValue.delete(),
+      });
+
   // ── Settings ───────────────────────────────────────────────────────────────
 
   static Future<AppSettings> loadSettings(String uid) async {

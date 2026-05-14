@@ -4,8 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'firebase_options.dart';
 import 'providers/app_settings_provider.dart';
 import 'providers/auth_provider.dart';
+import 'screens/account_recovery_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/milestone_home_page.dart';
+import 'services/firestore_service.dart';
 import 'services/notification_service.dart';
 
 void main() async {
@@ -35,11 +37,78 @@ class BabyMilestonesApp extends ConsumerWidget {
             ),
       ),
       home: authState.when(
-        data: (user) => user != null ? const MilestoneHomePage() : const LoginScreen(),
+        data: (user) =>
+            user != null ? const _AuthedRoot() : const LoginScreen(),
         loading: () => const _SplashScreen(),
         error: (err, stack) => const LoginScreen(),
       ),
     );
+  }
+}
+
+class _AuthedRoot extends ConsumerStatefulWidget {
+  const _AuthedRoot();
+
+  @override
+  ConsumerState<_AuthedRoot> createState() => _AuthedRootState();
+}
+
+class _AuthedRootState extends ConsumerState<_AuthedRoot> {
+  bool _checked = false;
+  bool _pendingDeletion = false;
+  DateTime? _scheduledDeletion;
+  bool _deleteDriveBackup = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkDeletion();
+  }
+
+  Future<void> _checkDeletion() async {
+    final uid = ref.read(authStateProvider).value?.uid;
+    if (uid == null) {
+      if (mounted) setState(() => _checked = true);
+      return;
+    }
+
+    final doc = await FirestoreService.getUserDoc(uid);
+    if (!mounted) return;
+
+    final deletedAtMs = doc?['deletedAt'];
+    if (deletedAtMs == null) {
+      setState(() => _checked = true);
+      return;
+    }
+
+    final deletedAt =
+        DateTime.fromMillisecondsSinceEpoch((deletedAtMs as num).toInt());
+    if (DateTime.now().difference(deletedAt).inDays >= 28) {
+      await ref.read(authServiceProvider).permanentlyDelete();
+      if (mounted) setState(() => _checked = true);
+      return;
+    }
+
+    setState(() {
+      _checked = true;
+      _pendingDeletion = true;
+      _scheduledDeletion = deletedAt.add(const Duration(days: 28));
+      _deleteDriveBackup = doc?['deleteDriveBackup'] as bool? ?? false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_checked) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    if (_pendingDeletion) {
+      return AccountRecoveryScreen(
+        scheduledDeletion: _scheduledDeletion!,
+        deleteDriveBackup: _deleteDriveBackup,
+      );
+    }
+    return const MilestoneHomePage();
   }
 }
 

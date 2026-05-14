@@ -48876,8 +48876,8 @@
     "hash": "800da7ce1e7e5dfac23653bbe2d951ce"
   },
   "/Users/tibinthomas/my_app/lib/main.dart": {
-    "mtime": 1778690586.8627687,
-    "hash": "84ab6b7a0934c3763c840e60dbbe00e8"
+    "mtime": 1778730987.1724505,
+    "hash": "ace691aaeb814c05fcec4a0cc9e0fb73"
   },
   "/Users/tibinthomas/my_app/lib/providers/sharing_provider.dart": {
     "mtime": 1778411201.2216299,
@@ -48888,8 +48888,8 @@
     "hash": "9fdb9dd2c69a258dc4a166984e4c1042"
   },
   "/Users/tibinthomas/my_app/lib/providers/auth_provider.dart": {
-    "mtime": 1778411204.554643,
-    "hash": "af57d95671cf4a51ce5db3f3bdf88298"
+    "mtime": 1778730906.6170657,
+    "hash": "414cec8d02f203e28cf2e7256a6f4fc9"
   },
   "/Users/tibinthomas/my_app/lib/providers/milestone_form_provider.dart": {
     "mtime": 1778293682.9163911,
@@ -48976,8 +48976,12 @@
     "hash": "a0a05b9e1283e97506229f68f75c76a7"
   },
   "/Users/tibinthomas/my_app/lib/screens/settings_screen.dart": {
-    "mtime": 1778721661.4883878,
-    "hash": "d427f238c6bbe93bcadc10dfbbb4ea88"
+    "mtime": 1778730928.5311418,
+    "hash": "dba9203a7bd0696954d88ef993084e79"
+  },
+  "/Users/tibinthomas/my_app/lib/screens/account_recovery_screen.dart": {
+    "mtime": 1778730960.1581626,
+    "hash": "d9536223f40edab1dc2e72698fca7e31"
   },
   "/Users/tibinthomas/my_app/lib/screens/saved_links_screen.dart": {
     "mtime": 1778641642.6738245,
@@ -49052,8 +49056,8 @@
     "hash": "3f27001fed87b596984a51ac2d2b8b1c"
   },
   "/Users/tibinthomas/my_app/lib/services/firestore_service.dart": {
-    "mtime": 1778411201.2332323,
-    "hash": "71e7619af7d48471542b83e7b66a660d"
+    "mtime": 1778730880.8763556,
+    "hash": "b16fe4f25af992aba4afe53b9a5b29b4"
   },
   "/Users/tibinthomas/my_app/lib/services/local_storage_service.dart": {
     "mtime": 1778639803.3962395,
@@ -49068,8 +49072,8 @@
     "hash": "28a3ec5ebd1ec015c0803fc0219f8e25"
   },
   "/Users/tibinthomas/my_app/lib/services/drive_service.dart": {
-    "mtime": 1778692941.9457095,
-    "hash": "2ca1a8fd5e2997268ba097dee7723f8c"
+    "mtime": 1778730519.3210194,
+    "hash": "b9d0d6f5bebd85f2453e52dbfa5efcb0"
   },
   "/Users/tibinthomas/my_app/lib/services/storage_service.dart": {
     "mtime": 1777870078.225117,

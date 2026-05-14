@@ -14,6 +14,7 @@ import '../providers/backup_provider.dart';
 import '../providers/profiles_provider.dart';
 import '../providers/sharing_provider.dart';
 import '../services/backup_permissions_service.dart';
+import '../services/drive_service.dart';
 import '../services/local_storage_service.dart';
 import '../utils/chime.dart';
 import '../utils/profile_theme.dart';
@@ -515,32 +516,124 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _confirmDeleteAccount(Color accent) {
+    final driveActive =
+        ref.read(backupSyncProvider).driveAccessGranted;
+
+    if (driveActive) {
+      _showDriveBackupChoiceDialog(accent);
+    } else {
+      _showFinalDeleteDialog(deleteDriveBackup: false);
+    }
+  }
+
+  void _showDriveBackupChoiceDialog(Color accent) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Delete account?'),
+        title: const Text('Your Google Drive backup'),
         content: const Text(
-          'This will permanently delete your account and all data. '
-          'You will be asked to sign in again to confirm.',
+          'You have a Drive backup of your memories. '
+          'What would you like to do with it when your account is deleted?',
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           TextButton(
-            onPressed: () async {
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
               Navigator.pop(ctx);
-              await _reauthAndDelete();
+              _showFinalDeleteDialog(deleteDriveBackup: false);
             },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: const Text('Keep backup'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _showFinalDeleteDialog(deleteDriveBackup: true);
+            },
+            child: const Text(
+              'Delete backup',
+              style: TextStyle(color: Colors.red),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Future<void> _reauthAndDelete() async {
+  void _showFinalDeleteDialog({required bool deleteDriveBackup}) {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDlgState) => AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Text('Delete account?'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                deleteDriveBackup
+                    ? 'Your account and Google Drive backup will be deleted. '
+                        'Your memories are kept for 28 days in case you change your mind — '
+                        'but without the Drive files.'
+                    : 'Your account will be scheduled for deletion. '
+                        'Your memories are kept for 28 days — sign back in to recover them. '
+                        'Your Google Drive backup will be kept.',
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Type "delete" to confirm',
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+              const SizedBox(height: 6),
+              TextField(
+                controller: controller,
+                autofocus: true,
+                onChanged: (_) => setDlgState(() {}),
+                decoration: const InputDecoration(
+                  hintText: 'delete',
+                  border: OutlineInputBorder(),
+                  isDense: true,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: controller.text.trim().toLowerCase() == 'delete'
+                  ? () async {
+                      Navigator.pop(ctx);
+                      await _reauthAndDelete(
+                          deleteDriveBackup: deleteDriveBackup);
+                    }
+                  : null,
+              child:
+                  const Text('Delete', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        ),
+      ),
+    ).then((_) => controller.dispose());
+  }
+
+  Future<void> _reauthAndDelete({bool deleteDriveBackup = false}) async {
     try {
-      await ref.read(authServiceProvider).reauthenticateAndDelete();
+      if (deleteDriveBackup) {
+        final gs = ref.read(authServiceProvider).googleSignIn;
+        await DriveService.deleteAllBackups(gs);
+      }
+      await ref
+          .read(authServiceProvider)
+          .softDeleteAccount(deleteDriveBackup: deleteDriveBackup);
       if (mounted) {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => const LoginScreen()),
@@ -558,8 +651,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Re-authentication cancelled.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Re-authentication cancelled.')));
     }
   }
 

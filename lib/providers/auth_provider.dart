@@ -10,6 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' show DriveApi;
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import '../services/firestore_service.dart';
 
 final authStateProvider = StreamProvider<User?>((ref) {
   return FirebaseAuth.instance.authStateChanges();
@@ -147,6 +148,37 @@ class AuthService {
     final user = _auth.currentUser!;
     await user.reauthenticateWithCredential(credential);
     await user.delete();
+    await googleSignIn.signOut();
+  }
+
+  // Marks the account for deletion (data kept 28 days) then signs out.
+  // Does NOT delete the Firebase Auth account so the user can sign back in to recover.
+  Future<void> softDeleteAccount({required bool deleteDriveBackup}) async {
+    final googleUser = await googleSignIn.signIn();
+    if (googleUser == null) throw Exception('cancelled');
+    final googleAuth = await googleUser.authentication;
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
+    );
+    final user = _auth.currentUser!;
+    await user.reauthenticateWithCredential(credential);
+    await FirestoreService.markAccountForDeletion(
+      uid: user.uid,
+      deleteDriveBackup: deleteDriveBackup,
+    );
+    await _auth.signOut();
+    await googleSignIn.signOut();
+  }
+
+  Future<void> recoverAccount(String uid) =>
+      FirestoreService.recoverAccount(uid);
+
+  // Called after the 28-day window expires — permanently removes the Firebase Auth account.
+  Future<void> permanentlyDelete() async {
+    try {
+      await _auth.currentUser?.delete();
+    } catch (_) {}
     await googleSignIn.signOut();
   }
 }
