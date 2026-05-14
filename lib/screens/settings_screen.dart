@@ -287,41 +287,72 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   void _showAddEmailDialog(Color accent) {
     final ctrl = TextEditingController();
+    final existingEmails =
+        ref.read(sharedEmailsProvider).map((i) => i.email).toSet();
+
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Share with'),
-        content: TextField(
-          controller: ctrl,
-          keyboardType: TextInputType.emailAddress,
-          autofocus: true,
-          decoration: InputDecoration(
-            labelText: 'Gmail address',
-            hintText: 'example@gmail.com',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: accent, width: 1.5),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDlgState) {
+          final raw = ctrl.text.trim().toLowerCase();
+          final String? error = _validateShareEmail(raw, existingEmails);
+          final bool canAdd = raw.isNotEmpty && error == null;
+
+          return AlertDialog(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: const Text('Share with'),
+            content: TextField(
+              controller: ctrl,
+              keyboardType: TextInputType.emailAddress,
+              autofocus: true,
+              onChanged: (_) => setDlgState(() {}),
+              decoration: InputDecoration(
+                labelText: 'Gmail address',
+                hintText: 'example@gmail.com',
+                errorText: raw.isEmpty ? null : error,
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: accent, width: 1.5),
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide:
+                      BorderSide(color: Colors.red.shade400, width: 1.5),
+                ),
+              ),
             ),
-          ),
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: accent),
-            onPressed: () {
-              final email = ctrl.text.trim().toLowerCase();
-              if (email.isEmpty) return;
-              Navigator.pop(ctx);
-              ref.read(sharedEmailsProvider.notifier).add(email);
-            },
-            child: const Text('Add'),
-          ),
-        ],
+            actions: [
+              TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancel')),
+              FilledButton(
+                style: FilledButton.styleFrom(backgroundColor: accent),
+                onPressed: canAdd
+                    ? () {
+                        Navigator.pop(ctx);
+                        ref.read(sharedEmailsProvider.notifier).add(raw);
+                      }
+                    : null,
+                child: const Text('Add'),
+              ),
+            ],
+          );
+        },
       ),
-    );
+    ).then((_) => ctrl.dispose());
+  }
+
+  static String? _validateShareEmail(String email, Set<String> existing) {
+    if (email.isEmpty) return null;
+    // Basic email format check
+    final emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+    if (!emailRegex.hasMatch(email)) return 'Enter a valid email address';
+    if (!email.endsWith('@gmail.com')) return 'Only Gmail addresses are supported';
+    if (existing.contains(email)) return 'Already added';
+    return null;
   }
 
   void _confirmDeleteProfile(Color accent, String profileName, int index) {

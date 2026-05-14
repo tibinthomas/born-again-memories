@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' show pi, sin, cos;
 import 'dart:ui';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
@@ -1405,20 +1406,15 @@ class _Bubble extends StatefulWidget {
 
 class _BubbleState extends State<_Bubble> with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl;
-  late final Animation<double> _float;
 
   @override
   void initState() {
     super.initState();
-    final ms = (2200 + widget.size * 12).toInt();
+    final ms = (2800 + widget.size * 14).toInt();
     _ctrl = AnimationController(vsync: this, duration: Duration(milliseconds: ms))
-      ..repeat(reverse: true);
-    // Start at a phase offset derived from size so bubbles are out of sync
+      ..repeat();
+    // Phase-offset so each bubble is out of sync with its neighbours
     _ctrl.forward(from: (widget.size % 100) / 100);
-    final travel = (widget.size * 0.12).clamp(6.0, 20.0);
-    _float = Tween<double>(begin: 0, end: -travel).animate(
-      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
-    );
   }
 
   @override
@@ -1429,19 +1425,29 @@ class _BubbleState extends State<_Bubble> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final travel = (widget.size * 0.13).clamp(6.0, 22.0);
     return AnimatedBuilder(
-      animation: _float,
-      builder: (_, _) => Transform.translate(
-        offset: Offset(0, _float.value),
-        child: Container(
-          width: widget.size,
-          height: widget.size,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.white.withAlpha(widget.alpha),
+      animation: _ctrl,
+      builder: (_, _) {
+        final t = _ctrl.value * 2 * pi;
+        final dy = sin(t) * travel;
+        final dx = cos(t * 0.65) * travel * 0.45;
+        final scale = 1.0 + sin(t * 1.4 + 1.0) * 0.07;
+        return Transform.translate(
+          offset: Offset(dx, dy),
+          child: Transform.scale(
+            scale: scale,
+            child: Container(
+              width: widget.size,
+              height: widget.size,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withAlpha(widget.alpha),
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
