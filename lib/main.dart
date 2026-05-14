@@ -35,6 +35,29 @@ class BabyMilestonesApp extends ConsumerWidget {
               bodyColor: Colors.grey.shade900,
               displayColor: Colors.grey.shade900,
             ),
+        filledButtonTheme: FilledButtonThemeData(
+          style: FilledButton.styleFrom(
+            minimumSize: const Size(64, 40),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+        ),
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(
+            minimumSize: const Size(48, 36),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+          ),
+        ),
+        inputDecorationTheme: const InputDecorationTheme(
+          isDense: true,
+          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        ),
+        dialogTheme: const DialogThemeData(
+          insetPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(20))),
+        ),
       ),
       home: authState.when(
         data: (user) =>
