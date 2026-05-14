@@ -13,8 +13,10 @@ import '../providers/auth_provider.dart';
 import '../providers/backup_provider.dart';
 import '../providers/profiles_provider.dart';
 import '../providers/sharing_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../services/backup_permissions_service.dart';
 import '../services/drive_service.dart';
+import '../services/firestore_service.dart';
 import '../services/local_storage_service.dart';
 import '../utils/chime.dart';
 import '../utils/profile_theme.dart';
@@ -290,17 +292,69 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final existingEmails =
         ref.read(sharedEmailsProvider).map((i) => i.email).toSet();
 
+    // phase: 'form' | 'checking' | 'notFound'
+    var phase = 'form';
+    String? pendingEmail;
+
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDlgState) {
+          // ── Not found — invite screen ──────────────────────────────────────
+          if (phase == 'notFound') {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
+              title: const Text('Not on the app yet'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${pendingEmail!} hasn\'t joined Born Again Memories yet.',
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'You can add them now — they\'ll see your memories the moment they sign up with this email.',
+                    style: TextStyle(fontSize: 13, color: Colors.grey),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    ref.read(sharedEmailsProvider.notifier).add(pendingEmail!);
+                  },
+                  child: const Text('Add anyway'),
+                ),
+                FilledButton(
+                  style: FilledButton.styleFrom(backgroundColor: accent),
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    ref.read(sharedEmailsProvider.notifier).add(pendingEmail!);
+                    _shareAppInvite(pendingEmail!);
+                  },
+                  child: const Text('Add & Invite'),
+                ),
+              ],
+            );
+          }
+
+          // ── Email input form ───────────────────────────────────────────────
           final raw = ctrl.text.trim().toLowerCase();
           final String? error = _validateShareEmail(raw, existingEmails);
-          final bool canAdd = raw.isNotEmpty && error == null;
+          final bool canAdd =
+              raw.isNotEmpty && error == null && phase == 'form';
 
           return AlertDialog(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20)),
             title: const Text('Share with'),
             content: TextField(
               controller: ctrl,
@@ -311,8 +365,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 labelText: 'Gmail address',
                 hintText: 'example@gmail.com',
                 errorText: raw.isEmpty ? null : error,
-                border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12)),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(color: accent, width: 1.5),
@@ -326,17 +380,36 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
             actions: [
               TextButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Cancel')),
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel'),
+              ),
               FilledButton(
                 style: FilledButton.styleFrom(backgroundColor: accent),
                 onPressed: canAdd
-                    ? () {
-                        Navigator.pop(ctx);
-                        ref.read(sharedEmailsProvider.notifier).add(raw);
+                    ? () async {
+                        setDlgState(() => phase = 'checking');
+                        final registered =
+                            await FirestoreService.isEmailRegistered(raw);
+                        if (!ctx.mounted) return;
+                        if (registered) {
+                          Navigator.pop(ctx);
+                          ref
+                              .read(sharedEmailsProvider.notifier)
+                              .add(raw);
+                        } else {
+                          pendingEmail = raw;
+                          setDlgState(() => phase = 'notFound');
+                        }
                       }
                     : null,
-                child: const Text('Add'),
+                child: phase == 'checking'
+                    ? const SizedBox(
+                        height: 16,
+                        width: 16,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white),
+                      )
+                    : const Text('Add'),
               ),
             ],
           );
@@ -345,9 +418,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     ).then((_) => ctrl.dispose());
   }
 
+  void _shareAppInvite(String toEmail) {
+    const playStore =
+        'https://play.google.com/store/apps/details?id=com.tibinthomas.born_again_memories';
+    const appStore =
+        'https://apps.apple.com/app/born-again-memories/id000000000';
+    final text =
+        'Hey! I\'m using Born Again Memories to capture our little one\'s milestones. 📸👶\n\n'
+        'Download the app and I\'ll share our memories with you!\n\n'
+        '📱 iOS: $appStore\n'
+        '🤖 Android: $playStore';
+    SharePlus.instance.share(ShareParams(text: text));
+  }
+
   static String? _validateShareEmail(String email, Set<String> existing) {
     if (email.isEmpty) return null;
-    // Basic email format check
     final emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
     if (!emailRegex.hasMatch(email)) return 'Enter a valid email address';
     if (!email.endsWith('@gmail.com')) return 'Only Gmail addresses are supported';
