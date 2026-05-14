@@ -171,6 +171,15 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
 
       if (!mounted) return;
 
+      // Force a token refresh so the new Drive scope is included before _runSync
+      // tries to use authenticatedClient(). Without this, the first upload attempt
+      // returns null from authenticatedClient() and falsely shows "access revoked".
+      try {
+        await gs.currentUser?.authentication;
+      } catch (_) {}
+
+      if (!mounted) return;
+
       state = state.copyWith(
           driveAccessGranted: true, isRequestingAccess: false, clearError: true);
       _runSync();

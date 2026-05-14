@@ -13,6 +13,7 @@ import '../providers/auth_provider.dart';
 import '../providers/backup_provider.dart';
 import '../providers/profiles_provider.dart';
 import '../providers/sharing_provider.dart';
+import '../services/backup_permissions_service.dart';
 import '../services/local_storage_service.dart';
 import '../utils/chime.dart';
 import '../utils/profile_theme.dart';
@@ -27,6 +28,7 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _testingSound = false;
+  bool _shownPermSheet = false;
 
   // ── Accent from current profile ────────────────────────────────────────────
 
@@ -62,6 +64,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     if (mounted) setState(() => _testingSound = false);
   }
 
+  void _showBackupPermissionsSheet(BuildContext context, Color accent) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _BackupPermissionsSheet(accent: accent),
+    );
+  }
+
   // ── Build ──────────────────────────────────────────────────────────────────
 
   @override
@@ -75,6 +86,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final pTheme = _profileTheme();
     final accent = pTheme.accent;
     final secondary = pTheme.secondary;
+
+    ref.listen<BackupSyncState>(backupSyncProvider, (prev, curr) {
+      if (!_shownPermSheet &&
+          !(prev?.driveAccessGranted ?? false) &&
+          curr.driveAccessGranted &&
+          !kIsWeb) {
+        _shownPermSheet = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _showBackupPermissionsSheet(context, accent);
+        });
+      }
+    });
 
     return Scaffold(
       backgroundColor: const Color(0xFFF2F2F7),
@@ -1111,6 +1134,8 @@ class _BackupCard extends StatelessWidget {
                     style: const TextStyle(fontSize: 11, color: Colors.orange)),
               ]),
             ],
+            if (sync.driveAccessGranted && !kIsWeb)
+              _BackupPermissionTips(accent: accent),
           ],
         ),
       ),
@@ -1513,6 +1538,335 @@ class _About extends StatelessWidget {
             'Cherish every precious moment.',
             style: TextStyle(fontSize: 12, color: Colors.grey.shade400),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Backup permission tips (inline in backup card) ────────────────────────────
+
+class _BackupPermissionTips extends StatefulWidget {
+  final Color accent;
+  const _BackupPermissionTips({required this.accent});
+
+  @override
+  State<_BackupPermissionTips> createState() => _BackupPermissionTipsState();
+}
+
+class _BackupPermissionTipsState extends State<_BackupPermissionTips> {
+  BackupPermissionsStatus? _status;
+
+  @override
+  void initState() {
+    super.initState();
+    _check();
+  }
+
+  Future<void> _check() async {
+    final s = await BackupPermissionsService.check();
+    if (mounted) setState(() => _status = s);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = _status;
+    if (s == null || (!s.needsAction && s.backgroundRefresh)) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 10),
+        const Divider(height: 1, thickness: 0.5),
+        const SizedBox(height: 10),
+        if (!s.notifications)
+          _PermTipRow(
+            icon: Icons.notifications_off_outlined,
+            label: 'Allow notifications for backup alerts',
+            actionLabel: 'Allow',
+            accent: widget.accent,
+            onAction: () async {
+              await BackupPermissionsService.requestNotifications();
+              _check();
+            },
+          ),
+        if (!kIsWeb && Platform.isAndroid && !s.batteryExempt) ...[
+          if (!s.notifications) const SizedBox(height: 6),
+          _PermTipRow(
+            icon: Icons.battery_saver_outlined,
+            label: 'Exempt app from battery optimization',
+            actionLabel: 'Exempt',
+            accent: widget.accent,
+            onAction: () async {
+              await BackupPermissionsService.requestBatteryExemption();
+              _check();
+            },
+          ),
+        ],
+        if (!kIsWeb && Platform.isIOS && !s.backgroundRefresh) ...[
+          if (!s.notifications) const SizedBox(height: 6),
+          _PermTipRow(
+            icon: Icons.refresh_rounded,
+            label: 'Enable Background App Refresh for reliable sync',
+            actionLabel: 'Settings',
+            accent: widget.accent,
+            onAction: () => BackupPermissionsService.goToSettings(),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+// ── Backup permissions bottom sheet (shown once after Drive grant) ────────────
+
+class _BackupPermissionsSheet extends StatefulWidget {
+  final Color accent;
+  const _BackupPermissionsSheet({required this.accent});
+
+  @override
+  State<_BackupPermissionsSheet> createState() => _BackupPermissionsSheetState();
+}
+
+class _BackupPermissionsSheetState extends State<_BackupPermissionsSheet> {
+  BackupPermissionsStatus? _status;
+
+  @override
+  void initState() {
+    super.initState();
+    _check();
+  }
+
+  Future<void> _check() async {
+    final s = await BackupPermissionsService.check();
+    if (mounted) setState(() => _status = s);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = _status;
+    final accent = widget.accent;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: EdgeInsets.fromLTRB(
+          24, 16, 24, MediaQuery.of(context).viewInsets.bottom + 32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          Row(
+            children: [
+              Icon(Icons.cloud_done_outlined, color: accent, size: 22),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text(
+                  'Optimize backup reliability',
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'A few quick steps help ensure your files upload without interruption.',
+            style: TextStyle(fontSize: 13, color: Colors.grey.shade500, height: 1.4),
+          ),
+          const SizedBox(height: 20),
+          if (s == null)
+            const Center(child: CircularProgressIndicator())
+          else ...[
+            _PermSheetRow(
+              icon: Icons.notifications_outlined,
+              title: 'Notifications',
+              subtitle: 'Get alerted when uploads complete or fail.',
+              granted: s.notifications,
+              actionLabel: 'Allow',
+              accent: accent,
+              onAction: () async {
+                await BackupPermissionsService.requestNotifications();
+                _check();
+              },
+            ),
+            if (!kIsWeb && Platform.isAndroid) ...[
+              const SizedBox(height: 12),
+              _PermSheetRow(
+                icon: Icons.battery_saver_outlined,
+                title: 'Battery optimization',
+                subtitle: 'Prevent the system from pausing uploads in the background.',
+                granted: s.batteryExempt,
+                actionLabel: 'Exempt',
+                accent: accent,
+                onAction: () async {
+                  await BackupPermissionsService.requestBatteryExemption();
+                  _check();
+                },
+              ),
+            ],
+            if (!kIsWeb && Platform.isIOS) ...[
+              const SizedBox(height: 12),
+              _PermSheetRow(
+                icon: Icons.refresh_rounded,
+                title: 'Background App Refresh',
+                subtitle: 'Allow the app to sync when you reopen it.',
+                granted: s.backgroundRefresh,
+                actionLabel: 'Settings',
+                accent: accent,
+                onAction: () => BackupPermissionsService.goToSettings(),
+              ),
+            ],
+          ],
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            child: TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Done'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Shared permission row widgets ─────────────────────────────────────────────
+
+class _PermTipRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String actionLabel;
+  final Color accent;
+  final VoidCallback onAction;
+
+  const _PermTipRow({
+    required this.icon,
+    required this.label,
+    required this.actionLabel,
+    required this.accent,
+    required this.onAction,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 14, color: Colors.amber.shade700),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(fontSize: 11, color: Colors.amber.shade800, height: 1.3),
+          ),
+        ),
+        const SizedBox(width: 8),
+        GestureDetector(
+          onTap: onAction,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: accent.withAlpha(20),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: accent.withAlpha(60)),
+            ),
+            child: Text(
+              actionLabel,
+              style: TextStyle(
+                  fontSize: 11, fontWeight: FontWeight.w600, color: accent),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PermSheetRow extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final bool granted;
+  final String actionLabel;
+  final Color accent;
+  final VoidCallback onAction;
+
+  const _PermSheetRow({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.granted,
+    required this.actionLabel,
+    required this.accent,
+    required this.onAction,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: granted ? Colors.green.shade50 : Colors.amber.shade50,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: granted ? Colors.green.shade100 : Colors.amber.shade200,
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            granted ? Icons.check_circle_outline : icon,
+            size: 20,
+            color: granted ? Colors.green.shade600 : Colors.amber.shade700,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title,
+                    style: const TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 2),
+                Text(subtitle,
+                    style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                        height: 1.3)),
+              ],
+            ),
+          ),
+          if (!granted) ...[
+            const SizedBox(width: 10),
+            FilledButton(
+              onPressed: onAction,
+              style: FilledButton.styleFrom(
+                backgroundColor: accent,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+              ),
+              child: Text(actionLabel,
+                  style: const TextStyle(fontSize: 12, color: Colors.white)),
+            ),
+          ],
         ],
       ),
     );
