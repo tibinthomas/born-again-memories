@@ -7,6 +7,7 @@ import '../models/kid_profile.dart';
 import '../models/milestone.dart';
 import '../models/reminder.dart';
 import '../models/saved_link.dart';
+import '../services/drive_service.dart';
 import '../services/firestore_service.dart';
 import '../services/notification_service.dart';
 import 'auth_provider.dart';
@@ -14,9 +15,10 @@ import '../utils/profile_theme.dart';
 
 class ProfilesNotifier extends StateNotifier<List<KidProfile>?> {
   final String uid;
+  final Ref _ref;
 
   // null = initial load in progress, [] = loaded/empty, [...] = loaded with data
-  ProfilesNotifier(this.uid) : super(uid.isNotEmpty ? null : <KidProfile>[]) {
+  ProfilesNotifier(this.uid, this._ref) : super(uid.isNotEmpty ? null : <KidProfile>[]) {
     if (uid.isNotEmpty) _load();
   }
 
@@ -75,6 +77,22 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>?> {
   Future<void> updateMilestone(int profileIndex, Milestone milestone) async {
     final list = state ?? <KidProfile>[];
     final profile = list[profileIndex];
+
+    // Delete Drive files for any attachments removed during edit.
+    final old = profile.milestones.firstWhere(
+      (m) => m.id == milestone.id,
+      orElse: () => milestone,
+    );
+    final kept = milestone.attachments.map((a) => a.id).toSet();
+    final removed = old.attachments
+        .where((a) => !kept.contains(a.id) && a.driveFileId != null);
+    if (removed.isNotEmpty) {
+      final gs = _ref.read(authServiceProvider).googleSignIn;
+      for (final a in removed) {
+        DriveService.deleteFile(googleSignIn: gs, driveFileId: a.driveFileId!);
+      }
+    }
+
     final milestones = profile.milestones
         .map((m) => m.id == milestone.id ? milestone : m)
         .toList();
@@ -85,6 +103,20 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>?> {
   Future<void> deleteMilestone(int profileIndex, String milestoneId) async {
     final list = state ?? <KidProfile>[];
     final profile = list[profileIndex];
+    final milestone =
+        profile.milestones.firstWhere((m) => m.id == milestoneId);
+
+    // Delete Drive files for all attachments in the milestone.
+    final driveIds = milestone.attachments
+        .where((a) => a.driveFileId != null)
+        .map((a) => a.driveFileId!);
+    if (driveIds.isNotEmpty) {
+      final gs = _ref.read(authServiceProvider).googleSignIn;
+      for (final id in driveIds) {
+        DriveService.deleteFile(googleSignIn: gs, driveFileId: id);
+      }
+    }
+
     final milestones =
         profile.milestones.where((m) => m.id != milestoneId).toList();
     _setProfile(profileIndex, profile.copyWith(milestones: milestones));
@@ -291,7 +323,7 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>?> {
 final profilesProvider =
     StateNotifierProvider<ProfilesNotifier, List<KidProfile>?>((ref) {
   final uid = ref.watch(authStateProvider).value?.uid ?? '';
-  return ProfilesNotifier(uid);
+  return ProfilesNotifier(uid, ref);
 });
 
 final selectedProfileIndexProvider = StateProvider<int>((ref) => 0);
