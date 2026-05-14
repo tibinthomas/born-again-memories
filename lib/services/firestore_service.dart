@@ -279,12 +279,14 @@ class FirestoreService {
     required String milestoneId,
     required String attachmentId,
     required String? driveFileId,
+    String? iCloudFileId,
     required BackupStatus status,
   }) =>
       _db
           .doc('users/$uid/profiles/$profileId/milestones/$milestoneId')
           .update({
         'attachments.$attachmentId.driveFileId': driveFileId,
+        'attachments.$attachmentId.iCloudFileId': iCloudFileId,
         'attachments.$attachmentId.backupStatus': status.name,
       });
 }

@@ -46,6 +46,12 @@ class AuthService {
 
   User? get currentUser => _auth.currentUser;
 
+  bool get isAppleUser =>
+      !kIsWeb &&
+      !kIsWeb && (Platform.isIOS || Platform.isMacOS) &&
+      (_auth.currentUser?.providerData.any((p) => p.providerId == 'apple.com') ??
+          false);
+
   Future<UserCredential?> signInWithGoogle() async {
     // On macOS, GIDSignIn v7 requires keychain-sharing which needs a signed
     // developer certificate. Use flutter_appauth (ASWebAuthenticationSession)
@@ -118,6 +124,35 @@ class AuthService {
     return _auth.signInWithCredential(oauthCredential);
   }
 
+  Future<void> _reauthWithGoogle(User user) async {
+    final googleUser = await googleSignIn.signIn();
+    if (googleUser == null) throw Exception('cancelled');
+    final googleAuth = await googleUser.authentication;
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
+    );
+    await user.reauthenticateWithCredential(credential);
+  }
+
+  Future<void> _reauthWithApple(User user) async {
+    final rawNonce = _generateNonce();
+    final hashedNonce = _sha256ofString(rawNonce);
+    final appleCredential = await SignInWithApple.getAppleIDCredential(
+      scopes: [
+        AppleIDAuthorizationScopes.email,
+        AppleIDAuthorizationScopes.fullName,
+      ],
+      nonce: hashedNonce,
+    );
+    final credential = OAuthProvider('apple.com').credential(
+      idToken: appleCredential.identityToken,
+      rawNonce: rawNonce,
+      accessToken: appleCredential.authorizationCode,
+    );
+    await user.reauthenticateWithCredential(credential);
+  }
+
   static String _generateNonce([int length = 32]) {
     const charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
     final random = Random.secure();
@@ -131,44 +166,36 @@ class AuthService {
   }
 
   Future<void> signOut() async {
-    await Future.wait([
-      _auth.signOut(),
-      googleSignIn.signOut(),
-    ]);
+    await _auth.signOut();
+    if (!isAppleUser) await googleSignIn.signOut();
   }
 
   Future<void> reauthenticateAndDelete() async {
-    final googleUser = await googleSignIn.signIn();
-    if (googleUser == null) throw Exception('cancelled');
-    final googleAuth = await googleUser.authentication;
-    final credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth.accessToken,
-      idToken: googleAuth.idToken,
-    );
     final user = _auth.currentUser!;
-    await user.reauthenticateWithCredential(credential);
+    if (isAppleUser) {
+      await _reauthWithApple(user);
+    } else {
+      await _reauthWithGoogle(user);
+    }
     await user.delete();
-    await googleSignIn.signOut();
+    if (!isAppleUser) await googleSignIn.signOut();
   }
 
   // Marks the account for deletion (data kept 28 days) then signs out.
   // Does NOT delete the Firebase Auth account so the user can sign back in to recover.
   Future<void> softDeleteAccount({required bool deleteDriveBackup}) async {
-    final googleUser = await googleSignIn.signIn();
-    if (googleUser == null) throw Exception('cancelled');
-    final googleAuth = await googleUser.authentication;
-    final credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth.accessToken,
-      idToken: googleAuth.idToken,
-    );
     final user = _auth.currentUser!;
-    await user.reauthenticateWithCredential(credential);
+    if (isAppleUser) {
+      await _reauthWithApple(user);
+    } else {
+      await _reauthWithGoogle(user);
+    }
     await FirestoreService.markAccountForDeletion(
       uid: user.uid,
       deleteDriveBackup: deleteDriveBackup,
     );
     await _auth.signOut();
-    await googleSignIn.signOut();
+    if (!isAppleUser) await googleSignIn.signOut();
   }
 
   Future<void> recoverAccount(String uid) =>
@@ -179,6 +206,8 @@ class AuthService {
     try {
       await _auth.currentUser?.delete();
     } catch (_) {}
-    await googleSignIn.signOut();
+    try {
+      await googleSignIn.signOut();
+    } catch (_) {}
   }
 }

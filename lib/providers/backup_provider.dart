@@ -6,6 +6,7 @@ import 'package:googleapis/drive/v3.dart' show DriveApi;
 import '../models/attachment.dart';
 import '../services/drive_service.dart';
 import '../services/firestore_service.dart';
+import '../services/icloud_service.dart';
 import 'auth_provider.dart';
 import 'profiles_provider.dart';
 
@@ -47,12 +48,13 @@ final backupStatsProvider = Provider<BackupStats>((ref) {
   );
 });
 
-// ── Sync state (Drive quota, progress, last sync) ─────────────────────────────
+// ── Sync state ────────────────────────────────────────────────────────────────
 
 class BackupSyncState {
   final bool isSyncing;
   final bool isRequestingAccess;
   final bool driveAccessGranted;
+  final bool iCloudAccessGranted;
   final String? currentUploadName;
   final String? accessError;
   final String? syncError;
@@ -63,6 +65,7 @@ class BackupSyncState {
     this.isSyncing = false,
     this.isRequestingAccess = false,
     this.driveAccessGranted = false,
+    this.iCloudAccessGranted = false,
     this.currentUploadName,
     this.accessError,
     this.syncError,
@@ -70,10 +73,13 @@ class BackupSyncState {
     this.lastSyncedAt,
   });
 
+  bool get cloudAccessGranted => driveAccessGranted || iCloudAccessGranted;
+
   BackupSyncState copyWith({
     bool? isSyncing,
     bool? isRequestingAccess,
     bool? driveAccessGranted,
+    bool? iCloudAccessGranted,
     String? currentUploadName,
     String? accessError,
     String? syncError,
@@ -87,6 +93,7 @@ class BackupSyncState {
         isSyncing: isSyncing ?? this.isSyncing,
         isRequestingAccess: isRequestingAccess ?? this.isRequestingAccess,
         driveAccessGranted: driveAccessGranted ?? this.driveAccessGranted,
+        iCloudAccessGranted: iCloudAccessGranted ?? this.iCloudAccessGranted,
         currentUploadName:
             clearCurrentUpload ? null : currentUploadName ?? this.currentUploadName,
         accessError: clearError ? null : accessError ?? this.accessError,
@@ -105,96 +112,141 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
   }
 
   Future<void> _init() async {
-    if (kIsWeb) return; // Drive API not available on web via this path
+    if (kIsWeb) return;
     await _loadCachedState();
-    final gs = _ref.read(authServiceProvider).googleSignIn;
-    final client = await gs.authenticatedClient();
-    if (!mounted) return;
 
-    // A non-null client only means the user has *some* Google session (e.g. email
-    // scope). Verify that the Drive scope was actually granted before starting
-    // sync — otherwise uploads silently fail with 403 and every attachment gets
-    // marked as BackupStatus.failed.
-    bool driveGranted = false;
-    if (client != null) {
-      try {
-        driveGranted = await gs.canAccessScopes([DriveApi.driveFileScope]);
-      } catch (_) {
-        driveGranted = false;
+    final authService = _ref.read(authServiceProvider);
+
+    if (authService.isAppleUser) {
+      // iCloud: user must have previously enabled it (persisted in Firestore).
+      // state.iCloudAccessGranted is loaded by _loadCachedState.
+      if (!state.iCloudAccessGranted) return;
+      final available = await ICloudService.isAvailable();
+      if (!mounted) return;
+      if (!available) {
+        state = state.copyWith(
+          iCloudAccessGranted: false,
+          syncError: 'iCloud is not available. Please check your iCloud settings.',
+        );
+        return;
       }
-    }
+      _runSync();
+    } else {
+      final gs = authService.googleSignIn;
+      final client = await gs.authenticatedClient();
+      if (!mounted) return;
 
-    state = state.copyWith(driveAccessGranted: driveGranted);
-    if (driveGranted) _runSync();
+      bool driveGranted = false;
+      if (client != null) {
+        try {
+          driveGranted = await gs.canAccessScopes([DriveApi.driveFileScope]);
+        } catch (_) {
+          driveGranted = false;
+        }
+      }
+
+      state = state.copyWith(driveAccessGranted: driveGranted);
+      if (driveGranted) _runSync();
+    }
   }
 
-  // Called from settings — requests Drive scope, falls back to full re-auth.
+  // Called from settings — grants cloud access, then starts sync.
   Future<void> grantAndSync() async {
     if (!mounted) return;
     state = state.copyWith(isRequestingAccess: true, clearError: true);
 
-    try {
-      final gs = _ref.read(authServiceProvider).googleSignIn;
+    final authService = _ref.read(authServiceProvider);
 
-      // Step 1: try lightweight scope request on existing session
-      bool granted = false;
-      String? scopeError;
+    if (authService.isAppleUser) {
       try {
-        granted = await gs.requestScopes([DriveApi.driveFileScope]);
+        final available = await ICloudService.isAvailable();
+        if (!mounted) return;
+        if (!available) {
+          state = state.copyWith(
+            isRequestingAccess: false,
+            accessError:
+                'iCloud is not available. Please sign in to iCloud in your device Settings.',
+          );
+          return;
+        }
+        // Persist the user's choice to enable iCloud backup.
+        final uid = _ref.read(authStateProvider).value?.uid;
+        if (uid != null) {
+          await FirestoreService.updateUserDoc(uid, {'iCloudBackupEnabled': true});
+        }
+        if (!mounted) return;
+        state = state.copyWith(
+          iCloudAccessGranted: true,
+          isRequestingAccess: false,
+          clearError: true,
+        );
+        _runSync();
       } catch (e, st) {
-        scopeError = e.toString();
-        debugPrint('[BackupSync] requestScopes error: $e\n$st');
-      }
-
-      // Step 2: if that didn't work, trigger a full sign-in — the constructor
-      //         scopes now include drive.file so the consent screen will show it.
-      if (!granted) {
-        try {
-          final account = await gs.signIn();
-          granted = account != null;
-          if (granted) scopeError = null;
-        } catch (e, st) {
-          scopeError ??= e.toString();
-          debugPrint('[BackupSync] signIn error: $e\n$st');
+        debugPrint('[BackupSync] iCloud grantAndSync error: $e\n$st');
+        if (mounted) {
+          state = state.copyWith(
+            isRequestingAccess: false,
+            accessError: e.toString(),
+          );
         }
       }
-
-      if (!mounted) return;
-
-      if (!granted) {
-        final msg = scopeError != null
-            ? 'Drive access not granted.\n$scopeError'
-            : 'Drive access was not granted. Please try again.';
-        state = state.copyWith(isRequestingAccess: false, accessError: msg);
-        return;
-      }
-
-      if (!mounted) return;
-
-      // Force a token refresh so the new Drive scope is included before _runSync
-      // tries to use authenticatedClient(). Without this, the first upload attempt
-      // returns null from authenticatedClient() and falsely shows "access revoked".
+    } else {
       try {
-        await gs.currentUser?.authentication;
-      } catch (_) {}
+        final gs = authService.googleSignIn;
 
-      if (!mounted) return;
+        bool granted = false;
+        String? scopeError;
+        try {
+          granted = await gs.requestScopes([DriveApi.driveFileScope]);
+        } catch (e, st) {
+          scopeError = e.toString();
+          debugPrint('[BackupSync] requestScopes error: $e\n$st');
+        }
 
-      state = state.copyWith(
-          driveAccessGranted: true, isRequestingAccess: false, clearError: true);
-      _runSync();
-    } catch (e, st) {
-      debugPrint('[BackupSync] grantAndSync error: $e\n$st');
-      if (mounted) {
+        if (!granted) {
+          try {
+            final account = await gs.signIn();
+            granted = account != null;
+            if (granted) scopeError = null;
+          } catch (e, st) {
+            scopeError ??= e.toString();
+            debugPrint('[BackupSync] signIn error: $e\n$st');
+          }
+        }
+
+        if (!mounted) return;
+
+        if (!granted) {
+          final msg = scopeError != null
+              ? 'Drive access not granted.\n$scopeError'
+              : 'Drive access was not granted. Please try again.';
+          state = state.copyWith(isRequestingAccess: false, accessError: msg);
+          return;
+        }
+
+        if (!mounted) return;
+
+        try {
+          await gs.currentUser?.authentication;
+        } catch (_) {}
+
+        if (!mounted) return;
+
         state = state.copyWith(
-          isRequestingAccess: false,
-          accessError: e.toString(),
-        );
+            driveAccessGranted: true, isRequestingAccess: false, clearError: true);
+        _runSync();
+      } catch (e, st) {
+        debugPrint('[BackupSync] grantAndSync error: $e\n$st');
+        if (mounted) {
+          state = state.copyWith(
+            isRequestingAccess: false,
+            accessError: e.toString(),
+          );
+        }
       }
     }
   }
 
-  // Public entry point — safe to call multiple times.
   Future<void> syncNow() => _runSync();
 
   Future<void> _runSync() async {
@@ -205,11 +257,11 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
     _active = true;
     if (mounted) state = state.copyWith(isSyncing: true, clearSyncError: true);
 
-    // Tracks the first upload failure with full context for display.
     String? firstError;
 
     try {
       final authService = _ref.read(authServiceProvider);
+      final isApple = authService.isAppleUser;
       final profiles = _ref.read(profilesProvider) ?? [];
 
       for (final profile in profiles) {
@@ -227,33 +279,73 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
             }
 
             try {
-              debugPrint('[BackupSync] uploading "${attachment.name}" from ${attachment.localPath}');
-              final fileId = await DriveService.uploadFile(
-                googleSignIn: authService.googleSignIn,
-                localPath: attachment.localPath,
-                fileName: attachment.name,
-                profileName: profile.name,
-                milestoneId: milestone.id,
-                type: attachment.type,
-              );
-              debugPrint('[BackupSync] uploaded "${attachment.name}" → driveId=$fileId');
+              if (isApple) {
+                debugPrint('[BackupSync] iCloud uploading "${attachment.name}"');
+                final relativePath = await ICloudService.uploadFile(
+                  localPath: attachment.localPath,
+                  fileName: attachment.name,
+                  profileName: profile.name,
+                  milestoneId: milestone.id,
+                  type: attachment.type,
+                );
+                debugPrint('[BackupSync] iCloud uploaded "${attachment.name}" → $relativePath');
 
-              await FirestoreService.updateAttachmentBackup(
-                uid: uid,
-                profileId: profile.id,
-                milestoneId: milestone.id,
-                attachmentId: attachment.id,
-                driveFileId: fileId,
-                status: BackupStatus.backedUp,
-              );
+                await FirestoreService.updateAttachmentBackup(
+                  uid: uid,
+                  profileId: profile.id,
+                  milestoneId: milestone.id,
+                  attachmentId: attachment.id,
+                  driveFileId: null,
+                  iCloudFileId: relativePath,
+                  status: BackupStatus.backedUp,
+                );
 
-              _ref.read(profilesProvider.notifier).updateAttachmentBackupStatus(
-                    profile.id,
-                    milestone.id,
-                    attachment.id,
-                    fileId,
-                    BackupStatus.backedUp,
-                  );
+                _ref.read(profilesProvider.notifier).updateAttachmentBackupStatus(
+                      profile.id,
+                      milestone.id,
+                      attachment.id,
+                      BackupStatus.backedUp,
+                      iCloudFileId: relativePath,
+                    );
+              } else {
+                debugPrint('[BackupSync] Drive uploading "${attachment.name}" from ${attachment.localPath}');
+                final fileId = await DriveService.uploadFile(
+                  googleSignIn: authService.googleSignIn,
+                  localPath: attachment.localPath,
+                  fileName: attachment.name,
+                  profileName: profile.name,
+                  milestoneId: milestone.id,
+                  type: attachment.type,
+                );
+                debugPrint('[BackupSync] Drive uploaded "${attachment.name}" → driveId=$fileId');
+
+                await FirestoreService.updateAttachmentBackup(
+                  uid: uid,
+                  profileId: profile.id,
+                  milestoneId: milestone.id,
+                  attachmentId: attachment.id,
+                  driveFileId: fileId,
+                  status: BackupStatus.backedUp,
+                );
+
+                _ref.read(profilesProvider.notifier).updateAttachmentBackupStatus(
+                      profile.id,
+                      milestone.id,
+                      attachment.id,
+                      BackupStatus.backedUp,
+                      driveFileId: fileId,
+                    );
+              }
+            } on ICloudNotAvailableException {
+              debugPrint('[BackupSync] ICloudNotAvailableException on "${attachment.name}" — stopping sync');
+              if (mounted) {
+                state = state.copyWith(
+                  iCloudAccessGranted: false,
+                  clearCurrentUpload: true,
+                  syncError: 'iCloud access lost. Tap "Enable iCloud Backup" to reconnect.',
+                );
+              }
+              return;
             } on DriveNotAuthorizedException {
               debugPrint('[BackupSync] DriveNotAuthorizedException on "${attachment.name}" — stopping sync');
               if (mounted) {
@@ -281,18 +373,20 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
                 debugPrint('[BackupSync] Firestore status update failed: $fe\n$fst');
               }
               _ref.read(profilesProvider.notifier).updateAttachmentBackupStatus(
-                    profile.id, milestone.id, attachment.id, null, BackupStatus.failed);
+                    profile.id, milestone.id, attachment.id, BackupStatus.failed);
             }
           }
         }
       }
 
-      // Refresh Drive quota after sync (non-fatal if it fails).
+      // Drive quota refresh (skip for iCloud — no accessible quota API).
       DriveQuota? quota;
       DateTime? now;
       try {
-        quota = await DriveService.getQuota(authService.googleSignIn);
-        debugPrint('[BackupSync] quota: used=${quota?.usedBytes} limit=${quota?.limitBytes}');
+        if (!isApple) {
+          quota = await DriveService.getQuota(authService.googleSignIn);
+          debugPrint('[BackupSync] quota: used=${quota?.usedBytes} limit=${quota?.limitBytes}');
+        }
         now = DateTime.now();
         await FirestoreService.updateUserDoc(uid, {
           if (quota != null) 'driveUsedBytes': quota.usedBytes,
@@ -350,7 +444,13 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
       lastSync = DateTime.fromMillisecondsSinceEpoch((ts as num).toInt());
     }
 
-    state = state.copyWith(quota: quota, lastSyncedAt: lastSync);
+    final iCloudEnabled = data['iCloudBackupEnabled'] as bool? ?? false;
+
+    state = state.copyWith(
+      quota: quota,
+      lastSyncedAt: lastSync,
+      iCloudAccessGranted: iCloudEnabled,
+    );
   }
 }
 

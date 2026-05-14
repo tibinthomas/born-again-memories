@@ -13,6 +13,7 @@ class Attachment {
   final int sizeBytes;
   final String localPath;
   final String? driveFileId;
+  final String? iCloudFileId;
   final BackupStatus backupStatus;
   // In-memory bytes for web (not serialized — only lives within the session)
   final Uint8List? webBytes;
@@ -25,6 +26,7 @@ class Attachment {
     required this.sizeBytes,
     required this.localPath,
     this.driveFileId,
+    this.iCloudFileId,
     this.backupStatus = BackupStatus.queued,
     this.webBytes,
   });
@@ -37,8 +39,10 @@ class Attachment {
   Attachment copyWith({
     String? label,
     String? driveFileId,
+    String? iCloudFileId,
     BackupStatus? backupStatus,
     bool clearDriveFileId = false,
+    bool clearICloudFileId = false,
     bool clearLabel = false,
   }) =>
       Attachment(
@@ -49,6 +53,7 @@ class Attachment {
         sizeBytes: sizeBytes,
         localPath: localPath,
         driveFileId: clearDriveFileId ? null : driveFileId ?? this.driveFileId,
+        iCloudFileId: clearICloudFileId ? null : iCloudFileId ?? this.iCloudFileId,
         backupStatus: backupStatus ?? this.backupStatus,
         webBytes: webBytes,
       );
@@ -61,6 +66,7 @@ class Attachment {
         'sizeBytes': sizeBytes,
         'localPath': localPath,
         'driveFileId': driveFileId,
+        'iCloudFileId': iCloudFileId,
         'backupStatus': backupStatus.name,
         // webBytes intentionally excluded — too large for Firestore
       };
@@ -74,6 +80,7 @@ class Attachment {
         sizeBytes: (j['sizeBytes'] as num).toInt(),
         localPath: j['localPath'] as String? ?? '',
         driveFileId: j['driveFileId'] as String?,
+        iCloudFileId: j['iCloudFileId'] as String?,
         backupStatus: BackupStatus.values.firstWhere(
           (e) => e.name == (j['backupStatus'] as String? ?? 'queued'),
           orElse: () => BackupStatus.queued,

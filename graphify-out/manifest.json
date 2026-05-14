@@ -12,8 +12,8 @@
     "hash": "35fbf1f08349e55d5bdfa8738a2e7528"
   },
   "/Users/tibinthomas/my_app/macos/Flutter/GeneratedPluginRegistrant.swift": {
-    "mtime": 1778411204.5560725,
-    "hash": "857014509220b8771dd64aabb901e234"
+    "mtime": 1778733560.6219459,
+    "hash": "3e0f22dc1999106baa684f5cf86b0b30"
   },
   "/Users/tibinthomas/my_app/macos/Pods/FirebaseSharedSwift/FirebaseSharedSwift/Sources/FirebaseRemoteConfigValueDecoding.swift": {
     "mtime": 1778175293.2475145,
@@ -23912,8 +23912,8 @@
     "hash": "2bd8469f2a4b701ff582f6574e58b13c"
   },
   "/Users/tibinthomas/my_app/ios/Runner/GeneratedPluginRegistrant.m": {
-    "mtime": 1778721510.418057,
-    "hash": "2088301be70de6bf028cf3337195466a"
+    "mtime": 1778733560.6207829,
+    "hash": "ae2e348b577025e3ccd401739295b2ef"
   },
   "/Users/tibinthomas/my_app/ios/Runner/SceneDelegate.swift": {
     "mtime": 1777367340.471183,
@@ -48888,20 +48888,20 @@
     "hash": "9fdb9dd2c69a258dc4a166984e4c1042"
   },
   "/Users/tibinthomas/my_app/lib/providers/auth_provider.dart": {
-    "mtime": 1778730906.6170657,
-    "hash": "414cec8d02f203e28cf2e7256a6f4fc9"
+    "mtime": 1778733669.8117814,
+    "hash": "c7a9331914d9193b9acda1159736c4cc"
   },
   "/Users/tibinthomas/my_app/lib/providers/milestone_form_provider.dart": {
     "mtime": 1778293682.9163911,
     "hash": "e4a9c924d2608024e754e64fd8c27a1e"
   },
   "/Users/tibinthomas/my_app/lib/providers/profiles_provider.dart": {
-    "mtime": 1778729949.4390495,
-    "hash": "6c0f4838d85f51c3e9ef4cf12b69d9d0"
+    "mtime": 1778733725.9413147,
+    "hash": "f93d6e0f750db117da0064699f58aecd"
   },
   "/Users/tibinthomas/my_app/lib/providers/backup_provider.dart": {
-    "mtime": 1778721110.324884,
-    "hash": "31d67105af27f48082a76d4366644a06"
+    "mtime": 1778733795.5034556,
+    "hash": "bef0d4d8dc7ba93477bb8abdf207fe2e"
   },
   "/Users/tibinthomas/my_app/lib/utils/theme_preset.dart": {
     "mtime": 1778411199.8167543,
@@ -48960,8 +48960,8 @@
     "hash": "1bd5fda669c787ed8232e3fb7bbea67e"
   },
   "/Users/tibinthomas/my_app/lib/models/attachment.dart": {
-    "mtime": 1778309957.9289885,
-    "hash": "e8aa6fb9bbca6b16dd521ceec6cb5b12"
+    "mtime": 1778733578.590291,
+    "hash": "1785a6ebf46931cbfefc2b397160d38d"
   },
   "/Users/tibinthomas/my_app/lib/models/kid_profile.dart": {
     "mtime": 1778411203.8726969,
@@ -48976,8 +48976,8 @@
     "hash": "179ae1f45b35adabe2a1437372f5bbd0"
   },
   "/Users/tibinthomas/my_app/lib/screens/settings_screen.dart": {
-    "mtime": 1778731736.432588,
-    "hash": "dbd9c0613d84c94116800aadcef21b15"
+    "mtime": 1778769605.6045713,
+    "hash": "6daed14a310ea9a14281b334b75f8cff"
   },
   "/Users/tibinthomas/my_app/lib/screens/account_recovery_screen.dart": {
     "mtime": 1778730960.1581626,
@@ -49000,8 +49000,8 @@
     "hash": "d50fb79314668701f5049d3f31fb2d11"
   },
   "/Users/tibinthomas/my_app/lib/screens/login_screen.dart": {
-    "mtime": 1778728788.8868735,
-    "hash": "aaaf6c307737357217aa1e3dfd8c5ee1"
+    "mtime": 1778769614.780116,
+    "hash": "c90527245908680247c94697d96b2e75"
   },
   "/Users/tibinthomas/my_app/lib/screens/reminders_screen.dart": {
     "mtime": 1778685805.622961,
@@ -49056,8 +49056,8 @@
     "hash": "3f27001fed87b596984a51ac2d2b8b1c"
   },
   "/Users/tibinthomas/my_app/lib/services/firestore_service.dart": {
-    "mtime": 1778730880.8763556,
-    "hash": "b16fe4f25af992aba4afe53b9a5b29b4"
+    "mtime": 1778733625.0234284,
+    "hash": "aeb7de8837cf59b73801cce75a20f8db"
   },
   "/Users/tibinthomas/my_app/lib/services/local_storage_service.dart": {
     "mtime": 1778639803.3962395,
@@ -49074,6 +49074,10 @@
   "/Users/tibinthomas/my_app/lib/services/drive_service.dart": {
     "mtime": 1778730519.3210194,
     "hash": "b9d0d6f5bebd85f2453e52dbfa5efcb0"
+  },
+  "/Users/tibinthomas/my_app/lib/services/icloud_service.dart": {
+    "mtime": 1778733605.601299,
+    "hash": "c10a75428b4b0ac871e08a98948ab37a"
   },
   "/Users/tibinthomas/my_app/lib/services/storage_service.dart": {
     "mtime": 1777870078.225117,
@@ -49144,8 +49148,8 @@
     "hash": "d4a537148be5a8b731a7954884cf7119"
   },
   "/Users/tibinthomas/my_app/pubspec.yaml": {
-    "mtime": 1778721491.623605,
-    "hash": "d6bbb9d3602ed20d79a3658f2e2f818b"
+    "mtime": 1778733522.5619366,
+    "hash": "cd26bf0d8a3b4efc3b3b6e4deed9168c"
   },
   "/Users/tibinthomas/my_app/analysis_options.yaml": {
     "mtime": 1777687427.381633,

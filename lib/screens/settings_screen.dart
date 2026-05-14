@@ -17,6 +17,7 @@ import 'package:share_plus/share_plus.dart';
 import '../services/backup_permissions_service.dart';
 import '../services/drive_service.dart';
 import '../services/firestore_service.dart';
+import '../services/icloud_service.dart';
 import '../services/local_storage_service.dart';
 import '../utils/chime.dart';
 import '../utils/profile_theme.dart';
@@ -92,8 +93,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     ref.listen<BackupSyncState>(backupSyncProvider, (prev, curr) {
       if (!_shownPermSheet &&
-          !(prev?.driveAccessGranted ?? false) &&
-          curr.driveAccessGranted &&
+          !(prev?.cloudAccessGranted ?? false) &&
+          curr.cloudAccessGranted &&
           !kIsWeb) {
         _shownPermSheet = true;
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -158,6 +159,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     accent: accent,
                     sync: sync,
                     stats: stats,
+                    isAppleUser: ref.read(authServiceProvider).isAppleUser,
                     onGrantAndSync: () => ref.read(backupSyncProvider.notifier).grantAndSync(),
                     onSyncNow: () => ref.read(backupSyncProvider.notifier).syncNow(),
                   ),
@@ -632,24 +634,27 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _confirmDeleteAccount(Color accent) {
-    final driveActive =
-        ref.read(backupSyncProvider).driveAccessGranted;
+    final isApple = ref.read(authServiceProvider).isAppleUser;
+    final sync = ref.read(backupSyncProvider);
 
-    if (driveActive) {
-      _showDriveBackupChoiceDialog(accent);
+    if (isApple && sync.iCloudAccessGranted) {
+      _showCloudBackupChoiceDialog(accent, isICloud: true);
+    } else if (!isApple && sync.driveAccessGranted) {
+      _showCloudBackupChoiceDialog(accent, isICloud: false);
     } else {
-      _showFinalDeleteDialog(deleteDriveBackup: false);
+      _showFinalDeleteDialog(deleteDriveBackup: false, deleteICloudBackup: false);
     }
   }
 
-  void _showDriveBackupChoiceDialog(Color accent) {
+  void _showCloudBackupChoiceDialog(Color accent, {required bool isICloud}) {
+    final providerLabel = isICloud ? 'iCloud' : 'Google Drive';
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Your Google Drive backup'),
-        content: const Text(
-          'You have a Drive backup of your memories. '
+        title: Text('Your $providerLabel backup'),
+        content: Text(
+          'You have a $providerLabel backup of your memories. '
           'What would you like to do with it when your account is deleted?',
         ),
         actions: [
@@ -660,46 +665,54 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
-              _showFinalDeleteDialog(deleteDriveBackup: false);
+              _showFinalDeleteDialog(deleteDriveBackup: false, deleteICloudBackup: false);
             },
             child: const Text('Keep backup'),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
-              _showFinalDeleteDialog(deleteDriveBackup: true);
+              _showFinalDeleteDialog(
+                deleteDriveBackup: !isICloud,
+                deleteICloudBackup: isICloud,
+              );
             },
-            child: const Text(
-              'Delete backup',
-              style: TextStyle(color: Colors.red),
-            ),
+            child: const Text('Delete backup', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
     );
   }
 
-  void _showFinalDeleteDialog({required bool deleteDriveBackup}) {
+  void _showFinalDeleteDialog({required bool deleteDriveBackup, required bool deleteICloudBackup}) {
     final controller = TextEditingController();
+    final isApple = ref.read(authServiceProvider).isAppleUser;
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDlgState) => AlertDialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: const Text('Delete account?'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                deleteDriveBackup
-                    ? 'Your account and Google Drive backup will be deleted. '
+                deleteICloudBackup
+                    ? 'Your account and iCloud backup will be deleted. '
                         'Your memories are kept for 28 days in case you change your mind — '
-                        'but without the Drive files.'
-                    : 'Your account will be scheduled for deletion. '
-                        'Your memories are kept for 28 days — sign back in to recover them. '
-                        'Your Google Drive backup will be kept.',
+                        'but without the iCloud files.'
+                    : deleteDriveBackup
+                        ? 'Your account and Google Drive backup will be deleted. '
+                            'Your memories are kept for 28 days in case you change your mind — '
+                            'but without the Drive files.'
+                        : isApple
+                            ? 'Your account will be scheduled for deletion. '
+                                'Your memories are kept for 28 days — sign back in to recover them. '
+                                'Your iCloud backup will be kept.'
+                            : 'Your account will be scheduled for deletion. '
+                                'Your memories are kept for 28 days — sign back in to recover them. '
+                                'Your Google Drive backup will be kept.',
               ),
               const SizedBox(height: 16),
               const Text(
@@ -729,11 +742,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ? () async {
                       Navigator.pop(ctx);
                       await _reauthAndDelete(
-                          deleteDriveBackup: deleteDriveBackup);
+                        deleteDriveBackup: deleteDriveBackup,
+                        deleteICloudBackup: deleteICloudBackup,
+                      );
                     }
                   : null,
-              child:
-                  const Text('Delete', style: TextStyle(color: Colors.red)),
+              child: const Text('Delete', style: TextStyle(color: Colors.red)),
             ),
           ],
         ),
@@ -741,11 +755,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     ).then((_) => controller.dispose());
   }
 
-  Future<void> _reauthAndDelete({bool deleteDriveBackup = false}) async {
+  Future<void> _reauthAndDelete({
+    bool deleteDriveBackup = false,
+    bool deleteICloudBackup = false,
+  }) async {
     try {
       if (deleteDriveBackup) {
         final gs = ref.read(authServiceProvider).googleSignIn;
         await DriveService.deleteAllBackups(gs);
+      }
+      if (deleteICloudBackup) {
+        await ICloudService.deleteAllBackups();
       }
       await ref
           .read(authServiceProvider)
@@ -1137,6 +1157,7 @@ class _BackupCard extends StatelessWidget {
   final Color accent;
   final BackupSyncState sync;
   final BackupStats stats;
+  final bool isAppleUser;
   final VoidCallback onGrantAndSync;
   final VoidCallback onSyncNow;
 
@@ -1144,12 +1165,18 @@ class _BackupCard extends StatelessWidget {
     required this.accent,
     required this.sync,
     required this.stats,
+    required this.isAppleUser,
     required this.onGrantAndSync,
     required this.onSyncNow,
   });
 
   @override
   Widget build(BuildContext context) {
+    final cloudGranted =
+        isAppleUser ? sync.iCloudAccessGranted : sync.driveAccessGranted;
+    final providerLabel = isAppleUser ? 'iCloud' : 'Google Drive';
+    final enableLabel = isAppleUser ? 'Enable iCloud Backup' : 'Enable Drive Backup';
+
     String lastSync = 'Never';
     if (sync.lastSyncedAt != null) {
       final d = DateTime.now().difference(sync.lastSyncedAt!);
@@ -1175,7 +1202,7 @@ class _BackupCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(
-                    sync.driveAccessGranted
+                    cloudGranted
                         ? Icons.cloud_done_outlined
                         : Icons.cloud_upload_outlined,
                     color: accent,
@@ -1190,13 +1217,17 @@ class _BackupCard extends StatelessWidget {
                       Text(
                         sync.isSyncing
                             ? 'Backing up…'
-                            : sync.driveAccessGranted
-                                ? (stats.allDone ? 'All backed up' : '${stats.backedUp} of ${stats.total} files')
-                                : 'Google Drive',
+                            : cloudGranted
+                                ? (stats.allDone
+                                    ? 'All backed up'
+                                    : '${stats.backedUp} of ${stats.total} files')
+                                : providerLabel,
                         style: const TextStyle(
-                            fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF1A1A2E)),
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                            color: Color(0xFF1A1A2E)),
                       ),
-                      if (sync.driveAccessGranted)
+                      if (cloudGranted)
                         Text(
                           'Last backup: $lastSync',
                           style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
@@ -1204,7 +1235,7 @@ class _BackupCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (sync.driveAccessGranted)
+                if (cloudGranted)
                   GestureDetector(
                     onTap: sync.isSyncing ? null : onSyncNow,
                     child: Container(
@@ -1215,7 +1246,9 @@ class _BackupCard extends StatelessWidget {
                         border: Border.all(color: accent.withAlpha(60)),
                       ),
                       child: sync.isSyncing
-                          ? SizedBox(width: 14, height: 14,
+                          ? SizedBox(
+                              width: 14,
+                              height: 14,
                               child: CircularProgressIndicator(strokeWidth: 2, color: accent))
                           : Text(
                               'Sync',
@@ -1226,7 +1259,7 @@ class _BackupCard extends StatelessWidget {
                   ),
               ],
             ),
-            if (sync.driveAccessGranted && stats.total > 0) ...[
+            if (cloudGranted && stats.total > 0) ...[
               const SizedBox(height: 12),
               ClipRRect(
                 borderRadius: BorderRadius.circular(4),
@@ -1238,7 +1271,7 @@ class _BackupCard extends StatelessWidget {
                 ),
               ),
             ],
-            if (sync.driveAccessGranted) ...[
+            if (cloudGranted) ...[
               const SizedBox(height: 8),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1247,17 +1280,19 @@ class _BackupCard extends StatelessWidget {
                   const SizedBox(width: 5),
                   Expanded(
                     child: Text(
-                      'Files are stored in "⚠️ Born Again Memories — App Data (Do Not Delete)" in your Google Drive. Do not rename or delete this folder — doing so will break backup and may cause data loss.',
+                      isAppleUser
+                          ? 'Files are stored in your iCloud account under the "BornAgainMemories" app folder. Disabling iCloud or removing the app from iCloud will break backup.'
+                          : 'Files are stored in "⚠️ Born Again Memories — App Data (Do Not Delete)" in your Google Drive. Do not rename or delete this folder — doing so will break backup and may cause data loss.',
                       style: TextStyle(fontSize: 11, color: Colors.amber.shade800, height: 1.4),
                     ),
                   ),
                 ],
               ),
             ],
-            if (!sync.driveAccessGranted) ...[
+            if (!cloudGranted) ...[
               const SizedBox(height: 12),
               Text(
-                'Back up photos and videos to Google Drive.',
+                'Back up photos and videos to $providerLabel.',
                 style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
               ),
               if (sync.accessError != null) ...[
@@ -1272,18 +1307,21 @@ class _BackupCard extends StatelessWidget {
                   style: FilledButton.styleFrom(
                     backgroundColor: accent,
                     padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape:
+                        RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   onPressed: sync.isRequestingAccess ? null : onGrantAndSync,
                   icon: sync.isRequestingAccess
-                      ? const SizedBox(width: 14, height: 14,
+                      ? const SizedBox(
+                          width: 14,
+                          height: 14,
                           child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Icon(Icons.cloud_upload, size: 16),
-                  label: Text(sync.isRequestingAccess ? 'Requesting…' : 'Enable Drive Backup'),
+                      : Icon(isAppleUser ? Icons.cloud_upload : Icons.cloud_upload, size: 16),
+                  label: Text(sync.isRequestingAccess ? 'Requesting…' : enableLabel),
                 ),
               ),
             ],
-            if (sync.driveAccessGranted && sync.quota != null) ...[
+            if (!isAppleUser && sync.driveAccessGranted && sync.quota != null) ...[
               const SizedBox(height: 8),
               Row(children: [
                 Icon(Icons.storage_rounded, size: 12, color: Colors.grey.shade400),
@@ -1317,7 +1355,10 @@ class _BackupCard extends StatelessWidget {
                         const SizedBox(width: 5),
                         Text(
                           '${stats.failed > 0 ? "${stats.failed} file${stats.failed == 1 ? "" : "s"} failed — " : ""}Backup error',
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.red.shade500),
+                          style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.red.shade500),
                         ),
                       ],
                     ),
@@ -1343,8 +1384,7 @@ class _BackupCard extends StatelessWidget {
                     style: const TextStyle(fontSize: 11, color: Colors.orange)),
               ]),
             ],
-            if (sync.driveAccessGranted && !kIsWeb)
-              _BackupPermissionTips(accent: accent),
+            if (cloudGranted && !kIsWeb) _BackupPermissionTips(accent: accent),
           ],
         ),
       ),

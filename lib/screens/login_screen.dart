@@ -368,7 +368,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                             const SizedBox(height: 16),
                           ],
                           Text(
-                            'Your memories are backed up securely to Google Drive',
+                            !kIsWeb && (Platform.isIOS || Platform.isMacOS)
+                                ? 'Back up to Google Drive or iCloud'
+                                : 'Your memories are backed up securely to Google Drive',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 12,
