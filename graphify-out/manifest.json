@@ -48888,7 +48888,7 @@
     "hash": "9fdb9dd2c69a258dc4a166984e4c1042"
   },
   "/Users/tibinthomas/my_app/lib/providers/auth_provider.dart": {
-    "mtime": 1778733669.8117814,
+    "mtime": 1778771637.7435188,
     "hash": "c7a9331914d9193b9acda1159736c4cc"
   },
   "/Users/tibinthomas/my_app/lib/providers/milestone_form_provider.dart": {
@@ -48900,7 +48900,7 @@
     "hash": "f93d6e0f750db117da0064699f58aecd"
   },
   "/Users/tibinthomas/my_app/lib/providers/backup_provider.dart": {
-    "mtime": 1778733795.5034556,
+    "mtime": 1778771637.7445068,
     "hash": "bef0d4d8dc7ba93477bb8abdf207fe2e"
   },
   "/Users/tibinthomas/my_app/lib/utils/theme_preset.dart": {
@@ -48971,12 +48971,16 @@
     "mtime": 1778411198.5552902,
     "hash": "7bb5c119101642dda93366d02fe2d3ef"
   },
+  "/Users/tibinthomas/my_app/lib/screens/google_photos_picker.dart": {
+    "mtime": 1778816919.8165112,
+    "hash": "958ebc13d176cae8aa70a6d5d9769a32"
+  },
   "/Users/tibinthomas/my_app/lib/screens/milestone_home_page.dart": {
     "mtime": 1778731423.9256513,
     "hash": "179ae1f45b35adabe2a1437372f5bbd0"
   },
   "/Users/tibinthomas/my_app/lib/screens/settings_screen.dart": {
-    "mtime": 1778769605.6045713,
+    "mtime": 1778771637.7462018,
     "hash": "6daed14a310ea9a14281b334b75f8cff"
   },
   "/Users/tibinthomas/my_app/lib/screens/account_recovery_screen.dart": {
@@ -49000,7 +49004,7 @@
     "hash": "d50fb79314668701f5049d3f31fb2d11"
   },
   "/Users/tibinthomas/my_app/lib/screens/login_screen.dart": {
-    "mtime": 1778769614.780116,
+    "mtime": 1778771637.7450638,
     "hash": "c90527245908680247c94697d96b2e75"
   },
   "/Users/tibinthomas/my_app/lib/screens/reminders_screen.dart": {
@@ -49032,8 +49036,8 @@
     "hash": "073344d7a32511a1979938bc1224859b"
   },
   "/Users/tibinthomas/my_app/lib/screens/home/widgets/add_milestone_sheet.dart": {
-    "mtime": 1778720373.8555348,
-    "hash": "fc7b756dba09abbb6fabb557037991a7"
+    "mtime": 1778816969.4636724,
+    "hash": "e6622f5dd73f9eb59f620724a66dd7cb"
   },
   "/Users/tibinthomas/my_app/lib/screens/home/widgets/profile_switcher_sheet.dart": {
     "mtime": 1778720157.3295732,
@@ -49063,6 +49067,10 @@
     "mtime": 1778639803.3962395,
     "hash": "0707c04d27fdf996d0b736469905afba"
   },
+  "/Users/tibinthomas/my_app/lib/services/google_photos_service.dart": {
+    "mtime": 1778817183.2901368,
+    "hash": "bda1cb8a6b52ea35d37170aff5498233"
+  },
   "/Users/tibinthomas/my_app/lib/services/backup_permissions_service.dart": {
     "mtime": 1778721523.500209,
     "hash": "7372a51b3c8fb8168e46e76a6c7733f1"
@@ -49076,7 +49084,7 @@
     "hash": "b9d0d6f5bebd85f2453e52dbfa5efcb0"
   },
   "/Users/tibinthomas/my_app/lib/services/icloud_service.dart": {
-    "mtime": 1778733605.601299,
+    "mtime": 1778771637.7478728,
     "hash": "c10a75428b4b0ac871e08a98948ab37a"
   },
   "/Users/tibinthomas/my_app/lib/services/storage_service.dart": {
@@ -49148,8 +49156,8 @@
     "hash": "d4a537148be5a8b731a7954884cf7119"
   },
   "/Users/tibinthomas/my_app/pubspec.yaml": {
-    "mtime": 1778733522.5619366,
-    "hash": "cd26bf0d8a3b4efc3b3b6e4deed9168c"
+    "mtime": 1778816189.9249098,
+    "hash": "5b7ff5115d1b44bae9989c17555497bb"
   },
   "/Users/tibinthomas/my_app/analysis_options.yaml": {
     "mtime": 1777687427.381633,
