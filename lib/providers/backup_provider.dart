@@ -60,6 +60,11 @@ class BackupSyncState {
   final String? syncError;
   final DriveQuota? quota;
   final DateTime? lastSyncedAt;
+  /// Email of the Google account whose Drive currently holds the backups.
+  final String? driveBackupEmail;
+  /// Non-null when the user picked a different Google account and we are
+  /// waiting for them to confirm or cancel the switch.
+  final String? pendingSwitchEmail;
 
   const BackupSyncState({
     this.isSyncing = false,
@@ -71,6 +76,8 @@ class BackupSyncState {
     this.syncError,
     this.quota,
     this.lastSyncedAt,
+    this.driveBackupEmail,
+    this.pendingSwitchEmail,
   });
 
   bool get cloudAccessGranted => driveAccessGranted || iCloudAccessGranted;
@@ -85,9 +92,12 @@ class BackupSyncState {
     String? syncError,
     DriveQuota? quota,
     DateTime? lastSyncedAt,
+    String? driveBackupEmail,
+    String? pendingSwitchEmail,
     bool clearCurrentUpload = false,
     bool clearError = false,
     bool clearSyncError = false,
+    bool clearPendingSwitch = false,
   }) =>
       BackupSyncState(
         isSyncing: isSyncing ?? this.isSyncing,
@@ -100,6 +110,9 @@ class BackupSyncState {
         syncError: clearSyncError ? null : syncError ?? this.syncError,
         quota: quota ?? this.quota,
         lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
+        driveBackupEmail: driveBackupEmail ?? this.driveBackupEmail,
+        pendingSwitchEmail:
+            clearPendingSwitch ? null : pendingSwitchEmail ?? this.pendingSwitchEmail,
       );
 }
 
@@ -232,8 +245,41 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
 
         if (!mounted) return;
 
+        // Detect account switch when backups already exist on a different Drive.
+        final newEmail = gs.currentUser?.email;
+        final savedEmail = state.driveBackupEmail;
+        if (savedEmail != null &&
+            newEmail != null &&
+            newEmail != savedEmail) {
+          final profiles = _ref.read(profilesProvider) ?? [];
+          final hasBackedUp = profiles.any((p) => p.milestones.any((m) =>
+              m.attachments.any((a) => a.backupStatus == BackupStatus.backedUp)));
+          if (hasBackedUp) {
+            // Surface the warning to the UI; do not start sync yet.
+            state = state.copyWith(
+              isRequestingAccess: false,
+              clearError: true,
+              pendingSwitchEmail: newEmail,
+            );
+            return;
+          }
+        }
+
+        // First enable or same account: persist email and proceed.
+        if (newEmail != null && savedEmail == null) {
+          final uid = _ref.read(authStateProvider).value?.uid;
+          if (uid != null) {
+            await FirestoreService.updateUserDoc(
+                uid, {'driveBackupEmail': newEmail});
+          }
+        }
+
         state = state.copyWith(
-            driveAccessGranted: true, isRequestingAccess: false, clearError: true);
+          driveAccessGranted: true,
+          isRequestingAccess: false,
+          clearError: true,
+          driveBackupEmail: newEmail ?? state.driveBackupEmail,
+        );
         _runSync();
       } catch (e, st) {
         debugPrint('[BackupSync] grantAndSync error: $e\n$st');
@@ -248,6 +294,51 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
   }
 
   Future<void> syncNow() => _runSync();
+
+  /// Called after the user confirms they want to switch to a different Drive
+  /// account. Re-queues every backed-up attachment so it is re-uploaded to
+  /// the new account, then kicks off a sync.
+  Future<void> confirmDriveSwitch() async {
+    final newEmail = state.pendingSwitchEmail;
+    if (newEmail == null) return;
+
+    // Re-queue all attachments that were backed up to the old account.
+    final profiles = _ref.read(profilesProvider) ?? [];
+    for (final profile in profiles) {
+      for (final milestone in profile.milestones) {
+        for (final attachment in milestone.attachments) {
+          if (attachment.backupStatus == BackupStatus.backedUp) {
+            _ref.read(profilesProvider.notifier).updateAttachmentBackupStatus(
+                  profile.id,
+                  milestone.id,
+                  attachment.id,
+                  BackupStatus.queued,
+                );
+          }
+        }
+      }
+    }
+
+    final uid = _ref.read(authStateProvider).value?.uid;
+    if (uid != null) {
+      await FirestoreService.updateUserDoc(uid, {'driveBackupEmail': newEmail});
+    }
+
+    if (!mounted) return;
+    state = state.copyWith(
+      driveAccessGranted: true,
+      driveBackupEmail: newEmail,
+      clearPendingSwitch: true,
+      clearError: true,
+    );
+    _runSync();
+  }
+
+  /// Called when the user cancels the Drive account switch. Leaves the
+  /// existing backup configuration untouched.
+  void cancelDriveSwitch() {
+    state = state.copyWith(clearPendingSwitch: true);
+  }
 
   Future<void> _runSync() async {
     if (_active || kIsWeb) return;
@@ -445,11 +536,13 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
     }
 
     final iCloudEnabled = data['iCloudBackupEnabled'] as bool? ?? false;
+    final driveBackupEmail = data['driveBackupEmail'] as String?;
 
     state = state.copyWith(
       quota: quota,
       lastSyncedAt: lastSync,
       iCloudAccessGranted: iCloudEnabled,
+      driveBackupEmail: driveBackupEmail,
     );
   }
 }

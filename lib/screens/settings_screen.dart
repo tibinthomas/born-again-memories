@@ -77,6 +77,99 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
+  Future<void> _showDriveSwitchWarning(
+    BuildContext context, {
+    required String oldEmail,
+    required String newEmail,
+  }) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Icon(Icons.swap_horiz_rounded,
+                color: Colors.orange.shade700, size: 22),
+            const SizedBox(width: 10),
+            const Expanded(
+              child: Text('Different Drive account',
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Your media is currently backed up to:',
+                style: TextStyle(fontSize: 13, color: Colors.grey.shade600)),
+            const SizedBox(height: 6),
+            _DriveEmailChip(email: oldEmail, color: Colors.blue.shade600),
+            const SizedBox(height: 14),
+            Text('You selected a different account:',
+                style: TextStyle(fontSize: 13, color: Colors.grey.shade600)),
+            const SizedBox(height: 6),
+            _DriveEmailChip(email: newEmail, color: Colors.orange.shade700),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.amber.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.amber.shade200),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.warning_amber_rounded,
+                      color: Colors.amber.shade700, size: 15),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Switching will re-upload all your media to the new '
+                      'Drive. The old backups remain on the previous account '
+                      'but will no longer be managed by this app.',
+                      style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.amber.shade900,
+                          height: 1.45),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(
+              'Keep ${oldEmail.split('@').first}',
+              style: TextStyle(color: Colors.grey.shade700),
+            ),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.orange.shade700,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Switch & Re-upload'),
+          ),
+        ],
+      ),
+    );
+
+    if (!mounted) return;
+    if (confirmed == true) {
+      await ref.read(backupSyncProvider.notifier).confirmDriveSwitch();
+    } else {
+      ref.read(backupSyncProvider.notifier).cancelDriveSwitch();
+    }
+  }
+
   // ── Build ──────────────────────────────────────────────────────────────────
 
   @override
@@ -99,6 +192,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         _shownPermSheet = true;
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) _showBackupPermissionsSheet(context, accent);
+        });
+      }
+
+      if (prev?.pendingSwitchEmail == null && curr.pendingSwitchEmail != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _showDriveSwitchWarning(
+              context,
+              oldEmail: curr.driveBackupEmail ?? '',
+              newEmail: curr.pendingSwitchEmail!,
+            );
+          }
         });
       }
     });
@@ -2116,6 +2221,39 @@ class _PermSheetRow extends StatelessWidget {
                   style: const TextStyle(fontSize: 12, color: Colors.white)),
             ),
           ],
+        ],
+      ),
+    );
+  }
+}
+
+class _DriveEmailChip extends StatelessWidget {
+  final String email;
+  final Color color;
+  const _DriveEmailChip({required this.email, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withAlpha(18),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withAlpha(60)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.account_circle_outlined, size: 14, color: color),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              email,
+              style: TextStyle(
+                  fontSize: 12, fontWeight: FontWeight.w600, color: color),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ),
     );
