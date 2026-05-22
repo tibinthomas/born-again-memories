@@ -401,6 +401,7 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
               onTap: () async {
                 final picked = await showDatePicker(
                   context: context,
+                  locale: Localizations.localeOf(context),
                   initialDate: form.date,
                   firstDate: DateTime.now().subtract(const Duration(days: 365 * 10)),
                   lastDate: DateTime.now(),

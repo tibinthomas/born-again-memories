@@ -149,6 +149,7 @@ class _AddProfileSheetState extends ConsumerState<AddProfileSheet> {
               onPressed: () async {
                 final picked = await showDatePicker(
                   context: context,
+                  locale: Localizations.localeOf(context),
                   initialDate: form.dob,
                   firstDate: DateTime.now().subtract(const Duration(days: 365 * 10)),
                   lastDate: DateTime.now(),

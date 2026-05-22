@@ -448,6 +448,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                         onPressed: () async {
                           final picked = await showDatePicker(
                             context: ctx,
+                            locale: Localizations.localeOf(ctx),
                             initialDate: selectedDob,
                             firstDate: DateTime.now().subtract(const Duration(days: 365 * 10)),
                             lastDate: DateTime.now(),
