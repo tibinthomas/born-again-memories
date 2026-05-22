@@ -51,11 +51,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       type: FileType.image,
       allowMultiple: false,
     );
-    if (result != null && result.files.isNotEmpty && result.files.first.path != null) {
-      ref.read(appSettingsProvider.notifier).update(
-            ref.read(appSettingsProvider).copyWith(customIcon: result.files.first.path),
-          );
-    }
+    if (result == null || result.files.isEmpty || result.files.first.path == null) return;
+    final stablePath = await LocalStorageService.saveCustomIcon(result.files.first.path!);
+    ref.read(appSettingsProvider.notifier).update(
+      ref.read(appSettingsProvider).copyWith(customIcon: stablePath),
+    );
   }
 
   void _playTestSound() async {
@@ -294,8 +294,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     settings: settings,
                     profiles: profiles,
                     onPickIcon: _pickIcon,
-                    onClearIcon: () => ref.read(appSettingsProvider.notifier)
-                        .update(settings.copyWith(customIcon: null)),
+                    onClearIcon: () async {
+                      await LocalStorageService.deleteCustomIcon();
+                      ref.read(appSettingsProvider.notifier)
+                          .update(settings.copyWith(clearCustomIcon: true));
+                    },
                     onDeleteProfile: (name, i) =>
                         _confirmDeleteProfile(accent, name, i),
                   ),

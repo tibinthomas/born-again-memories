@@ -50,4 +50,25 @@ class LocalStorageService {
       if (await f.exists()) await f.delete();
     } catch (_) {}
   }
+
+  static Future<String> saveCustomIcon(String sourcePath) async {
+    final dir = await getApplicationDocumentsDirectory();
+    final iconsDir = Directory('${dir.path}/icons');
+    await iconsDir.create(recursive: true);
+    final dest = File('${iconsDir.path}/custom_app_icon');
+    await File(sourcePath).copy(dest.path);
+    return dest.path;
+  }
+
+  static Future<String?> getCustomIconPath() async {
+    final dir = await getApplicationDocumentsDirectory();
+    final f = File('${dir.path}/icons/custom_app_icon');
+    return await f.exists() ? f.path : null;
+  }
+
+  static Future<void> deleteCustomIcon() async {
+    final dir = await getApplicationDocumentsDirectory();
+    final f = File('${dir.path}/icons/custom_app_icon');
+    if (await f.exists()) await f.delete();
+  }
 }

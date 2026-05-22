@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/app_settings.dart';
 import '../services/firestore_service.dart';
+import '../services/local_storage_service.dart';
 import 'auth_provider.dart';
 
 class AppSettingsNotifier extends StateNotifier<AppSettings> {
@@ -11,7 +12,9 @@ class AppSettingsNotifier extends StateNotifier<AppSettings> {
   }
 
   Future<void> _load() async {
-    final settings = await FirestoreService.loadSettings(uid);
+    AppSettings settings = await FirestoreService.loadSettings(uid);
+    final iconPath = await LocalStorageService.getCustomIconPath();
+    if (iconPath != null) settings = settings.copyWith(customIcon: iconPath);
     if (mounted) state = settings;
   }
 
