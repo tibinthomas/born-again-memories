@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../models/kid_profile.dart';
 import '../../../providers/profiles_provider.dart';
 import '../../../utils/app_date_picker.dart';
+import '../../../utils/chime.dart';
 import '../../../utils/date_formatter.dart';
 import '../../../utils/image_utils.dart';
 import '../../../utils/profile_theme.dart';
@@ -236,7 +237,7 @@ class _AddProfileSheetState extends ConsumerState<AddProfileSheet> {
             ],
 
             FilledButton(
-              onPressed: () {
+              onPressed: () async {
                 final name = _nameController.text.trim();
                 if (name.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -253,7 +254,8 @@ class _AddProfileSheetState extends ConsumerState<AddProfileSheet> {
                     );
                 ref.read(selectedProfileIndexProvider.notifier).state =
                     (ref.read(profilesProvider)?.length ?? 1) - 1;
-                Navigator.of(context).pop();
+                await triggerFeedback(ref);
+                if (context.mounted) Navigator.of(context).pop();
               },
               style: FilledButton.styleFrom(
                 backgroundColor: pTheme.accent,

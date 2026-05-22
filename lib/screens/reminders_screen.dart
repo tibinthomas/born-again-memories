@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/kid_profile.dart';
@@ -5,6 +6,7 @@ import '../models/reminder.dart';
 import '../providers/profiles_provider.dart';
 import '../services/notification_service.dart';
 import '../utils/app_date_picker.dart';
+import '../utils/chime.dart';
 import '../utils/profile_theme.dart';
 
 // ── Entry point ───────────────────────────────────────────────────────────────
@@ -677,6 +679,7 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
       } else {
         await ref.read(profilesProvider.notifier).addReminderToProfiles(_selectedProfileIndices, reminder);
       }
+      unawaited(triggerFeedback(ref));
     }
 
     if (mounted) Navigator.pop(context);

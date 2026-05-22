@@ -13,6 +13,7 @@ import '../providers/backup_provider.dart';
 import '../providers/profiles_provider.dart';
 import '../services/local_storage_service.dart';
 import '../utils/app_date_picker.dart';
+import '../utils/chime.dart';
 import '../utils/image_utils.dart';
 import '../utils/profile_theme.dart';
 import '../utils/theme_preset.dart';
@@ -874,10 +875,11 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                                           _showEditMilestoneSheet(milestone),
                                       onDelete: () => _confirmDeleteMilestone(
                                           safeIndex, milestone),
-                                      onFavorite: () => ref
-                                          .read(profilesProvider.notifier)
-                                          .toggleMilestoneFavorite(
-                                              safeIndex, milestone.id),
+                                      onFavorite: () {
+                                        ref.read(profilesProvider.notifier)
+                                            .toggleMilestoneFavorite(safeIndex, milestone.id);
+                                        triggerLightFeedback(ref);
+                                      },
                                       onShare: () => MemorySharer.show(
                                         context,
                                         milestone,

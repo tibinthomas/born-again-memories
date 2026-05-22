@@ -1,6 +1,22 @@
+import 'dart:async';
 import 'dart:math';
 import 'dart:typed_data';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/app_settings_provider.dart';
+
+/// Triggers haptic feedback and/or chime sound based on the user's settings.
+Future<void> triggerFeedback(WidgetRef ref) async {
+  final s = ref.read(appSettingsProvider);
+  if (s.hapticEnabled) HapticFeedback.mediumImpact();
+  if (s.soundEnabled) unawaited(playChime(volume: s.soundVolume));
+}
+
+/// Light haptic-only feedback for quick UI interactions (e.g. favorite toggle).
+void triggerLightFeedback(WidgetRef ref) {
+  if (ref.read(appSettingsProvider).hapticEnabled) HapticFeedback.lightImpact();
+}
 
 Future<void> playChime({double volume = 0.7}) async {
   final player = AudioPlayer();
