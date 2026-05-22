@@ -766,6 +766,15 @@ class _AudioTileState extends State<AudioTile> {
       return;
     }
 
+    if (!widget.attachment.localExists) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Audio file not available on this device.')),
+        );
+      }
+      return;
+    }
+
     try {
       // The `record` package leaves AVAudioSession in .record category after
       // stopping. Reset it on this player instance before play() so the
@@ -785,7 +794,8 @@ class _AudioTileState extends State<AudioTile> {
       }
 
       await _player.play(DeviceFileSource(widget.attachment.localPath));
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[AudioTile] playback failed: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Could not play audio. Try again.')),
@@ -804,6 +814,7 @@ class _AudioTileState extends State<AudioTile> {
   Widget build(BuildContext context) {
     final isPlaying = _state == PlayerState.playing;
     final accent = widget.accent;
+    final exists = widget.attachment.localExists;
     final progress =
         _duration.inMilliseconds > 0 ? _position.inMilliseconds / _duration.inMilliseconds : 0.0;
 
@@ -826,11 +837,19 @@ class _AudioTileState extends State<AudioTile> {
                   height: 44,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: isPlaying ? accent : accent.withAlpha(30),
+                    color: !exists
+                        ? Colors.grey.withAlpha(40)
+                        : isPlaying
+                            ? accent
+                            : accent.withAlpha(30),
                   ),
                   child: Icon(
-                    isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                    color: isPlaying ? Colors.white : accent,
+                    !exists
+                        ? Icons.cloud_off_rounded
+                        : isPlaying
+                            ? Icons.pause_rounded
+                            : Icons.play_arrow_rounded,
+                    color: !exists ? Colors.grey.shade400 : isPlaying ? Colors.white : accent,
                     size: 24,
                   ),
                 ),
@@ -852,8 +871,11 @@ class _AudioTileState extends State<AudioTile> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 2),
-                    // Waveform-style progress
-                    _WaveformBar(progress: progress, accent: accent),
+                    if (!exists)
+                      Text('Not available on this device',
+                          style: TextStyle(fontSize: 11, color: Colors.grey.shade400))
+                    else
+                      _WaveformBar(progress: progress, accent: accent),
                   ],
                 ),
               ),

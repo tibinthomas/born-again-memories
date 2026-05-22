@@ -6,10 +6,14 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:video_player/video_player.dart';
 import '../models/attachment.dart';
 import '../models/kid_profile.dart';
 import '../models/milestone.dart';
+import '../providers/profiles_provider.dart';
+import '../services/local_storage_service.dart';
 import '../utils/attachment_helper.dart';
 import '../utils/date_formatter.dart';
 import '../utils/profile_theme.dart';
@@ -1344,17 +1348,17 @@ class _VideoDialogState extends State<_VideoDialog> {
 
 // ── Audio tile ─────────────────────────────────────────────────────────────────
 
-class _AudioTile extends StatefulWidget {
+class _AudioTile extends ConsumerStatefulWidget {
   final Attachment attachment;
   final Color accent;
 
   const _AudioTile({required this.attachment, required this.accent});
 
   @override
-  State<_AudioTile> createState() => _AudioTileState();
+  ConsumerState<_AudioTile> createState() => _AudioTileState();
 }
 
-class _AudioTileState extends State<_AudioTile> {
+class _AudioTileState extends ConsumerState<_AudioTile> {
   final _player = AudioPlayer();
   PlayerState _state = PlayerState.stopped;
   Duration _position = Duration.zero;
@@ -1380,9 +1384,35 @@ class _AudioTileState extends State<_AudioTile> {
     super.dispose();
   }
 
+  /// If the file exists at [path] but is outside the app's documents directory
+  /// (e.g. still in a temp folder), copy it to persistent storage and update
+  /// the attachment record so the path survives app restarts.
+  Future<String> _ensurePersistent(String path) async {
+    if (path.isEmpty || !File(path).existsSync()) return path;
+    final docsDir = await getApplicationDocumentsDirectory();
+    if (path.startsWith(docsDir.path)) return path; // already safe
+    final stable = await LocalStorageService.copyToAppStorage(
+        path, 'audio_${widget.attachment.id}.m4a');
+    ref
+        .read(profilesProvider.notifier)
+        .updateAttachmentLocalPath(widget.attachment.id, stable);
+    return stable;
+  }
+
   Future<void> _togglePlayback() async {
     if (_state == PlayerState.playing) {
       await _player.pause();
+      return;
+    }
+
+    final path = await _ensurePersistent(widget.attachment.localPath);
+
+    if (!File(path).existsSync()) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Audio file not available on this device.')),
+        );
+      }
       return;
     }
 
@@ -1404,8 +1434,9 @@ class _AudioTileState extends State<_AudioTile> {
         await _player.seek(Duration.zero);
       }
 
-      await _player.play(DeviceFileSource(widget.attachment.localPath));
-    } catch (_) {
+      await _player.play(DeviceFileSource(path));
+    } catch (e) {
+      debugPrint('[AudioTile] playback failed: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Could not play audio. Try again.')),
@@ -1424,6 +1455,7 @@ class _AudioTileState extends State<_AudioTile> {
   Widget build(BuildContext context) {
     final isPlaying = _state == PlayerState.playing;
     final accent = widget.accent;
+    final exists = widget.attachment.localExists;
     final progress =
         _duration.inMilliseconds > 0 ? _position.inMilliseconds / _duration.inMilliseconds : 0.0;
 
@@ -1446,11 +1478,19 @@ class _AudioTileState extends State<_AudioTile> {
                   height: 44,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: isPlaying ? accent : accent.withAlpha(30),
+                    color: !exists
+                        ? Colors.grey.withAlpha(40)
+                        : isPlaying
+                            ? accent
+                            : accent.withAlpha(30),
                   ),
                   child: Icon(
-                    isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                    color: isPlaying ? Colors.white : accent,
+                    !exists
+                        ? Icons.cloud_off_rounded
+                        : isPlaying
+                            ? Icons.pause_rounded
+                            : Icons.play_arrow_rounded,
+                    color: !exists ? Colors.grey.shade400 : isPlaying ? Colors.white : accent,
                     size: 24,
                   ),
                 ),
@@ -1472,8 +1512,11 @@ class _AudioTileState extends State<_AudioTile> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 2),
-                    // Waveform-style progress
-                    _WaveformBar(progress: progress, accent: accent),
+                    if (!exists)
+                      Text('Not available on this device',
+                          style: TextStyle(fontSize: 11, color: Colors.grey.shade400))
+                    else
+                      _WaveformBar(progress: progress, accent: accent),
                   ],
                 ),
               ),

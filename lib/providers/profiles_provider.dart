@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -299,6 +300,35 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>?> {
     final list = <KidProfile>[...(state ?? [])];
     list[index] = profile;
     state = list;
+  }
+
+  void updateAttachmentLocalPath(String attachmentId, String newPath) {
+    // Find which profile+milestone owns this attachment so we can persist to Firestore
+    for (final profile in state ?? <KidProfile>[]) {
+      for (final ms in profile.milestones) {
+        if (ms.attachments.any((a) => a.id == attachmentId)) {
+          final updatedMs = ms.copyWith(
+            attachments: ms.attachments
+                .map((a) => a.id == attachmentId ? a.copyWith(localPath: newPath) : a)
+                .toList(),
+          );
+          unawaited(FirestoreService.saveMilestone(uid, profile.id, updatedMs));
+          break;
+        }
+      }
+    }
+    state = (state ?? <KidProfile>[])
+        .map((profile) => profile.copyWith(
+              milestones: profile.milestones
+                  .map((ms) => ms.copyWith(
+                        attachments: ms.attachments
+                            .map((a) =>
+                                a.id == attachmentId ? a.copyWith(localPath: newPath) : a)
+                            .toList(),
+                      ))
+                  .toList(),
+            ))
+        .toList();
   }
 
   void updateAttachmentBackupStatus(

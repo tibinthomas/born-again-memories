@@ -37,6 +37,7 @@ class Attachment {
   bool get isViewable => webBytes != null || localExists;
 
   Attachment copyWith({
+    String? localPath,
     String? label,
     String? driveFileId,
     String? iCloudFileId,
@@ -51,7 +52,7 @@ class Attachment {
         label: clearLabel ? null : label ?? this.label,
         type: type,
         sizeBytes: sizeBytes,
-        localPath: localPath,
+        localPath: localPath ?? this.localPath,
         driveFileId: clearDriveFileId ? null : driveFileId ?? this.driveFileId,
         iCloudFileId: clearICloudFileId ? null : iCloudFileId ?? this.iCloudFileId,
         backupStatus: backupStatus ?? this.backupStatus,
