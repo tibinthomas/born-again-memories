@@ -198,10 +198,11 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
     if (filePath == null || !mounted) return;
     final id = DateTime.now().microsecondsSinceEpoch.toString();
     final label = now.format(context);
+    final stablePath = await LocalStorageService.copyToAppStorage(filePath, 'audio_$id.m4a');
     _addAttachment(Attachment(
       id: id,
       name: 'Voice memo $label',
-      localPath: filePath,
+      localPath: stablePath,
       type: AttachmentType.audio,
       sizeBytes: 0,
     ));
