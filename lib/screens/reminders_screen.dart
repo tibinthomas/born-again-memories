@@ -4,6 +4,7 @@ import '../models/kid_profile.dart';
 import '../models/reminder.dart';
 import '../providers/profiles_provider.dart';
 import '../services/notification_service.dart';
+import '../utils/app_date_picker.dart';
 import '../utils/profile_theme.dart';
 
 // ── Entry point ───────────────────────────────────────────────────────────────
@@ -617,18 +618,11 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
   }
 
   Future<void> _pickDateTime() async {
-    final date = await showDatePicker(
+    final date = await showAppDatePicker(
       context: context,
-      locale: Localizations.localeOf(context),
       initialDate: _dateTime,
       firstDate: DateTime.now().subtract(const Duration(days: 1)),
       lastDate: DateTime.now().add(const Duration(days: 365 * 10)),
-      builder: (ctx, child) => Theme(
-        data: Theme.of(ctx).copyWith(
-          colorScheme: ColorScheme.light(primary: widget.theme.accent),
-        ),
-        child: child!,
-      ),
     );
     if (date == null || !mounted) return;
     final time = await showTimePicker(

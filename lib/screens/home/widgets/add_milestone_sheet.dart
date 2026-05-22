@@ -19,6 +19,7 @@ import '../../../providers/milestone_form_provider.dart';
 import '../../../providers/profiles_provider.dart';
 import '../../../services/google_photos_service.dart';
 import '../../../services/local_storage_service.dart';
+import '../../../utils/app_date_picker.dart';
 import '../../../utils/attachment_helper.dart';
 import '../../../utils/chime.dart';
 import '../../../utils/date_formatter.dart';
@@ -399,9 +400,8 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
             ),
             GestureDetector(
               onTap: () async {
-                final picked = await showDatePicker(
+                final picked = await showAppDatePicker(
                   context: context,
-                  locale: Localizations.localeOf(context),
                   initialDate: form.date,
                   firstDate: DateTime.now().subtract(const Duration(days: 365 * 10)),
                   lastDate: DateTime.now(),

@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../models/kid_profile.dart';
 import '../../../providers/profiles_provider.dart';
+import '../../../utils/app_date_picker.dart';
 import '../../../utils/date_formatter.dart';
 import '../../../utils/image_utils.dart';
 import '../../../utils/profile_theme.dart';
@@ -147,9 +148,8 @@ class _AddProfileSheetState extends ConsumerState<AddProfileSheet> {
 
             OutlinedButton.icon(
               onPressed: () async {
-                final picked = await showDatePicker(
+                final picked = await showAppDatePicker(
                   context: context,
-                  locale: Localizations.localeOf(context),
                   initialDate: form.dob,
                   firstDate: DateTime.now().subtract(const Duration(days: 365 * 10)),
                   lastDate: DateTime.now(),

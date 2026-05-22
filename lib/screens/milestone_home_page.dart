@@ -12,6 +12,7 @@ import '../providers/app_settings_provider.dart';
 import '../providers/backup_provider.dart';
 import '../providers/profiles_provider.dart';
 import '../services/local_storage_service.dart';
+import '../utils/app_date_picker.dart';
 import '../utils/image_utils.dart';
 import '../utils/profile_theme.dart';
 import '../utils/theme_preset.dart';
@@ -447,9 +448,8 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                       const SizedBox(height: 12),
                       OutlinedButton.icon(
                         onPressed: () async {
-                          final picked = await showDatePicker(
+                          final picked = await showAppDatePicker(
                             context: ctx,
-                            locale: Localizations.localeOf(ctx),
                             initialDate: selectedDob,
                             firstDate: DateTime.now().subtract(const Duration(days: 365 * 10)),
                             lastDate: DateTime.now(),
