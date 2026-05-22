@@ -98,3 +98,10 @@ final sharedEmailsProvider =
   final uid = ref.watch(authStateProvider).value?.uid ?? '';
   return SharedEmailsNotifier(uid);
 });
+
+/// Number of users currently sharing their memories with the signed-in user.
+final sharedSendersCountProvider = FutureProvider<int>((ref) async {
+  final email = ref.watch(authStateProvider).value?.email;
+  if (email == null || email.isEmpty) return 0;
+  return FirestoreService.countSharedSenders(email);
+});

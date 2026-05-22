@@ -225,6 +225,16 @@ class FirestoreService {
 
   // ── Shared feed ────────────────────────────────────────────────────────────
 
+  /// Returns the number of users currently sharing with [myEmail].
+  static Future<int> countSharedSenders(String myEmail) async {
+    final snap = await _db
+        .collection('users')
+        .where('sharedWithEmails', arrayContains: myEmail)
+        .count()
+        .get();
+    return snap.count ?? 0;
+  }
+
   /// Returns all milestones from users who have added [myEmail] to their
   /// sharedWithEmails list, grouped by sender.
   static Future<List<SharedSenderGroup>> loadSharedFeed(String myEmail) async {

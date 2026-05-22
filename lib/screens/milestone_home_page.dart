@@ -25,6 +25,7 @@ import 'home/widgets/theme_preset_picker.dart';
 import 'milestone_detail_page.dart';
 import 'saved_links_screen.dart';
 import 'shared_feed_screen.dart';
+import '../providers/sharing_provider.dart';
 import 'reminders_screen.dart';
 import 'settings_screen.dart';
 
@@ -1125,6 +1126,7 @@ class _ProfileHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final sync = ref.watch(backupSyncProvider);
+    final sharedCount = ref.watch(sharedSendersCountProvider).valueOrNull ?? 0;
     final hasBackground = !kIsWeb &&
         profile.backgroundImagePath != null &&
         profile.backgroundImagePath!.isNotEmpty &&
@@ -1375,6 +1377,7 @@ class _ProfileHeader extends ConsumerWidget {
                             icon: Icons.people_outline_rounded,
                             label: 'Feed',
                             onTap: onSharedFeed,
+                            showBadge: sharedCount > 0,
                           )),
                           Expanded(child: _RemindersQuickPill(
                             profile: profile,
@@ -1545,11 +1548,13 @@ class _QuickPill extends StatelessWidget {
   final IconData icon;
   final String label;
   final VoidCallback? onTap;
+  final bool showBadge;
 
   const _QuickPill({
     required this.icon,
     required this.label,
     this.onTap,
+    this.showBadge = false,
   });
 
   @override
@@ -1559,23 +1564,42 @@ class _QuickPill extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          ClipOval(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-              child: Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withAlpha(onTap != null ? 45 : 25),
-                  border: Border.all(
-                    color: Colors.white.withAlpha(onTap != null ? 80 : 45),
-                    width: 0.8,
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              ClipOval(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                  child: Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withAlpha(onTap != null ? 45 : 25),
+                      border: Border.all(
+                        color: Colors.white.withAlpha(onTap != null ? 80 : 45),
+                        width: 0.8,
+                      ),
+                    ),
+                    child: Icon(icon, color: Colors.white, size: 17),
                   ),
                 ),
-                child: Icon(icon, color: Colors.white, size: 17),
               ),
-            ),
+              if (showBadge)
+                Positioned(
+                  top: -2,
+                  right: -2,
+                  child: Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: Colors.redAccent,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 1.5),
+                    ),
+                  ),
+                ),
+            ],
           ),
           const SizedBox(height: 5),
           Text(
