@@ -2,13 +2,39 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Users can read/write their own data only.
-    // Other authenticated users can read the top-level user doc
-    // (needed for email lookup when sharing).
+    // True when the signed-in user's email appears in the owner's sharedWithEmails list.
+    function isSharedWith(uid) {
+      return request.auth != null
+          && request.auth.token.email != null
+          && request.auth.token.email in
+               get(/databases/$(database)/documents/users/$(uid)).data.sharedWithEmails;
+    }
+
     match /users/{uid} {
+      // Any signed-in user can read the top-level doc (email lookup + feed count query).
       allow read: if request.auth != null;
       allow write: if request.auth != null && request.auth.uid == uid;
 
+      // Profiles: owner full access; invited users read-only.
+      match /profiles/{profileId} {
+        allow read: if request.auth != null
+                    && (request.auth.uid == uid || isSharedWith(uid));
+        allow write: if request.auth != null && request.auth.uid == uid;
+
+        // Milestones: owner full access; invited users read-only.
+        match /milestones/{milestoneId} {
+          allow read: if request.auth != null
+                      && (request.auth.uid == uid || isSharedWith(uid));
+          allow write: if request.auth != null && request.auth.uid == uid;
+        }
+
+        // Everything else under a profile (reminders, documents, links…): owner only.
+        match /{rest=**} {
+          allow read, write: if request.auth != null && request.auth.uid == uid;
+        }
+      }
+
+      // Everything else under the user doc: owner only.
       match /{document=**} {
         allow read, write: if request.auth != null && request.auth.uid == uid;
       }
