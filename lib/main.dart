@@ -28,7 +28,7 @@ class BabyMilestonesApp extends ConsumerWidget {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Born Again Memories',
+      title: 'M 4 Memories',
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
@@ -299,7 +299,7 @@ class _SplashScreenState extends State<_SplashScreen>
                       child: Column(
                         children: [
                           const Text(
-                            'Born Again Memories',
+                            'M 4 Memories',
                             style: TextStyle(
                               fontSize: 26,
                               fontWeight: FontWeight.w700,
