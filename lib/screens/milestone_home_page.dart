@@ -1313,11 +1313,8 @@ class _ProfileHeader extends ConsumerWidget {
                             const SizedBox(width: 6),
                           ],
 
-                          // Settings inline top-right
-                          _HeaderIconBtn(
-                            icon: Icons.settings_outlined,
-                            onTap: onSettings,
-                          ),
+                          // Settings button — shows custom icon image when set
+                          _SettingsBtn(onTap: onSettings),
                         ],
                       ),
                       const SizedBox(height: 10),
@@ -1460,27 +1457,58 @@ class _BubbleState extends State<_Bubble> with SingleTickerProviderStateMixin {
 
 // ── Minimal header icon button ────────────────────────────────────────────────
 
-class _HeaderIconBtn extends StatelessWidget {
-  final IconData icon;
+class _SettingsBtn extends ConsumerWidget {
   final VoidCallback onTap;
-  const _HeaderIconBtn({required this.icon, required this.onTap});
+  const _SettingsBtn({required this.onTap});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final customIcon = ref.watch(appSettingsProvider).customIcon;
+    final hasCustom = !kIsWeb &&
+        customIcon != null &&
+        customIcon.isNotEmpty &&
+        File(customIcon).existsSync();
+
     return GestureDetector(
       onTap: onTap,
       child: ClipOval(
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-          child: Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withAlpha(45),
-              border: Border.all(color: Colors.white.withAlpha(70), width: 0.8),
-            ),
-            child: Icon(icon, color: Colors.white, size: 20),
+          child: Stack(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withAlpha(45),
+                  border: Border.all(color: Colors.white.withAlpha(70), width: 0.8),
+                  image: hasCustom
+                      ? DecorationImage(
+                          image: FileImage(File(customIcon)),
+                          fit: BoxFit.cover,
+                        )
+                      : null,
+                ),
+                child: hasCustom
+                    ? null
+                    : const Icon(Icons.settings_outlined, color: Colors.white, size: 20),
+              ),
+              if (hasCustom)
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    width: 14,
+                    height: 14,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.black.withAlpha(120),
+                    ),
+                    child: const Icon(Icons.settings_outlined, color: Colors.white, size: 9),
+                  ),
+                ),
+            ],
           ),
         ),
       ),

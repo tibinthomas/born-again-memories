@@ -1700,7 +1700,7 @@ class _MoreSectionState extends State<_MoreSection> {
           curve: Curves.easeOutCubic,
           child: _expanded
               ? _Card(children: [
-                  // App icon
+                  // Settings icon
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
                     child: Row(
@@ -1719,7 +1719,7 @@ class _MoreSectionState extends State<_MoreSection> {
                                 : null,
                           ),
                           child: widget.settings.customIcon == null
-                              ? Icon(Icons.child_care_rounded,
+                              ? Icon(Icons.settings_outlined,
                                   size: 20, color: widget.accent)
                               : null,
                         ),
@@ -1727,8 +1727,8 @@ class _MoreSectionState extends State<_MoreSection> {
                         Expanded(
                           child: Text(
                             widget.settings.customIcon != null
-                                ? 'Custom app icon'
-                                : 'App icon',
+                                ? 'Settings icon — tap Change to update'
+                                : 'Settings icon — personalise your button',
                             style: const TextStyle(
                                 fontSize: 14, color: Color(0xFF1A1A2E)),
                           ),
