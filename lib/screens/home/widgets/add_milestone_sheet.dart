@@ -826,20 +826,32 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
             final profileIndex = ref.read(selectedProfileIndexProvider);
             final profile = (ref.read(profilesProvider) ?? [])[profileIndex];
 
+            final docsDir = await getApplicationDocumentsDirectory();
             final saved = <Attachment>[];
             for (final a in _attachments) {
               final labelText = _labelControllers[a.id]?.text.trim();
               final label = labelText?.isEmpty == true ? null : labelText;
               if (_existingAttachmentIds.contains(a.id)) {
+                // Already persisted in a previous save — keep as-is.
                 saved.add(a.copyWith(label: label));
               } else if (kIsWeb) {
                 saved.add(a.copyWith(label: label));
+              } else if (a.localPath.startsWith(docsDir.path)) {
+                // Already in app persistent storage (e.g. audio copied during
+                // live recording). A second copy would strip the extension from
+                // names like "Voice memo 10:30 AM" → broken path, no MIME type.
+                saved.add(a.copyWith(
+                  label: label,
+                  backupStatus: BackupStatus.queued,
+                ));
               } else {
                 try {
-                  final filename =
-                      '${a.id}_${a.name.replaceAll(RegExp(r'[^\w.]'), '_')}';
+                  final src = a.localPath;
+                  final dot = src.lastIndexOf('.');
+                  final ext = dot != -1 ? src.substring(dot) : ''; // e.g. '.m4a'
+                  final filename = '${a.id}$ext';
                   final permanentPath =
-                      await LocalStorageService.copyToAppStorage(a.localPath, filename);
+                      await LocalStorageService.copyToAppStorage(src, filename);
                   saved.add(Attachment(
                     id: a.id,
                     name: a.name,
@@ -849,7 +861,8 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
                     localPath: permanentPath,
                     backupStatus: BackupStatus.queued,
                   ));
-                } catch (_) {
+                } catch (e) {
+                  debugPrint('[AddMilestone] copy failed for "${a.name}": $e');
                   saved.add(a.copyWith(label: label));
                 }
               }

@@ -1418,16 +1418,26 @@ class _AudioTileState extends ConsumerState<_AudioTile> {
 
     try {
       // The `record` package leaves AVAudioSession in .record category after
-      // stopping. Reset it on this player instance before play() so the
-      // platform-side AVPlayer can acquire the session. Using the instance
-      // method (not AudioPlayer.global) ensures the context is applied to
-      // this player's platform object, not just the OS-level category.
-      if (!kIsWeb && (Platform.isIOS || Platform.isMacOS)) {
-        await _player.setAudioContext(AudioContext(
-          iOS: AudioContextIOS(
-            category: AVAudioSessionCategory.playback,
-          ),
-        ));
+      // stopping. Reset it before play() so the platform audio session is
+      // reconfigured for playback on both iOS and Android.
+      if (!kIsWeb) {
+        if (Platform.isIOS || Platform.isMacOS) {
+          await _player.setAudioContext(AudioContext(
+            iOS: AudioContextIOS(
+              category: AVAudioSessionCategory.playback,
+            ),
+          ));
+        } else if (Platform.isAndroid) {
+          await _player.setAudioContext(AudioContext(
+            android: AudioContextAndroid(
+              isSpeakerphoneOn: false,
+              stayAwake: false,
+              contentType: AndroidContentType.music,
+              usageType: AndroidUsageType.media,
+              audioFocus: AndroidAudioFocus.gain,
+            ),
+          ));
+        }
       }
 
       if (_state == PlayerState.completed) {
