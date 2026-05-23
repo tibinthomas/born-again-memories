@@ -37,6 +37,62 @@ class FirestoreService {
   static Future<void> updateUserDoc(String uid, Map<String, dynamic> data) =>
       _db.doc('users/$uid').set(data, SetOptions(merge: true));
 
+  static Future<void> saveFcmToken(String uid, String token) =>
+      _db.doc('users/$uid').set({'fcmToken': token}, SetOptions(merge: true));
+
+  // ── Shared-milestone notifications ────────────────────────────────────────
+
+  /// Writes a notification document into each recipient's notifications
+  /// subcollection. Called on the sender's device after a milestone is saved.
+  static Future<void> sendSharedMilestoneNotifications({
+    required String senderName,
+    required List<String> recipientEmails,
+    required String milestoneTitle,
+  }) async {
+    if (recipientEmails.isEmpty) return;
+
+    // Look up UIDs for each recipient email (batched, max 10 per 'in' query).
+    final uids = <String>[];
+    for (var i = 0; i < recipientEmails.length; i += 10) {
+      final batch = recipientEmails.sublist(
+          i, (i + 10).clamp(0, recipientEmails.length));
+      final snap = await _db
+          .collection('users')
+          .where('email', whereIn: batch)
+          .get();
+      uids.addAll(snap.docs.map((d) => d.id));
+    }
+
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (final uid in uids) {
+      await _db.collection('users/$uid/notifications').add({
+        'senderName': senderName,
+        'milestoneTitle': milestoneTitle,
+        'timestamp': now,
+        'read': false,
+      });
+    }
+  }
+
+  /// Stream of unread notifications for [uid], ordered newest-first.
+  static Stream<QuerySnapshot<Map<String, dynamic>>> streamNotifications(
+          String uid) =>
+      _db
+          .collection('users/$uid/notifications')
+          .where('read', isEqualTo: false)
+          .orderBy('timestamp', descending: true)
+          .snapshots();
+
+  /// Marks a list of notification documents as read.
+  static Future<void> markNotificationsRead(
+      String uid, List<String> ids) async {
+    final batch = _db.batch();
+    for (final id in ids) {
+      batch.update(_db.doc('users/$uid/notifications/$id'), {'read': true});
+    }
+    await batch.commit();
+  }
+
   static Future<void> markAccountForDeletion({
     required String uid,
     required bool deleteDriveBackup,

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../providers/sharing_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/attachment.dart';
@@ -74,6 +75,23 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>?> {
     _setProfile(profileIndex,
         profile.copyWith(milestones: [milestone, ...profile.milestones]));
     await FirestoreService.saveMilestone(uid, profile.id, milestone);
+
+    // Notify users who have shared access to this account.
+    final sharedEmails = _ref
+        .read(sharedEmailsProvider)
+        .map((i) => i.email)
+        .toList();
+    if (sharedEmails.isNotEmpty) {
+      final user = FirebaseAuth.instance.currentUser;
+      final senderName = user?.displayName?.isNotEmpty == true
+          ? user!.displayName!
+          : user?.email ?? 'Someone';
+      unawaited(FirestoreService.sendSharedMilestoneNotifications(
+        senderName: senderName,
+        recipientEmails: sharedEmails,
+        milestoneTitle: milestone.title,
+      ));
+    }
   }
 
   Future<void> updateMilestone(int profileIndex, Milestone milestone) async {

@@ -12,8 +12,8 @@
     "hash": "35fbf1f08349e55d5bdfa8738a2e7528"
   },
   "/Users/tibinthomas/my_app/macos/Flutter/GeneratedPluginRegistrant.swift": {
-    "mtime": 1778733560.6219459,
-    "hash": "3e0f22dc1999106baa684f5cf86b0b30"
+    "mtime": 1779481448.7911441,
+    "hash": "84ef9d01a47bbcb27c425978ef81cc42"
   },
   "/Users/tibinthomas/my_app/macos/Pods/FirebaseSharedSwift/FirebaseSharedSwift/Sources/FirebaseRemoteConfigValueDecoding.swift": {
     "mtime": 1778175293.2475145,
@@ -23912,8 +23912,8 @@
     "hash": "2bd8469f2a4b701ff582f6574e58b13c"
   },
   "/Users/tibinthomas/my_app/ios/Runner/GeneratedPluginRegistrant.m": {
-    "mtime": 1778733560.6207829,
-    "hash": "ae2e348b577025e3ccd401739295b2ef"
+    "mtime": 1779481448.788792,
+    "hash": "af189bfb424509050f158eb5bb14f9f0"
   },
   "/Users/tibinthomas/my_app/ios/Runner/SceneDelegate.swift": {
     "mtime": 1777367340.471183,
@@ -48872,8 +48872,8 @@
     "hash": "fd0d3b408c6619b9d255cfc44d0cec9b"
   },
   "/Users/tibinthomas/my_app/android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java": {
-    "mtime": 1778721510.4103456,
-    "hash": "2eea45c264b2d3ef5c219bd1c8667594"
+    "mtime": 1779481448.770619,
+    "hash": "7efb282446dc6d6f99c2410e6a9423ab"
   },
   "/Users/tibinthomas/my_app/android/app/src/main/kotlin/com/tibinthomas/born_again_memories/MainActivity.kt": {
     "mtime": 1777823078.3771625,
@@ -48884,8 +48884,8 @@
     "hash": "800da7ce1e7e5dfac23653bbe2d951ce"
   },
   "/Users/tibinthomas/my_app/lib/main.dart": {
-    "mtime": 1779477471.1105762,
-    "hash": "d142cf5bd900ed955f9dab6ef41229a3"
+    "mtime": 1779498353.9484138,
+    "hash": "7bc14c0904fcd3f196a11709e8eb8583"
   },
   "/Users/tibinthomas/my_app/lib/providers/sharing_provider.dart": {
     "mtime": 1779476476.9001582,
@@ -48904,8 +48904,8 @@
     "hash": "e4a9c924d2608024e754e64fd8c27a1e"
   },
   "/Users/tibinthomas/my_app/lib/providers/profiles_provider.dart": {
-    "mtime": 1779479980.8013394,
-    "hash": "51d6c51a49a2c90082d002ba7120ad66"
+    "mtime": 1779498323.9849265,
+    "hash": "647cb8103028aef221f42521b5fbd76f"
   },
   "/Users/tibinthomas/my_app/lib/providers/backup_provider.dart": {
     "mtime": 1778817982.17215,
@@ -49072,8 +49072,8 @@
     "hash": "3f27001fed87b596984a51ac2d2b8b1c"
   },
   "/Users/tibinthomas/my_app/lib/services/firestore_service.dart": {
-    "mtime": 1779476470.440535,
-    "hash": "a0b514f4baeb3d817489e2e630e718f0"
+    "mtime": 1779498275.8232455,
+    "hash": "334ecb6460635ddc81f0815aab1c84a7"
   },
   "/Users/tibinthomas/my_app/lib/services/local_storage_service.dart": {
     "mtime": 1779477316.812494,
@@ -49088,8 +49088,8 @@
     "hash": "7372a51b3c8fb8168e46e76a6c7733f1"
   },
   "/Users/tibinthomas/my_app/lib/services/notification_service.dart": {
-    "mtime": 1778685731.2450318,
-    "hash": "28a3ec5ebd1ec015c0803fc0219f8e25"
+    "mtime": 1779498283.784068,
+    "hash": "4b7ee77a3cd0374ebde42343456adfa6"
   },
   "/Users/tibinthomas/my_app/lib/services/drive_service.dart": {
     "mtime": 1778730519.3210194,
@@ -49122,6 +49122,10 @@
   "/Users/tibinthomas/my_app/lib/widgets/empty_state.dart": {
     "mtime": 1778295420.1146839,
     "hash": "454b018f4afb4bb864f7decc64503826"
+  },
+  "/Users/tibinthomas/my_app/functions/index.js": {
+    "mtime": 1779481700.8123944,
+    "hash": "adfa6955c6b3c6c6c77780ef071b20f5"
   },
   "/Users/tibinthomas/my_app/windows/runner/flutter_window.cpp": {
     "mtime": 1777367340.4747229,
@@ -49168,8 +49172,8 @@
     "hash": "d4a537148be5a8b731a7954884cf7119"
   },
   "/Users/tibinthomas/my_app/pubspec.yaml": {
-    "mtime": 1779475938.5195258,
-    "hash": "2cd3c7d0e5affc3c4e8f563b52731c4b"
+    "mtime": 1779481444.06335,
+    "hash": "32e8f72e3e121ff3b91f6a0217cb674a"
   },
   "/Users/tibinthomas/my_app/analysis_options.yaml": {
     "mtime": 1777687427.381633,

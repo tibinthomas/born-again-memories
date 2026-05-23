@@ -178,3 +178,6 @@ graphify-out/.graphify_python
 graphify-out/.graphify_root
 graphify-out/graph.html
 graphify-out/graph.json
+
+# Firebase Cloud Functions
+functions/node_modules/

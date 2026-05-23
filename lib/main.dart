@@ -1,4 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,9 +14,16 @@ import 'screens/milestone_home_page.dart';
 import 'services/firestore_service.dart';
 import 'services/notification_service.dart';
 
+// Top-level handler required by firebase_messaging for background messages.
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   await NotificationService.initialize();
   runApp(const ProviderScope(child: BabyMilestonesApp()));
 }
@@ -89,11 +99,55 @@ class _AuthedRootState extends ConsumerState<_AuthedRoot> {
   bool _pendingDeletion = false;
   DateTime? _scheduledDeletion;
   bool _deleteDriveBackup = false;
+  StreamSubscription<QuerySnapshot>? _notifSub;
 
   @override
   void initState() {
     super.initState();
     _checkDeletion();
+    _initFcm();
+    _listenForSharedNotifications();
+  }
+
+  @override
+  void dispose() {
+    _notifSub?.cancel();
+    super.dispose();
+  }
+
+  void _listenForSharedNotifications() {
+    final uid = ref.read(authStateProvider).value?.uid;
+    if (uid == null || uid.isEmpty) return;
+    _notifSub = FirestoreService.streamNotifications(uid).listen((snap) async {
+      final unread = snap.docs.where((d) => d.data()['read'] == false).toList();
+      if (unread.isEmpty) return;
+      for (final doc in unread) {
+        final data = doc.data();
+        await NotificationService.showSharedMilestoneNotification(
+          senderName: data['senderName'] as String? ?? 'Someone',
+          milestoneTitle: data['milestoneTitle'] as String? ?? 'a new memory',
+        );
+      }
+      await FirestoreService.markNotificationsRead(
+          uid, unread.map((d) => d.id).toList());
+    });
+  }
+
+  Future<void> _initFcm() async {
+    final messaging = FirebaseMessaging.instance;
+    await messaging.requestPermission(alert: true, badge: true, sound: true);
+    final token = await messaging.getToken();
+    final uid = ref.read(authStateProvider).value?.uid;
+    if (token != null && uid != null && uid.isNotEmpty) {
+      await FirestoreService.saveFcmToken(uid, token);
+    }
+    // Refresh token whenever it rotates (e.g. after reinstall).
+    messaging.onTokenRefresh.listen((newToken) {
+      final currentUid = ref.read(authStateProvider).value?.uid;
+      if (currentUid != null && currentUid.isNotEmpty) {
+        FirestoreService.saveFcmToken(currentUid, newToken);
+      }
+    });
   }
 
   Future<void> _checkDeletion() async {

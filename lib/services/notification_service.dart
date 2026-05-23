@@ -146,4 +146,32 @@ class NotificationService {
     if (kIsWeb || !_initialized) return;
     await _plugin.cancelAll();
   }
+
+  static Future<void> showSharedMilestoneNotification({
+    required String senderName,
+    required String milestoneTitle,
+  }) async {
+    if (kIsWeb || !_initialized) return;
+    const details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'shared_memories',
+        'Shared Memories',
+        channelDescription: 'Notifications when someone shares a new memory',
+        importance: Importance.high,
+        priority: Priority.high,
+      ),
+      iOS: DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      ),
+      macOS: DarwinNotificationDetails(),
+    );
+    await _plugin.show(
+      DateTime.now().millisecondsSinceEpoch ~/ 1000 & 0x7FFFFFFF,
+      '$senderName added a new memory ✨',
+      milestoneTitle,
+      details,
+    );
+  }
 }

@@ -34,6 +34,13 @@ service cloud.firestore {
         }
       }
 
+      // Notifications: owner can read/delete; any signed-in user can create
+      // (needed so one user can notify another when adding a shared milestone).
+      match /notifications/{notifId} {
+        allow read, delete: if request.auth != null && request.auth.uid == uid;
+        allow create: if request.auth != null;
+      }
+
       // Everything else under the user doc: owner only.
       match /{document=**} {
         allow read, write: if request.auth != null && request.auth.uid == uid;
