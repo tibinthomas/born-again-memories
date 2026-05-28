@@ -480,7 +480,7 @@ class BackupHeaderIndicator extends StatelessWidget {
 
 // ── Quick-access pill ─────────────────────────────────────────────────────────
 
-class QuickPill extends StatelessWidget {
+class QuickPill extends StatefulWidget {
   final IconData icon;
   final String label;
   final VoidCallback? onTap;
@@ -493,40 +493,58 @@ class QuickPill extends StatelessWidget {
   });
 
   @override
+  State<QuickPill> createState() => _QuickPillState();
+}
+
+class _QuickPillState extends State<QuickPill> {
+  bool _pressed = false;
+
+  @override
   Widget build(BuildContext context) {
+    final active = widget.onTap != null;
     return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ClipOval(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-              child: Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withAlpha(onTap != null ? 45 : 25),
-                  border: Border.all(
-                    color: Colors.white.withAlpha(onTap != null ? 80 : 45),
-                    width: 0.8,
+      onTap: widget.onTap,
+      onTapDown: active ? (_) => setState(() => _pressed = true) : null,
+      onTapUp: active ? (_) => setState(() => _pressed = false) : null,
+      onTapCancel: active ? () => setState(() => _pressed = false) : null,
+      child: AnimatedScale(
+        scale: _pressed ? 0.90 : 1.0,
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.easeOut,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ClipOval(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 120),
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withAlpha(
+                        _pressed ? 65 : (active ? 45 : 20)),
+                    border: Border.all(
+                      color: Colors.white.withAlpha(active ? 90 : 40),
+                      width: 0.8,
+                    ),
                   ),
+                  child: Icon(widget.icon, color: Colors.white, size: 18),
                 ),
-                child: Icon(icon, color: Colors.white, size: 17),
               ),
             ),
-          ),
-          const SizedBox(height: 5),
-          Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
+            const SizedBox(height: 5),
+            Text(
+              widget.label,
+              style: TextStyle(
+                color: Colors.white.withAlpha(active ? 255 : 160),
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

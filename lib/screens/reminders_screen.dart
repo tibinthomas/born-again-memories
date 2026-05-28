@@ -309,7 +309,7 @@ class _ReminderCard extends ConsumerWidget {
             ),
             // Content
             Padding(
-              padding: const EdgeInsets.fromLTRB(19, 14, 8, 14),
+              padding: const EdgeInsets.fromLTRB(16, 13, 12, 13),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -340,10 +340,10 @@ class _ReminderCard extends ConsumerWidget {
                           reminder.title,
                           style: TextStyle(
                             fontSize: 15,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w700,
                             color: isDone
                                 ? Colors.grey.shade400
-                                : const Color(0xFF1F2937),
+                                : const Color(0xFF1A1A2E),
                             decoration: isDone ? TextDecoration.lineThrough : null,
                           ),
                         ),
@@ -370,7 +370,7 @@ class _ReminderCard extends ConsumerWidget {
                             if (reminder.repeat != ReminderRepeat.none) ...[
                               const SizedBox(width: 6),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
                                   color: _typeColor.withAlpha(20),
                                   borderRadius: BorderRadius.circular(8),
@@ -384,7 +384,7 @@ class _ReminderCard extends ConsumerWidget {
                             if (isMuted) ...[
                               const SizedBox(width: 6),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
                                   color: Colors.orange.shade50,
                                   borderRadius: BorderRadius.circular(8),

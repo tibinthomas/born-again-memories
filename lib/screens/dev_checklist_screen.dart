@@ -586,7 +586,7 @@ class _DomainSection extends StatelessWidget {
           return InkWell(
             onTap: () => onTap(m),
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(14, 9, 10, 9),
+              padding: const EdgeInsets.fromLTRB(14, 9, 12, 9),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [

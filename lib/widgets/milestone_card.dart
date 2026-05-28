@@ -320,7 +320,7 @@ class _CrystalCardState extends State<_CrystalCard>
 
             // ── Content ───────────────────────────────────────────
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 14, 10, 16),
+              padding: const EdgeInsets.fromLTRB(16, 14, 14, 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -477,7 +477,7 @@ class _CrystalCardState extends State<_CrystalCard>
                       milestone.description,
                       style: TextStyle(
                         color: Colors.grey.shade700,
-                        fontSize: 13.5,
+                        fontSize: 13,
                         height: 1.55,
                       ),
                     ),
@@ -492,7 +492,7 @@ class _CrystalCardState extends State<_CrystalCard>
                     const SizedBox(height: 10),
                     Wrap(
                       spacing: 6,
-                      runSpacing: 5,
+                      runSpacing: 6,
                       children: milestone.tags
                           .map((tag) => Container(
                                 padding: const EdgeInsets.symmetric(

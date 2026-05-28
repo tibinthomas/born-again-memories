@@ -775,7 +775,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
               children: [
                 // Section header
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 8, 8),
+                  padding: const EdgeInsets.fromLTRB(16, 16, 4, 8),
                   child: Row(
                     children: [
                       Text(
@@ -783,7 +783,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                         style: const TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF2D2D2D),
+                          color: Color(0xFF1A1A2E),
                         ),
                       ),
                       const Spacer(),

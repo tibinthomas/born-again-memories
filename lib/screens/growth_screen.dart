@@ -247,7 +247,7 @@ class _GrowthTab extends ConsumerWidget {
     final entries = _entries;
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
       children: [
         // ── Summary card ─────────────────────────────────────────────
         if (entries.isNotEmpty) _SummaryCard(
@@ -268,7 +268,7 @@ class _GrowthTab extends ConsumerWidget {
           height: 260,
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withAlpha(8),
@@ -278,7 +278,7 @@ class _GrowthTab extends ConsumerWidget {
             ],
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(16),
             child: entries.isEmpty
                 ? Center(
                     child: Column(
@@ -372,7 +372,7 @@ class _GrowthTab extends ConsumerWidget {
                           context: context,
                           builder: (ctx) => AlertDialog(
                             shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20)),
+                                borderRadius: BorderRadius.circular(16)),
                             title: const Text('Delete measurement?'),
                             content: const Text(
                                 'This measurement will be permanently removed.'),
@@ -497,7 +497,7 @@ class _SummaryCard extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: theme.accent.withAlpha(60),
