@@ -1565,66 +1565,56 @@ class _ProfileHeader extends ConsumerWidget {
                       const SizedBox(height: 16),
 
                       // ── Quick-access strip ────────────────────────
-                      Row(
-                        children: [
-                          Expanded(child: _QuickPill(
-                            icon: Icons.auto_awesome,
-                            label: 'Moments',
-                          )),
-                          if (settings.growthTrackingEnabled)
-                            Expanded(child: _QuickPill(
-                              icon: Icons.show_chart_rounded,
-                              label: 'Growth',
-                              onTap: onGrowth,
-                            )),
-                          if (settings.checklistEnabled)
-                            Expanded(child: _QuickPill(
-                              icon: Icons.checklist_rounded,
-                              label: 'Checklist',
-                              onTap: onChecklist,
-                            )),
-                          if (settings.sparksEnabled)
-                            Expanded(child: _QuickPill(
-                              icon: Icons.bolt_rounded,
-                              label: 'Sparks',
-                              onTap: onSparks,
-                            )),
-                          if (settings.storiesEnabled)
-                            Expanded(child: _QuickPill(
-                              icon: Icons.article_outlined,
-                              label: 'Stories',
-                              onTap: onStories,
-                            )),
-                          if (settings.forumEnabled)
-                            Expanded(child: _QuickPill(
-                              icon: Icons.forum_outlined,
-                              label: 'Forum',
-                              onTap: onForum,
-                            )),
-                          if (settings.documentsEnabled)
-                            Expanded(child: _QuickPill(
-                              icon: Icons.folder_outlined,
-                              label: 'Docs',
-                              onTap: onDocuments,
-                            )),
-                          if (settings.linksEnabled)
-                            Expanded(child: _QuickPill(
-                              icon: Icons.link_outlined,
-                              label: 'Links',
-                              onTap: onLinks,
-                            )),
-                          Expanded(child: _QuickPill(
-                            icon: Icons.people_outline_rounded,
-                            label: 'Feed',
-                            onTap: onSharedFeed,
-                            showBadge: sharedCount > 0,
-                          )),
-                          if (settings.remindersEnabled)
-                            Expanded(child: _RemindersQuickPill(
-                              profile: profile,
-                              profileIndex: profileIndex,
-                            )),
-                        ],
+                      ShaderMask(
+                        shaderCallback: (bounds) => const LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          stops: [0.0, 0.06, 0.82, 1.0],
+                          colors: [
+                            Colors.transparent,
+                            Colors.white,
+                            Colors.white,
+                            Colors.transparent,
+                          ],
+                        ).createShader(bounds),
+                        blendMode: BlendMode.dstIn,
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          physics: const BouncingScrollPhysics(),
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: Row(
+                            children: [
+                              _QuickPill(
+                                icon: Icons.auto_awesome,
+                                label: 'Moments',
+                              ),
+                              ...settings.menuOrder
+                                  .map<Widget?>((key) => switch (key) {
+                                        'growth' when settings.growthTrackingEnabled =>
+                                          _QuickPill(icon: Icons.show_chart_rounded, label: 'Growth', onTap: onGrowth),
+                                        'checklist' when settings.checklistEnabled =>
+                                          _QuickPill(icon: Icons.checklist_rounded, label: 'Checklist', onTap: onChecklist),
+                                        'sparks' when settings.sparksEnabled =>
+                                          _QuickPill(icon: Icons.bolt_rounded, label: 'Sparks', onTap: onSparks),
+                                        'stories' when settings.storiesEnabled =>
+                                          _QuickPill(icon: Icons.article_outlined, label: 'Stories', onTap: onStories),
+                                        'forum' when settings.forumEnabled =>
+                                          _QuickPill(icon: Icons.forum_outlined, label: 'Forum', onTap: onForum),
+                                        'documents' when settings.documentsEnabled =>
+                                          _QuickPill(icon: Icons.folder_outlined, label: 'Docs', onTap: onDocuments),
+                                        'links' when settings.linksEnabled =>
+                                          _QuickPill(icon: Icons.link_outlined, label: 'Links', onTap: onLinks),
+                                        'feed' =>
+                                          _QuickPill(icon: Icons.people_outline_rounded, label: 'Feed', onTap: onSharedFeed, showBadge: sharedCount > 0),
+                                        'reminders' when settings.remindersEnabled =>
+                                          _RemindersQuickPill(profile: profile, profileIndex: profileIndex),
+                                        _ => null,
+                                      })
+                                  .whereType<Widget>()
+                                  .toList(),
+                            ],
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -1833,7 +1823,9 @@ class _QuickPill extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Column(
+      child: SizedBox(
+        width: 68,
+        child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Stack(
@@ -1878,6 +1870,7 @@ class _QuickPill extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             label,
+            textAlign: TextAlign.center,
             style: TextStyle(
               color: Colors.white.withAlpha(onTap != null ? 230 : 140),
               fontSize: 10,
@@ -1886,6 +1879,7 @@ class _QuickPill extends StatelessWidget {
             ),
           ),
         ],
+        ),
       ),
     );
   }
@@ -1962,7 +1956,9 @@ class _RemindersQuickPill extends StatelessWidget {
           builder: (_) => RemindersScreen(profileIndex: profileIndex),
         ),
       ),
-      child: Column(
+      child: SizedBox(
+        width: 68,
+        child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Stack(
@@ -2026,6 +2022,7 @@ class _RemindersQuickPill extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             'Remind',
+            textAlign: TextAlign.center,
             style: TextStyle(
               color: overdue > 0
                   ? Colors.orange.shade100
@@ -2036,6 +2033,7 @@ class _RemindersQuickPill extends StatelessWidget {
             ),
           ),
         ],
+        ),
       ),
     );
   }

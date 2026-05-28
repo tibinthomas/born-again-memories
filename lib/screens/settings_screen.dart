@@ -293,22 +293,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   _FeaturesCard(
                     accent: accent,
                     settings: settings,
-                    onGrowthChanged: (v) => ref.read(appSettingsProvider.notifier)
-                        .update(settings.copyWith(growthTrackingEnabled: v)),
-                    onChecklistChanged: (v) => ref.read(appSettingsProvider.notifier)
-                        .update(settings.copyWith(checklistEnabled: v)),
-                    onSparksChanged: (v) => ref.read(appSettingsProvider.notifier)
-                        .update(settings.copyWith(sparksEnabled: v)),
-                    onRemindersChanged: (v) => ref.read(appSettingsProvider.notifier)
-                        .update(settings.copyWith(remindersEnabled: v)),
-                    onDocumentsChanged: (v) => ref.read(appSettingsProvider.notifier)
-                        .update(settings.copyWith(documentsEnabled: v)),
-                    onLinksChanged: (v) => ref.read(appSettingsProvider.notifier)
-                        .update(settings.copyWith(linksEnabled: v)),
-                    onStoriesChanged: (v) => ref.read(appSettingsProvider.notifier)
-                        .update(settings.copyWith(storiesEnabled: v)),
-                    onForumChanged: (v) => ref.read(appSettingsProvider.notifier)
-                        .update(settings.copyWith(forumEnabled: v)),
+                    onToggle: (key, value) {
+                      final n = ref.read(appSettingsProvider.notifier);
+                      n.update(switch (key) {
+                        'growth'    => settings.copyWith(growthTrackingEnabled: value),
+                        'checklist' => settings.copyWith(checklistEnabled: value),
+                        'sparks'    => settings.copyWith(sparksEnabled: value),
+                        'reminders' => settings.copyWith(remindersEnabled: value),
+                        'documents' => settings.copyWith(documentsEnabled: value),
+                        'links'     => settings.copyWith(linksEnabled: value),
+                        'stories'   => settings.copyWith(storiesEnabled: value),
+                        'forum'     => settings.copyWith(forumEnabled: value),
+                        _           => settings,
+                      });
+                    },
+                    onReorder: (order) => ref.read(appSettingsProvider.notifier)
+                        .update(settings.copyWith(menuOrder: order)),
                   ),
                   const SizedBox(height: 22),
 
@@ -1661,128 +1661,139 @@ class _PrefRow extends StatelessWidget {
 
 // ── Features card ─────────────────────────────────────────────────────────────
 
+class _FeatureItem {
+  final String key;
+  final IconData icon;
+  final String label;
+  final bool? hasToggle; // null = always-on (feed)
+  const _FeatureItem(this.key, this.icon, this.label, {this.hasToggle = true});
+}
+
+const _featureItems = [
+  _FeatureItem('growth',    Icons.show_chart_rounded,      'Growth tracking'),
+  _FeatureItem('checklist', Icons.checklist_rounded,        'Developmental checklist'),
+  _FeatureItem('sparks',    Icons.bolt_rounded,             'Memory Sparks'),
+  _FeatureItem('stories',   Icons.article_outlined,         'Stories'),
+  _FeatureItem('forum',     Icons.forum_outlined,           'Q&A Forum'),
+  _FeatureItem('documents', Icons.folder_outlined,          'Documents'),
+  _FeatureItem('links',     Icons.link_outlined,            'Saved links'),
+  _FeatureItem('feed',      Icons.people_outline_rounded,   'Shared feed', hasToggle: false),
+  _FeatureItem('reminders', Icons.notifications_outlined,   'Reminders'),
+];
+
 class _FeaturesCard extends StatelessWidget {
   final Color accent;
   final dynamic settings;
-  final ValueChanged<bool> onGrowthChanged;
-  final ValueChanged<bool> onChecklistChanged;
-  final ValueChanged<bool> onSparksChanged;
-  final ValueChanged<bool> onRemindersChanged;
-  final ValueChanged<bool> onDocumentsChanged;
-  final ValueChanged<bool> onLinksChanged;
-  final ValueChanged<bool> onStoriesChanged;
-  final ValueChanged<bool> onForumChanged;
+  final void Function(String key, bool value) onToggle;
+  final ValueChanged<List<String>> onReorder;
 
   const _FeaturesCard({
     required this.accent,
     required this.settings,
-    required this.onGrowthChanged,
-    required this.onChecklistChanged,
-    required this.onSparksChanged,
-    required this.onRemindersChanged,
-    required this.onDocumentsChanged,
-    required this.onLinksChanged,
-    required this.onStoriesChanged,
-    required this.onForumChanged,
+    required this.onToggle,
+    required this.onReorder,
   });
+
+  bool _isEnabled(String key) => switch (key) {
+        'growth'    => settings.growthTrackingEnabled as bool,
+        'checklist' => settings.checklistEnabled as bool,
+        'sparks'    => settings.sparksEnabled as bool,
+        'stories'   => settings.storiesEnabled as bool,
+        'forum'     => settings.forumEnabled as bool,
+        'documents' => settings.documentsEnabled as bool,
+        'links'     => settings.linksEnabled as bool,
+        'reminders' => settings.remindersEnabled as bool,
+        _           => true,
+      };
 
   @override
   Widget build(BuildContext context) {
+    final order = List<String>.from(settings.menuOrder as List);
+    final ordered = order
+        .map((k) => _featureItems.firstWhere((i) => i.key == k,
+            orElse: () => _FeatureItem(k, Icons.circle, k)))
+        .toList();
+
     return _Card(children: [
       Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-        child: Text(
-          'Show or hide sections from the home screen.',
-          style: TextStyle(fontSize: 12, color: Colors.grey.shade400, height: 1.4),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Show, hide or drag to reorder.',
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade400),
+              ),
+            ),
+            Icon(Icons.drag_handle_rounded,
+                size: 14, color: Colors.grey.shade300),
+          ],
         ),
       ),
-      _divider(),
-      _PrefRow(
-        icon: Icons.show_chart_rounded,
-        accent: accent,
-        label: 'Growth tracking',
-        trailing: Switch.adaptive(
-          value: settings.growthTrackingEnabled,
-          onChanged: onGrowthChanged,
-          activeColor: accent,
-        ),
-      ),
-      _divider(),
-      _PrefRow(
-        icon: Icons.checklist_rounded,
-        accent: accent,
-        label: 'Developmental checklist',
-        trailing: Switch.adaptive(
-          value: settings.checklistEnabled,
-          onChanged: onChecklistChanged,
-          activeColor: accent,
-        ),
-      ),
-      _divider(),
-      _PrefRow(
-        icon: Icons.bolt_rounded,
-        accent: accent,
-        label: 'Memory Sparks',
-        trailing: Switch.adaptive(
-          value: settings.sparksEnabled,
-          onChanged: onSparksChanged,
-          activeColor: accent,
-        ),
-      ),
-      _divider(),
-      _PrefRow(
-        icon: Icons.notifications_outlined,
-        accent: accent,
-        label: 'Reminders',
-        trailing: Switch.adaptive(
-          value: settings.remindersEnabled,
-          onChanged: onRemindersChanged,
-          activeColor: accent,
-        ),
-      ),
-      _divider(),
-      _PrefRow(
-        icon: Icons.folder_outlined,
-        accent: accent,
-        label: 'Documents',
-        trailing: Switch.adaptive(
-          value: settings.documentsEnabled,
-          onChanged: onDocumentsChanged,
-          activeColor: accent,
-        ),
-      ),
-      _divider(),
-      _PrefRow(
-        icon: Icons.link_outlined,
-        accent: accent,
-        label: 'Saved links',
-        trailing: Switch.adaptive(
-          value: settings.linksEnabled,
-          onChanged: onLinksChanged,
-          activeColor: accent,
-        ),
-      ),
-      _divider(),
-      _PrefRow(
-        icon: Icons.article_outlined,
-        accent: accent,
-        label: 'Stories',
-        trailing: Switch.adaptive(
-          value: settings.storiesEnabled,
-          onChanged: onStoriesChanged,
-          activeColor: accent,
-        ),
-      ),
-      _divider(),
-      _PrefRow(
-        icon: Icons.forum_outlined,
-        accent: accent,
-        label: 'Q&A Forum',
-        trailing: Switch.adaptive(
-          value: settings.forumEnabled,
-          onChanged: onForumChanged,
-          activeColor: accent,
-        ),
+      ReorderableListView(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        buildDefaultDragHandles: false,
+        onReorder: (oldIndex, newIndex) {
+          if (newIndex > oldIndex) newIndex--;
+          final updated = List<String>.from(order)
+            ..removeAt(oldIndex)
+            ..insert(newIndex, order[oldIndex]);
+          onReorder(updated);
+        },
+        children: List.generate(ordered.length, (i) {
+          final item = ordered[i];
+          final enabled = _isEnabled(item.key);
+          final canToggle = item.hasToggle != false;
+          return Column(
+            key: ValueKey(item.key),
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (i > 0) _divider(),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                child: Row(
+                  children: [
+                    ReorderableDragStartListener(
+                      index: i,
+                      child: Icon(Icons.drag_handle_rounded,
+                          size: 20, color: Colors.grey.shade300),
+                    ),
+                    const SizedBox(width: 12),
+                    Container(
+                      width: 30,
+                      height: 30,
+                      decoration: BoxDecoration(
+                        color: Color.lerp(Colors.white, accent, 0.12),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(item.icon, size: 16, color: accent),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(item.label,
+                          style: const TextStyle(
+                              fontSize: 14, color: Color(0xFF1A1A2E))),
+                    ),
+                    if (canToggle)
+                      Switch.adaptive(
+                        value: enabled,
+                        onChanged: (v) => onToggle(item.key, v),
+                        activeColor: accent,
+                      )
+                    else
+                      Padding(
+                        padding: const EdgeInsets.only(right: 4),
+                        child: Text('Always on',
+                            style: TextStyle(
+                                fontSize: 11, color: Colors.grey.shade400)),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        }),
       ),
     ]);
   }
