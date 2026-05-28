@@ -15,6 +15,8 @@ class AppSettings {
   final bool remindersEnabled;
   final bool documentsEnabled;
   final bool linksEnabled;
+  final bool storiesEnabled;
+  final bool forumEnabled;
   // User-defined custom sparks (global across all profiles)
   final List<CustomSpark> customSparks;
 
@@ -31,6 +33,8 @@ class AppSettings {
     this.remindersEnabled = true,
     this.documentsEnabled = true,
     this.linksEnabled = true,
+    this.storiesEnabled = true,
+    this.forumEnabled = true,
     this.customSparks = const [],
   });
 
@@ -47,6 +51,8 @@ class AppSettings {
     bool? remindersEnabled,
     bool? documentsEnabled,
     bool? linksEnabled,
+    bool? storiesEnabled,
+    bool? forumEnabled,
     List<CustomSpark>? customSparks,
     bool clearCustomIcon = false,
   }) =>
@@ -63,6 +69,8 @@ class AppSettings {
         remindersEnabled: remindersEnabled ?? this.remindersEnabled,
         documentsEnabled: documentsEnabled ?? this.documentsEnabled,
         linksEnabled: linksEnabled ?? this.linksEnabled,
+        storiesEnabled: storiesEnabled ?? this.storiesEnabled,
+        forumEnabled: forumEnabled ?? this.forumEnabled,
         customSparks: customSparks ?? this.customSparks,
       );
 
@@ -78,6 +86,8 @@ class AppSettings {
         'remindersEnabled': remindersEnabled,
         'documentsEnabled': documentsEnabled,
         'linksEnabled': linksEnabled,
+        'storiesEnabled': storiesEnabled,
+        'forumEnabled': forumEnabled,
         if (customSparks.isNotEmpty)
           'customSparks': customSparks.map((s) => s.toJson()).toList(),
       };
@@ -95,6 +105,8 @@ class AppSettings {
         remindersEnabled: j['remindersEnabled'] as bool? ?? true,
         documentsEnabled: j['documentsEnabled'] as bool? ?? true,
         linksEnabled: j['linksEnabled'] as bool? ?? true,
+        storiesEnabled: j['storiesEnabled'] as bool? ?? true,
+        forumEnabled: j['forumEnabled'] as bool? ?? true,
         customSparks: (j['customSparks'] as List<dynamic>?)
                 ?.map((e) => CustomSpark.fromJson(Map<String, dynamic>.from(e as Map)))
                 .toList() ??

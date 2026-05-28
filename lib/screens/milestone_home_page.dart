@@ -1589,16 +1589,18 @@ class _ProfileHeader extends ConsumerWidget {
                               label: 'Sparks',
                               onTap: onSparks,
                             )),
-                          Expanded(child: _QuickPill(
-                            icon: Icons.article_outlined,
-                            label: 'Stories',
-                            onTap: onStories,
-                          )),
-                          Expanded(child: _QuickPill(
-                            icon: Icons.forum_outlined,
-                            label: 'Forum',
-                            onTap: onForum,
-                          )),
+                          if (settings.storiesEnabled)
+                            Expanded(child: _QuickPill(
+                              icon: Icons.article_outlined,
+                              label: 'Stories',
+                              onTap: onStories,
+                            )),
+                          if (settings.forumEnabled)
+                            Expanded(child: _QuickPill(
+                              icon: Icons.forum_outlined,
+                              label: 'Forum',
+                              onTap: onForum,
+                            )),
                           if (settings.documentsEnabled)
                             Expanded(child: _QuickPill(
                               icon: Icons.folder_outlined,

@@ -305,6 +305,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         .update(settings.copyWith(documentsEnabled: v)),
                     onLinksChanged: (v) => ref.read(appSettingsProvider.notifier)
                         .update(settings.copyWith(linksEnabled: v)),
+                    onStoriesChanged: (v) => ref.read(appSettingsProvider.notifier)
+                        .update(settings.copyWith(storiesEnabled: v)),
+                    onForumChanged: (v) => ref.read(appSettingsProvider.notifier)
+                        .update(settings.copyWith(forumEnabled: v)),
                   ),
                   const SizedBox(height: 22),
 
@@ -1666,6 +1670,8 @@ class _FeaturesCard extends StatelessWidget {
   final ValueChanged<bool> onRemindersChanged;
   final ValueChanged<bool> onDocumentsChanged;
   final ValueChanged<bool> onLinksChanged;
+  final ValueChanged<bool> onStoriesChanged;
+  final ValueChanged<bool> onForumChanged;
 
   const _FeaturesCard({
     required this.accent,
@@ -1676,6 +1682,8 @@ class _FeaturesCard extends StatelessWidget {
     required this.onRemindersChanged,
     required this.onDocumentsChanged,
     required this.onLinksChanged,
+    required this.onStoriesChanged,
+    required this.onForumChanged,
   });
 
   @override
@@ -1751,6 +1759,28 @@ class _FeaturesCard extends StatelessWidget {
         trailing: Switch.adaptive(
           value: settings.linksEnabled,
           onChanged: onLinksChanged,
+          activeColor: accent,
+        ),
+      ),
+      _divider(),
+      _PrefRow(
+        icon: Icons.article_outlined,
+        accent: accent,
+        label: 'Stories',
+        trailing: Switch.adaptive(
+          value: settings.storiesEnabled,
+          onChanged: onStoriesChanged,
+          activeColor: accent,
+        ),
+      ),
+      _divider(),
+      _PrefRow(
+        icon: Icons.forum_outlined,
+        accent: accent,
+        label: 'Q&A Forum',
+        trailing: Switch.adaptive(
+          value: settings.forumEnabled,
+          onChanged: onForumChanged,
           activeColor: accent,
         ),
       ),
