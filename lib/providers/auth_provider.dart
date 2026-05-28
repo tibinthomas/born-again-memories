@@ -28,6 +28,8 @@ class AuthService {
   final _auth = FirebaseAuth.instance;
   late final googleSignIn = GoogleSignIn(
     clientId: _clientId,
+    // Web client ID needed on Android to get a valid idToken for Firebase
+    serverClientId: '535814593524-qnfs2h0978fkikcvueunqf8g6f7k3bot.apps.googleusercontent.com',
     scopes: ['email', DriveApi.driveFileScope],
   );
 
