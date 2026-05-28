@@ -23,6 +23,7 @@ class ProfileHeader extends ConsumerWidget {
   final VoidCallback onDocuments;
   final VoidCallback onLinks;
   final VoidCallback onGrowth;
+  final VoidCallback onChecklist;
   final VoidCallback onEditProfile;
   final VoidCallback onAddProfile;
 
@@ -38,6 +39,7 @@ class ProfileHeader extends ConsumerWidget {
     required this.onDocuments,
     required this.onLinks,
     required this.onGrowth,
+    required this.onChecklist,
     required this.onEditProfile,
     required this.onAddProfile,
   });
@@ -293,6 +295,12 @@ class ProfileHeader extends ConsumerWidget {
                               icon: Icons.show_chart_rounded,
                               label: 'Growth',
                               onTap: onGrowth,
+                            )),
+                          if (settings.checklistEnabled)
+                            Expanded(child: QuickPill(
+                              icon: Icons.checklist_rounded,
+                              label: 'Checklist',
+                              onTap: onChecklist,
                             )),
                           if (settings.documentsEnabled)
                             Expanded(child: QuickPill(

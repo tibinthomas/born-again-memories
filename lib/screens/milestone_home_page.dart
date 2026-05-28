@@ -17,6 +17,7 @@ import '../services/local_storage_service.dart';
 import '../utils/app_date_picker.dart';
 import '../utils/chime.dart';
 import '../utils/device_performance.dart';
+import 'dev_checklist_screen.dart';
 import 'growth_screen.dart';
 import '../utils/image_utils.dart';
 import '../utils/profile_theme.dart';
@@ -756,6 +757,12 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                 builder: (_) => GrowthScreen(profileIndex: safeIndex),
               ),
             ),
+            onChecklist: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => DevChecklistScreen(profileIndex: safeIndex),
+              ),
+            ),
             onEditProfile: () => _showEditProfileSheet(context, safeIndex, currentProfile),
             onAddProfile: _showAddProfileSheet,
           ),
@@ -1261,6 +1268,7 @@ class _ProfileHeader extends ConsumerWidget {
   final VoidCallback onDocuments;
   final VoidCallback onLinks;
   final VoidCallback onGrowth;
+  final VoidCallback onChecklist;
   final VoidCallback onEditProfile;
   final VoidCallback onAddProfile;
 
@@ -1275,6 +1283,7 @@ class _ProfileHeader extends ConsumerWidget {
     required this.onDocuments,
     required this.onLinks,
     required this.onGrowth,
+    required this.onChecklist,
     required this.onEditProfile,
     required this.onAddProfile,
   });
@@ -1524,6 +1533,12 @@ class _ProfileHeader extends ConsumerWidget {
                               icon: Icons.show_chart_rounded,
                               label: 'Growth',
                               onTap: onGrowth,
+                            )),
+                          if (settings.checklistEnabled)
+                            Expanded(child: _QuickPill(
+                              icon: Icons.checklist_rounded,
+                              label: 'Checklist',
+                              onTap: onChecklist,
                             )),
                           if (settings.documentsEnabled)
                             Expanded(child: _QuickPill(

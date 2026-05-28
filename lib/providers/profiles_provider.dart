@@ -351,6 +351,21 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>?> {
     await FirestoreService.saveDocument(uid, profile.id, doc);
   }
 
+  // ── Developmental checklist ───────────────────────────────────────────────
+
+  Future<void> toggleDevMilestone(int profileIndex, String milestoneId) async {
+    final profile = (state ?? <KidProfile>[])[profileIndex];
+    final updated = Set<String>.from(profile.checkedMilestones);
+    if (updated.contains(milestoneId)) {
+      updated.remove(milestoneId);
+    } else {
+      updated.add(milestoneId);
+    }
+    final updatedProfile = profile.copyWith(checkedMilestones: updated);
+    _setProfile(profileIndex, updatedProfile);
+    await FirestoreService.saveProfile(uid, updatedProfile);
+  }
+
   // ── Growth entries ────────────────────────────────────────────────────────
 
   Future<void> addGrowthEntry(int profileIndex, GrowthEntry entry) async {

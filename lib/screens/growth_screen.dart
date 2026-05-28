@@ -180,10 +180,14 @@ class _GrowthScreenState extends ConsumerState<GrowthScreen>
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAddSheet(),
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('Add measurement'),
         backgroundColor: theme.accent,
-        foregroundColor: Colors.white,
+        elevation: 4,
+        icon: const Icon(Icons.add_rounded, color: Colors.white, size: 18),
+        label: const Text(
+          'Add measurement',
+          style: TextStyle(
+              color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13),
+        ),
       ),
     );
   }
