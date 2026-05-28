@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import '../models/app_settings.dart';
 import '../models/attachment.dart';
 import '../models/baby_document.dart';
+import '../models/blog_post.dart';
 import '../models/growth_entry.dart';
 import '../models/kid_profile.dart';
 import '../models/milestone.dart';
@@ -368,4 +370,52 @@ class FirestoreService {
         'attachments.$attachmentId.iCloudFileId': iCloudFileId,
         'attachments.$attachmentId.backupStatus': status.name,
       });
+
+  // ── Community blogs ───────────────────────────────────────────────────────
+
+  static Stream<List<BlogPost>> streamBlogs({int limit = 50}) =>
+      _db
+          .collection('blogs')
+          .snapshots()
+          .map((s) {
+            final posts = s.docs
+                .map((d) {
+                  try {
+                    return BlogPost.fromJson({...d.data(), 'id': d.id});
+                  } catch (e) {
+                    debugPrint('BlogPost parse error for ${d.id}: $e');
+                    return null;
+                  }
+                })
+                .whereType<BlogPost>()
+                .toList();
+            posts.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+            return posts.take(limit).toList();
+          });
+
+  static Future<void> createBlog(BlogPost blog) =>
+      _db.doc('blogs/${blog.id}').set(blog.toJson());
+
+  static Future<void> updateBlog(BlogPost blog) =>
+      _db.doc('blogs/${blog.id}').update({
+        'title': blog.title,
+        'content': blog.content,
+        'tags': blog.tags,
+      });
+
+  static Future<void> deleteBlog(String blogId) =>
+      _db.doc('blogs/$blogId').delete();
+
+  static Future<void> toggleLike(String blogId, String uid) async {
+    final ref = _db.doc('blogs/$blogId');
+    final snap = await ref.get();
+    if (!snap.exists) return;
+    final likes = List<String>.from(snap.data()?['likedByUids'] ?? []);
+    if (likes.contains(uid)) {
+      likes.remove(uid);
+    } else {
+      likes.add(uid);
+    }
+    await ref.update({'likedByUids': likes});
+  }
 }

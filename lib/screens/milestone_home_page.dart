@@ -37,6 +37,7 @@ import 'shared_feed_screen.dart';
 import '../providers/sharing_provider.dart';
 import 'reminders_screen.dart';
 import 'settings_screen.dart';
+import 'stories_screen.dart';
 
 // ── Home page ──────────────────────────────────────────────────────────────────
 
@@ -771,6 +772,12 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                 builder: (_) => SparksScreen(profileIndex: safeIndex),
               ),
             ),
+            onStories: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => StoriesScreen(profileIndex: safeIndex),
+              ),
+            ),
             onEditProfile: () => _showEditProfileSheet(context, safeIndex, currentProfile),
             onAddProfile: _showAddProfileSheet,
           ),
@@ -1293,6 +1300,7 @@ class _ProfileHeader extends ConsumerWidget {
   final VoidCallback onGrowth;
   final VoidCallback onChecklist;
   final VoidCallback onSparks;
+  final VoidCallback onStories;
   final VoidCallback onEditProfile;
   final VoidCallback onAddProfile;
 
@@ -1309,6 +1317,7 @@ class _ProfileHeader extends ConsumerWidget {
     required this.onGrowth,
     required this.onChecklist,
     required this.onSparks,
+    required this.onStories,
     required this.onEditProfile,
     required this.onAddProfile,
   });
@@ -1571,6 +1580,11 @@ class _ProfileHeader extends ConsumerWidget {
                               label: 'Sparks',
                               onTap: onSparks,
                             )),
+                          Expanded(child: _QuickPill(
+                            icon: Icons.article_outlined,
+                            label: 'Stories',
+                            onTap: onStories,
+                          )),
                           if (settings.documentsEnabled)
                             Expanded(child: _QuickPill(
                               icon: Icons.folder_outlined,
