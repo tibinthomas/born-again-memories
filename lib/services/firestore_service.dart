@@ -123,8 +123,7 @@ class FirestoreService {
 
   static Future<List<KidProfile>> loadProfiles(String uid) async {
     final snap = await _db.collection('users/$uid/profiles').get();
-    final profiles = <KidProfile>[];
-    for (final doc in snap.docs) {
+    return Future.wait(snap.docs.map((doc) async {
       final profile = KidProfile.fromJson(doc.data());
       final (milestones, reminders, documents, links) = await (
         _loadMilestones(uid, profile.id),
@@ -132,14 +131,13 @@ class FirestoreService {
         _loadDocuments(uid, profile.id),
         _loadLinks(uid, profile.id),
       ).wait;
-      profiles.add(profile.copyWith(
+      return profile.copyWith(
         milestones: milestones,
         reminders: reminders,
         documents: documents,
         links: links,
-      ));
-    }
-    return profiles;
+      );
+    }));
   }
 
   static Future<List<Milestone>> _loadMilestones(

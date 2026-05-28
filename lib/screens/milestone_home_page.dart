@@ -16,6 +16,7 @@ import '../services/drive_service.dart';
 import '../services/local_storage_service.dart';
 import '../utils/app_date_picker.dart';
 import '../utils/chime.dart';
+import '../utils/device_performance.dart';
 import '../utils/image_utils.dart';
 import '../utils/profile_theme.dart';
 import '../utils/theme_preset.dart';
@@ -52,12 +53,32 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
   final _searchController = TextEditingController();
   final _searchFocusNode = FocusNode();
   final _listScrollController = ScrollController();
+  final _scrollOffset = ValueNotifier<double>(0.0);
+  DateTime _lastScrollSample = DateTime(0);
+
+  @override
+  void initState() {
+    super.initState();
+    if (!DevicePerformance.isLowEnd) {
+      _listScrollController.addListener(_onScroll);
+    }
+  }
+
+  void _onScroll() {
+    final now = DateTime.now();
+    if (now.difference(_lastScrollSample).inMilliseconds >= 50) {
+      _lastScrollSample = now;
+      _scrollOffset.value = _listScrollController.offset;
+    }
+  }
 
   @override
   void dispose() {
     _searchController.dispose();
     _searchFocusNode.dispose();
+    _listScrollController.removeListener(_onScroll);
     _listScrollController.dispose();
+    _scrollOffset.dispose();
     super.dispose();
   }
 
@@ -940,13 +961,12 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                                 ],
                               ),
                             )
-                          : AnimatedBuilder(
-                              animation: _listScrollController,
-                              builder: (context, child) {
-                                final offset = _listScrollController.hasClients
-                                    ? _listScrollController.offset
-                                    : 0.0;
-                                final t = (offset / 500).clamp(0.0, 1.0);
+                          : ValueListenableBuilder<double>(
+                              valueListenable: _scrollOffset,
+                              builder: (context, offset, child) {
+                                final t = DevicePerformance.isLowEnd
+                                    ? 1.0
+                                    : (offset / 500).clamp(0.0, 1.0);
                                 return DecoratedBox(
                                   decoration: BoxDecoration(
                                     gradient: LinearGradient(
@@ -972,6 +992,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                               },
                               child: ListView.builder(
                                 controller: _listScrollController,
+                                cacheExtent: 800,
                                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
                                 itemCount: filtered.length,
                                 itemBuilder: (context, index) {
@@ -1298,12 +1319,14 @@ class _ProfileHeader extends ConsumerWidget {
                   ),
                 ),
               ),
-              // Decorative bubbles
-              Positioned(right: -28, top: -18, child: _Bubble(110, 18)),
-              Positioned(right: 60, bottom: -22, child: _Bubble(80, 14)),
-              Positioned(left: -22, top: 30, child: _Bubble(70, 12)),
-              Positioned(left: 80, bottom: 8, child: _Bubble(28, 22)),
-              Positioned(right: 24, top: 48, child: _Bubble(16, 30)),
+              // Decorative bubbles — skipped on low-end devices
+              if (!DevicePerformance.isLowEnd) ...[
+                Positioned(right: -28, top: -18, child: _Bubble(110, 18)),
+                Positioned(right: 60, bottom: -22, child: _Bubble(80, 14)),
+                Positioned(left: -22, top: 30, child: _Bubble(70, 12)),
+                Positioned(left: 80, bottom: 8, child: _Bubble(28, 22)),
+                Positioned(right: 24, top: 48, child: _Bubble(16, 30)),
+              ],
               // Content
               SafeArea(
                 child: Padding(

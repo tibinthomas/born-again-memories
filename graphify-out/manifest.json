@@ -49712,8 +49712,8 @@
     "hash": "800da7ce1e7e5dfac23653bbe2d951ce"
   },
   "/Users/tibinthomas/my_app/lib/main.dart": {
-    "mtime": 1779498353.9484138,
-    "hash": "7bc14c0904fcd3f196a11709e8eb8583"
+    "mtime": 1779954286.6312118,
+    "hash": "c82141fd095a29e6db820b8c342b1b63"
   },
   "/Users/tibinthomas/my_app/lib/providers/sharing_provider.dart": {
     "mtime": 1779476476.9001582,
@@ -49746,6 +49746,10 @@
   "/Users/tibinthomas/my_app/lib/utils/milestone_templates.dart": {
     "mtime": 1778297137.877911,
     "hash": "60da61d8267db0104bddbeb87e36af4c"
+  },
+  "/Users/tibinthomas/my_app/lib/utils/device_performance.dart": {
+    "mtime": 1779954301.1192925,
+    "hash": "d883abb99348a540034a185eb64b3a12"
   },
   "/Users/tibinthomas/my_app/lib/utils/profile_theme.dart": {
     "mtime": 1778411199.815536,
@@ -49816,8 +49820,8 @@
     "hash": "958ebc13d176cae8aa70a6d5d9769a32"
   },
   "/Users/tibinthomas/my_app/lib/screens/milestone_home_page.dart": {
-    "mtime": 1779951893.513096,
-    "hash": "15cea658466faa9bd69c1e4dd920772b"
+    "mtime": 1779954343.0225222,
+    "hash": "0d41016300b04d057be077166ebeb9b7"
   },
   "/Users/tibinthomas/my_app/lib/screens/settings_screen.dart": {
     "mtime": 1779480958.3397436,
@@ -49872,8 +49876,8 @@
     "hash": "230fd5ca566b94011d9b3c3d4f2b993a"
   },
   "/Users/tibinthomas/my_app/lib/screens/home/widgets/profile_header.dart": {
-    "mtime": 1779951075.125212,
-    "hash": "8dffe7eb31da8e673871900ae7eb2489"
+    "mtime": 1779954356.332592,
+    "hash": "570b1172035bfbd6d600e154083449aa"
   },
   "/Users/tibinthomas/my_app/lib/screens/home/widgets/add_milestone_sheet.dart": {
     "mtime": 1779480623.2611747,
@@ -49904,8 +49908,8 @@
     "hash": "9bd0390200365adf65644e4fa64585bb"
   },
   "/Users/tibinthomas/my_app/lib/services/firestore_service.dart": {
-    "mtime": 1779498275.8232455,
-    "hash": "334ecb6460635ddc81f0815aab1c84a7"
+    "mtime": 1779954294.0462227,
+    "hash": "97d85cd195fa1761575c9fbac7a7f9d4"
   },
   "/Users/tibinthomas/my_app/lib/services/local_storage_service.dart": {
     "mtime": 1779477316.812494,
@@ -49936,8 +49940,8 @@
     "hash": "50c378cc78f1694f7b3e6f3661b1d73f"
   },
   "/Users/tibinthomas/my_app/lib/widgets/milestone_card.dart": {
-    "mtime": 1778411203.8752718,
-    "hash": "ddf57732cdf86cd6f67605cfae279be4"
+    "mtime": 1779954379.5581841,
+    "hash": "b6af0e591597a113a948050504b469c7"
   },
   "/Users/tibinthomas/my_app/lib/widgets/attachment_preview.dart": {
     "mtime": 1778311312.1500106,

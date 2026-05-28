@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../models/kid_profile.dart';
 import '../../../providers/backup_provider.dart';
+import '../../../utils/device_performance.dart';
 import '../../../utils/profile_theme.dart';
 import '../../reminders_screen.dart';
 
@@ -88,12 +89,14 @@ class ProfileHeader extends ConsumerWidget {
                   ),
                 ),
               ),
-              // Decorative bubbles
-              Positioned(right: -28, top: -18, child: Bubble(110, 18)),
-              Positioned(right: 60, bottom: -22, child: Bubble(80, 14)),
-              Positioned(left: -22, top: 30, child: Bubble(70, 12)),
-              Positioned(left: 80, bottom: 8, child: Bubble(28, 22)),
-              Positioned(right: 24, top: 48, child: Bubble(16, 30)),
+              // Decorative bubbles — skipped on low-end devices
+              if (!DevicePerformance.isLowEnd) ...[
+                Positioned(right: -28, top: -18, child: Bubble(110, 18)),
+                Positioned(right: 60, bottom: -22, child: Bubble(80, 14)),
+                Positioned(left: -22, top: 30, child: Bubble(70, 12)),
+                Positioned(left: 80, bottom: 8, child: Bubble(28, 22)),
+                Positioned(right: 24, top: 48, child: Bubble(16, 30)),
+              ],
               // Content
               SafeArea(
                 child: Padding(

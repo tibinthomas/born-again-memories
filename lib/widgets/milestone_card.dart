@@ -1,10 +1,11 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import '../models/milestone.dart';
-import '../models/kid_profile.dart';
-import '../utils/date_formatter.dart';
-import '../utils/profile_theme.dart';
 import '../models/attachment.dart';
+import '../models/kid_profile.dart';
+import '../models/milestone.dart';
+import '../utils/date_formatter.dart';
+import '../utils/device_performance.dart';
+import '../utils/profile_theme.dart';
 
 class MilestoneCard extends StatefulWidget {
   final Milestone milestone;
@@ -194,31 +195,40 @@ class _CrystalCardState extends State<_CrystalCard>
           color: accent.withAlpha(70),
           width: 1.4,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: accent.withAlpha(60),
-            blurRadius: 22,
-            spreadRadius: -4,
-            offset: const Offset(0, 8),
-          ),
-          BoxShadow(
-            color: secondary.withAlpha(45),
-            blurRadius: 16,
-            spreadRadius: -4,
-            offset: const Offset(6, 14),
-          ),
-          BoxShadow(
-            color: Colors.black.withAlpha(10),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        boxShadow: DevicePerformance.isLowEnd
+            ? [
+                BoxShadow(
+                  color: Colors.black.withAlpha(18),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ]
+            : [
+                BoxShadow(
+                  color: accent.withAlpha(60),
+                  blurRadius: 22,
+                  spreadRadius: -4,
+                  offset: const Offset(0, 8),
+                ),
+                BoxShadow(
+                  color: secondary.withAlpha(45),
+                  blurRadius: 16,
+                  spreadRadius: -4,
+                  offset: const Offset(6, 14),
+                ),
+                BoxShadow(
+                  color: Colors.black.withAlpha(10),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(28),
         child: Stack(
           children: [
             // ── Bubbles moving across the card ────────────────────
+            if (!DevicePerformance.isLowEnd)
             Positioned.fill(
               child: LayoutBuilder(
                 builder: (_, box) {
