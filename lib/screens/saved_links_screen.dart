@@ -11,6 +11,7 @@ import '../models/saved_link.dart';
 import '../providers/profiles_provider.dart';
 import '../utils/date_formatter.dart';
 import '../utils/profile_theme.dart';
+import '../widgets/gradient_fab.dart';
 
 class SavedLinksScreen extends ConsumerStatefulWidget {
   final int profileIndex;
@@ -382,17 +383,12 @@ class _SavedLinksScreenState extends ConsumerState<SavedLinksScreen> {
             ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddEditSheet(context, theme, widget.profileIndex),
-        backgroundColor: theme.accent,
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        icon: const Icon(Icons.add_link_rounded, color: Colors.white, size: 20),
-        label: const Text(
-          'New link',
-          style: TextStyle(
-              color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14),
-        ),
+      floatingActionButton: GradientFab(
+        gradient: theme.headerGradient,
+        accent: theme.accent,
+        icon: Icons.add_link_rounded,
+        label: 'New link',
+        onTap: () => _showAddEditSheet(context, theme, widget.profileIndex),
       ),
     );
   }

@@ -7,6 +7,7 @@ import '../models/kid_profile.dart';
 import '../providers/profiles_provider.dart';
 import '../services/firestore_service.dart';
 import '../utils/device_performance.dart';
+import '../widgets/gradient_fab.dart';
 import '../utils/profile_theme.dart';
 import 'story_detail_screen.dart';
 import 'write_story_screen.dart';
@@ -121,17 +122,12 @@ class StoriesScreen extends ConsumerWidget {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _openWrite(context),
-        backgroundColor: accent,
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        icon: const Icon(Icons.edit_rounded, color: Colors.white, size: 20),
-        label: const Text(
-          'Write a story',
-          style: TextStyle(
-              color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14),
-        ),
+      floatingActionButton: GradientFab(
+        gradient: theme.headerGradient,
+        accent: accent,
+        icon: Icons.edit_rounded,
+        label: 'Write a story',
+        onTap: () => _openWrite(context),
       ),
     );
   }

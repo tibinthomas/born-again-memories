@@ -9,6 +9,7 @@ import '../models/kid_profile.dart';
 import '../providers/profiles_provider.dart';
 import '../utils/app_date_picker.dart';
 import '../utils/profile_theme.dart';
+import '../widgets/gradient_fab.dart';
 
 // ── Growth screen ──────────────────────────────────────────────────────────────
 
@@ -178,17 +179,12 @@ class _GrowthScreenState extends ConsumerState<GrowthScreen>
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddSheet(),
-        backgroundColor: theme.accent,
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        icon: const Icon(Icons.add_rounded, color: Colors.white, size: 20),
-        label: const Text(
-          'Add measurement',
-          style: TextStyle(
-              color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14),
-        ),
+      floatingActionButton: GradientFab(
+        gradient: theme.headerGradient,
+        accent: theme.accent,
+        icon: Icons.add_rounded,
+        label: 'Add measurement',
+        onTap: () => _showAddSheet(),
       ),
     );
   }

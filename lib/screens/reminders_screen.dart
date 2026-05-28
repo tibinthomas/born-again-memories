@@ -8,6 +8,7 @@ import '../services/notification_service.dart';
 import '../utils/app_date_picker.dart';
 import '../utils/chime.dart';
 import '../utils/profile_theme.dart';
+import '../widgets/gradient_fab.dart';
 
 // ── Entry point ───────────────────────────────────────────────────────────────
 
@@ -145,15 +146,12 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
           ],
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddSheet(context, profile, theme, widget.profileIndex),
-        backgroundColor: theme.accent,
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        icon: const Icon(Icons.add_alarm_outlined, color: Colors.white, size: 20),
-        label: const Text('Add reminder',
-            style: TextStyle(
-                color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14)),
+      floatingActionButton: GradientFab(
+        gradient: theme.headerGradient,
+        accent: theme.accent,
+        icon: Icons.add_alarm_outlined,
+        label: 'Add reminder',
+        onTap: () => _showAddSheet(context, profile, theme, widget.profileIndex),
       ),
     );
   }

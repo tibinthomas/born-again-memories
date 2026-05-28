@@ -8,6 +8,7 @@ import '../providers/profiles_provider.dart';
 import '../services/firestore_service.dart';
 import '../utils/device_performance.dart';
 import '../utils/profile_theme.dart';
+import '../widgets/gradient_fab.dart';
 import 'forum_detail_screen.dart';
 
 final forumQuestionsProvider = StreamProvider<List<ForumQuestion>>(
@@ -121,15 +122,12 @@ class ForumScreen extends ConsumerWidget {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAskSheet(context, accent, uid),
-        backgroundColor: accent,
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        icon: const Icon(Icons.help_outline_rounded, color: Colors.white, size: 20),
-        label: const Text('Ask a question',
-            style: TextStyle(
-                color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14)),
+      floatingActionButton: GradientFab(
+        gradient: theme.headerGradient,
+        accent: accent,
+        icon: Icons.help_outline_rounded,
+        label: 'Ask a question',
+        onTap: () => _showAskSheet(context, accent, uid),
       ),
     );
   }
