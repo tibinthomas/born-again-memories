@@ -113,6 +113,7 @@ class _DevChecklistScreenState extends ConsumerState<DevChecklistScreen> {
                   final groupItems = cdcMilestones
                       .where((m) => m.ageMonths == age)
                       .toList();
+                  final ignored = profile.ignoredMilestones;
                   final groupChecked =
                       groupItems.where((m) => checked.contains(m.id)).length;
 
@@ -122,6 +123,7 @@ class _DevChecklistScreenState extends ConsumerState<DevChecklistScreen> {
                       age: age,
                       milestones: groupItems,
                       checkedIds: checked,
+                      ignoredIds: ignored,
                       isExpanded: isExpanded,
                       isCurrent: isCurrent,
                       isPast: isPast,
@@ -138,6 +140,9 @@ class _DevChecklistScreenState extends ConsumerState<DevChecklistScreen> {
                       onToggle: (id) => ref
                           .read(profilesProvider.notifier)
                           .toggleDevMilestone(widget.profileIndex, id),
+                      onIgnore: (id) => ref
+                          .read(profilesProvider.notifier)
+                          .ignoreDevMilestone(widget.profileIndex, id),
                     ),
                   );
                 },
@@ -231,6 +236,7 @@ class _AgeGroupCard extends StatelessWidget {
   final int age;
   final List<DevMilestone> milestones;
   final Set<String> checkedIds;
+  final Set<String> ignoredIds;
   final bool isExpanded;
   final bool isCurrent;
   final bool isPast;
@@ -239,11 +245,13 @@ class _AgeGroupCard extends StatelessWidget {
   final Color accent;
   final VoidCallback onToggleExpand;
   final ValueChanged<String> onToggle;
+  final ValueChanged<String> onIgnore;
 
   const _AgeGroupCard({
     required this.age,
     required this.milestones,
     required this.checkedIds,
+    required this.ignoredIds,
     required this.isExpanded,
     required this.isCurrent,
     required this.isPast,
@@ -252,6 +260,7 @@ class _AgeGroupCard extends StatelessWidget {
     required this.accent,
     required this.onToggleExpand,
     required this.onToggle,
+    required this.onIgnore,
   });
 
   Color get _headerColor {
@@ -417,9 +426,11 @@ class _AgeGroupCard extends StatelessWidget {
                           domain: domain,
                           items: items,
                           checkedIds: checkedIds,
+                          ignoredIds: ignoredIds,
                           accent: accent,
                           isFuture: isFuture,
                           onToggle: onToggle,
+                          onIgnore: onIgnore,
                         );
                       }),
                     ],
@@ -438,17 +449,21 @@ class _DomainSection extends StatelessWidget {
   final DevDomain domain;
   final List<DevMilestone> items;
   final Set<String> checkedIds;
+  final Set<String> ignoredIds;
   final Color accent;
   final bool isFuture;
   final ValueChanged<String> onToggle;
+  final ValueChanged<String> onIgnore;
 
   const _DomainSection({
     required this.domain,
     required this.items,
     required this.checkedIds,
+    required this.ignoredIds,
     required this.accent,
     required this.isFuture,
     required this.onToggle,
+    required this.onIgnore,
   });
 
   Color get _domainColor => switch (domain) {
@@ -470,8 +485,7 @@ class _DomainSection extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(14, 10, 14, 4),
           child: Row(
             children: [
-              Text(domain.emoji,
-                  style: const TextStyle(fontSize: 12)),
+              Text(domain.emoji, style: const TextStyle(fontSize: 12)),
               const SizedBox(width: 5),
               Text(
                 domain.label,
@@ -488,53 +502,107 @@ class _DomainSection extends StatelessWidget {
         // Milestone rows
         ...items.map((m) {
           final isChecked = checkedIds.contains(m.id);
+          final isIgnored = ignoredIds.contains(m.id);
+          // Dim future items but keep them tappable — parents observe early
+          final textColor = isChecked || isIgnored
+              ? Colors.grey.shade400
+              : isFuture
+                  ? Colors.grey.shade400
+                  : const Color(0xFF1A1A2E);
+
           return InkWell(
-            onTap: isFuture ? null : () => onToggle(m.id),
+            onTap: () => onToggle(m.id),
             child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+              padding: const EdgeInsets.fromLTRB(14, 8, 8, 8),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    width: 22,
-                    height: 22,
-                    margin: const EdgeInsets.only(top: 1, right: 12),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: isChecked ? color : Colors.transparent,
-                      border: Border.all(
+                  // ── Checkbox circle ──────────────────────────────
+                  GestureDetector(
+                    onTap: () => onToggle(m.id),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      width: 24,
+                      height: 24,
+                      margin: const EdgeInsets.only(right: 12),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
                         color: isChecked
                             ? color
-                            : isFuture
+                            : isIgnored
                                 ? Colors.grey.shade200
-                                : Colors.grey.shade300,
-                        width: 1.5,
+                                : Colors.transparent,
+                        border: Border.all(
+                          color: isChecked
+                              ? color
+                              : isIgnored
+                                  ? Colors.grey.shade300
+                                  : isFuture
+                                      ? Colors.grey.shade200
+                                      : Colors.grey.shade400,
+                          width: 1.5,
+                        ),
                       ),
+                      child: isChecked
+                          ? const Icon(Icons.check_rounded,
+                              size: 14, color: Colors.white)
+                          : isIgnored
+                              ? Icon(Icons.remove_rounded,
+                                  size: 14, color: Colors.grey.shade400)
+                              : null,
                     ),
-                    child: isChecked
-                        ? const Icon(Icons.check_rounded,
-                            size: 14, color: Colors.white)
-                        : null,
                   ),
+
+                  // ── Title ────────────────────────────────────────
                   Expanded(
                     child: Text(
                       m.title,
                       style: TextStyle(
                         fontSize: 13,
                         height: 1.4,
-                        color: isChecked
-                            ? Colors.grey.shade400
-                            : isFuture
-                                ? Colors.grey.shade400
-                                : const Color(0xFF1A1A2E),
-                        decoration:
-                            isChecked ? TextDecoration.lineThrough : null,
-                        decorationColor: Colors.grey.shade400,
+                        color: textColor,
+                        decoration: isChecked || isIgnored
+                            ? TextDecoration.lineThrough
+                            : null,
+                        decorationColor: Colors.grey.shade300,
                       ),
                     ),
                   ),
+
+                  // ── Ignore / Undo button ─────────────────────────
+                  if (!isChecked)
+                    GestureDetector(
+                      onTap: () => onIgnore(m.id),
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 8),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 150),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 7, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: isIgnored
+                                ? Colors.orange.shade50
+                                : Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: isIgnored
+                                  ? Colors.orange.shade200
+                                  : Colors.grey.shade200,
+                            ),
+                          ),
+                          child: Text(
+                            isIgnored ? 'Undo' : 'Ignore',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: isIgnored
+                                  ? Colors.orange.shade700
+                                  : Colors.grey.shade500,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),

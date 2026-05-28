@@ -25,6 +25,8 @@ class KidProfile {
   final List<GrowthEntry> growthEntries;
   // IDs of CDC developmental milestones the parent has marked as achieved.
   final Set<String> checkedMilestones;
+  // IDs of CDC developmental milestones the parent has chosen to ignore/skip.
+  final Set<String> ignoredMilestones;
 
   KidProfile({
     required this.id,
@@ -43,6 +45,7 @@ class KidProfile {
     this.links = const [],
     this.growthEntries = const [],
     this.checkedMilestones = const {},
+    this.ignoredMilestones = const {},
   });
 
   String get ageText {
@@ -97,6 +100,7 @@ class KidProfile {
     List<SavedLink>? links,
     List<GrowthEntry>? growthEntries,
     Set<String>? checkedMilestones,
+    Set<String>? ignoredMilestones,
   }) =>
       KidProfile(
         id: id ?? this.id,
@@ -116,6 +120,7 @@ class KidProfile {
         links: links ?? this.links,
         growthEntries: growthEntries ?? this.growthEntries,
         checkedMilestones: checkedMilestones ?? this.checkedMilestones,
+        ignoredMilestones: ignoredMilestones ?? this.ignoredMilestones,
       );
 
   // milestones + reminders stored in subcollections; backgroundImagePath is device-local.
@@ -135,6 +140,8 @@ class KidProfile {
           'backgroundUrl': backgroundImagePath,
         if (checkedMilestones.isNotEmpty)
           'checkedMilestones': checkedMilestones.toList(),
+        if (ignoredMilestones.isNotEmpty)
+          'ignoredMilestones': ignoredMilestones.toList(),
       };
 
   factory KidProfile.fromJson(Map<String, dynamic> j) => KidProfile(
@@ -152,6 +159,10 @@ class KidProfile {
         avatarImagePath: j['avatarUrl'] as String?,
         backgroundImagePath: j['backgroundUrl'] as String?,
         checkedMilestones: (j['checkedMilestones'] as List<dynamic>?)
+                ?.map((e) => e as String)
+                .toSet() ??
+            {},
+        ignoredMilestones: (j['ignoredMilestones'] as List<dynamic>?)
                 ?.map((e) => e as String)
                 .toSet() ??
             {},

@@ -355,13 +355,38 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>?> {
 
   Future<void> toggleDevMilestone(int profileIndex, String milestoneId) async {
     final profile = (state ?? <KidProfile>[])[profileIndex];
-    final updated = Set<String>.from(profile.checkedMilestones);
-    if (updated.contains(milestoneId)) {
-      updated.remove(milestoneId);
+    final checked = Set<String>.from(profile.checkedMilestones);
+    // Unignore when marking done
+    final ignored = Set<String>.from(profile.ignoredMilestones)
+      ..remove(milestoneId);
+    if (checked.contains(milestoneId)) {
+      checked.remove(milestoneId);
     } else {
-      updated.add(milestoneId);
+      checked.add(milestoneId);
     }
-    final updatedProfile = profile.copyWith(checkedMilestones: updated);
+    final updatedProfile = profile.copyWith(
+      checkedMilestones: checked,
+      ignoredMilestones: ignored,
+    );
+    _setProfile(profileIndex, updatedProfile);
+    await FirestoreService.saveProfile(uid, updatedProfile);
+  }
+
+  Future<void> ignoreDevMilestone(int profileIndex, String milestoneId) async {
+    final profile = (state ?? <KidProfile>[])[profileIndex];
+    final ignored = Set<String>.from(profile.ignoredMilestones);
+    // Uncheck when ignoring
+    final checked = Set<String>.from(profile.checkedMilestones)
+      ..remove(milestoneId);
+    if (ignored.contains(milestoneId)) {
+      ignored.remove(milestoneId);
+    } else {
+      ignored.add(milestoneId);
+    }
+    final updatedProfile = profile.copyWith(
+      checkedMilestones: checked,
+      ignoredMilestones: ignored,
+    );
     _setProfile(profileIndex, updatedProfile);
     await FirestoreService.saveProfile(uid, updatedProfile);
   }
