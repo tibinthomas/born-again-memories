@@ -145,34 +145,14 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
           ],
         ],
       ),
-      floatingActionButton: Container(
-        decoration: BoxDecoration(
-          gradient: theme.headerGradient,
-          borderRadius: BorderRadius.circular(32),
-          border: Border.all(color: Colors.white.withAlpha(80), width: 1),
-          boxShadow: [
-            BoxShadow(color: theme.accent.withAlpha(80), blurRadius: 20, offset: const Offset(0, 8)),
-          ],
-        ),
-        child: Material(
-          color: Colors.transparent,
-          borderRadius: BorderRadius.circular(32),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(32),
-            onTap: () => _showAddSheet(context, profile, theme, widget.profileIndex),
-            child: const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.add_alarm_outlined, color: Colors.white, size: 18),
-                  SizedBox(width: 8),
-                  Text('Add Reminder', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14)),
-                ],
-              ),
-            ),
-          ),
-        ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showAddSheet(context, profile, theme, widget.profileIndex),
+        backgroundColor: theme.accent,
+        elevation: 4,
+        icon: const Icon(Icons.add_alarm_outlined, color: Colors.white, size: 18),
+        label: const Text('Add Reminder',
+            style: TextStyle(
+                color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13)),
       ),
     );
   }

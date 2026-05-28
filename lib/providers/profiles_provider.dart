@@ -9,6 +9,7 @@ import '../models/kid_profile.dart';
 import '../models/milestone.dart';
 import '../models/reminder.dart';
 import '../models/saved_link.dart';
+import '../services/calendar_service.dart';
 import '../services/drive_service.dart';
 import '../services/firestore_service.dart';
 import '../services/icloud_service.dart';
@@ -151,37 +152,72 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>?> {
 
   Future<void> addReminder(int profileIndex, Reminder reminder) async {
     final profile = (state ?? <KidProfile>[])[profileIndex];
-    final updated = profile.copyWith(reminders: [...profile.reminders, reminder]);
-    _setProfile(profileIndex, updated);
-    await FirestoreService.saveReminder(uid, profile.id, reminder);
-    await NotificationService.scheduleReminder(reminder, profile.name);
+    final auth = _ref.read(authServiceProvider);
+    final calId = await CalendarService.addEvent(
+      reminder, profile.name,
+      isAppleUser: auth.isAppleUser,
+      googleSignIn: auth.googleSignIn,
+    );
+    final r = calId != null ? reminder.copyWith(calendarEventId: calId) : reminder;
+    _setProfile(profileIndex, profile.copyWith(reminders: [...profile.reminders, r]));
+    await FirestoreService.saveReminder(uid, profile.id, r);
+    await NotificationService.scheduleReminder(r, profile.name);
   }
 
   Future<void> addReminderToProfiles(List<int> profileIndices, Reminder reminder) async {
+    final auth = _ref.read(authServiceProvider);
     for (final profileIndex in profileIndices) {
       final profile = (state ?? <KidProfile>[])[profileIndex];
-      final updated = profile.copyWith(reminders: [...profile.reminders, reminder]);
-      _setProfile(profileIndex, updated);
-      await FirestoreService.saveReminder(uid, profile.id, reminder);
-      await NotificationService.scheduleReminder(reminder, profile.name);
+      final calId = await CalendarService.addEvent(
+        reminder, profile.name,
+        isAppleUser: auth.isAppleUser,
+        googleSignIn: auth.googleSignIn,
+      );
+      final r = calId != null ? reminder.copyWith(calendarEventId: calId) : reminder;
+      _setProfile(profileIndex, profile.copyWith(reminders: [...profile.reminders, r]));
+      await FirestoreService.saveReminder(uid, profile.id, r);
+      await NotificationService.scheduleReminder(r, profile.name);
     }
   }
 
   Future<void> updateReminder(int profileIndex, Reminder reminder) async {
     final profile = (state ?? <KidProfile>[])[profileIndex];
-    final reminders = profile.reminders
-        .map((r) => r.id == reminder.id ? reminder : r)
-        .toList();
+    final auth = _ref.read(authServiceProvider);
+    Reminder r = reminder;
+    if (reminder.calendarEventId != null) {
+      await CalendarService.updateEvent(
+        reminder.calendarEventId!, reminder, profile.name,
+        isAppleUser: auth.isAppleUser,
+        googleSignIn: auth.googleSignIn,
+      );
+    } else {
+      final calId = await CalendarService.addEvent(
+        reminder, profile.name,
+        isAppleUser: auth.isAppleUser,
+        googleSignIn: auth.googleSignIn,
+      );
+      if (calId != null) r = reminder.copyWith(calendarEventId: calId);
+    }
+    final reminders = profile.reminders.map((e) => e.id == r.id ? r : e).toList();
     _setProfile(profileIndex, profile.copyWith(reminders: reminders));
-    await FirestoreService.saveReminder(uid, profile.id, reminder);
-    await NotificationService.cancelReminder(reminder.id);
-    await NotificationService.scheduleReminder(reminder, profile.name);
+    await FirestoreService.saveReminder(uid, profile.id, r);
+    await NotificationService.cancelReminder(r.id);
+    await NotificationService.scheduleReminder(r, profile.name);
   }
 
   Future<void> deleteReminder(int profileIndex, String reminderId) async {
     final profile = (state ?? <KidProfile>[])[profileIndex];
-    final reminders = profile.reminders.where((r) => r.id != reminderId).toList();
-    _setProfile(profileIndex, profile.copyWith(reminders: reminders));
+    final reminder = profile.reminders.where((r) => r.id == reminderId).firstOrNull;
+    if (reminder?.calendarEventId != null) {
+      final auth = _ref.read(authServiceProvider);
+      await CalendarService.deleteEvent(
+        reminder!.calendarEventId!,
+        isAppleUser: auth.isAppleUser,
+        googleSignIn: auth.googleSignIn,
+      );
+    }
+    _setProfile(profileIndex,
+        profile.copyWith(reminders: profile.reminders.where((r) => r.id != reminderId).toList()));
     await FirestoreService.deleteReminder(uid, profile.id, reminderId);
     await NotificationService.cancelReminder(reminderId);
   }

@@ -47,6 +47,8 @@ class Reminder {
   final bool isDone;
   final ReminderRepeat repeat;
   final bool isMuted;
+  // ID of the corresponding event in the device / Google calendar (null = not synced).
+  final String? calendarEventId;
 
   const Reminder({
     required this.id,
@@ -57,6 +59,7 @@ class Reminder {
     this.isDone = false,
     this.repeat = ReminderRepeat.none,
     this.isMuted = false,
+    this.calendarEventId,
   });
 
   bool get isUpcoming => !isDone && dateTime.isAfter(DateTime.now());
@@ -70,7 +73,9 @@ class Reminder {
     bool? isDone,
     ReminderRepeat? repeat,
     bool? isMuted,
+    String? calendarEventId,
     bool clearNotes = false,
+    bool clearCalendarEventId = false,
   }) =>
       Reminder(
         id: id,
@@ -81,6 +86,7 @@ class Reminder {
         isDone: isDone ?? this.isDone,
         repeat: repeat ?? this.repeat,
         isMuted: isMuted ?? this.isMuted,
+        calendarEventId: clearCalendarEventId ? null : calendarEventId ?? this.calendarEventId,
       );
 
   Map<String, dynamic> toJson() => {
@@ -92,6 +98,7 @@ class Reminder {
         'isDone': isDone,
         'repeat': repeat.name,
         'isMuted': isMuted,
+        if (calendarEventId != null) 'calendarEventId': calendarEventId,
       };
 
   factory Reminder.fromJson(Map<String, dynamic> j) => Reminder(
@@ -109,5 +116,6 @@ class Reminder {
           orElse: () => ReminderRepeat.none,
         ),
         isMuted: j['isMuted'] as bool? ?? false,
+        calendarEventId: j['calendarEventId'] as String?,
       );
 }
