@@ -25,8 +25,8 @@ class KidProfile {
   final List<GrowthEntry> growthEntries;
   // IDs of CDC developmental milestones the parent has marked as achieved.
   final Set<String> checkedMilestones;
-  // IDs of CDC developmental milestones the parent has chosen to ignore/skip.
-  final Set<String> ignoredMilestones;
+  // CDC milestone ID → app milestone ID (memory created from that checklist item).
+  final Map<String, String> devMilestoneLinks;
 
   KidProfile({
     required this.id,
@@ -45,7 +45,7 @@ class KidProfile {
     this.links = const [],
     this.growthEntries = const [],
     this.checkedMilestones = const {},
-    this.ignoredMilestones = const {},
+    this.devMilestoneLinks = const {},
   });
 
   String get ageText {
@@ -100,7 +100,7 @@ class KidProfile {
     List<SavedLink>? links,
     List<GrowthEntry>? growthEntries,
     Set<String>? checkedMilestones,
-    Set<String>? ignoredMilestones,
+    Map<String, String>? devMilestoneLinks,
   }) =>
       KidProfile(
         id: id ?? this.id,
@@ -120,7 +120,7 @@ class KidProfile {
         links: links ?? this.links,
         growthEntries: growthEntries ?? this.growthEntries,
         checkedMilestones: checkedMilestones ?? this.checkedMilestones,
-        ignoredMilestones: ignoredMilestones ?? this.ignoredMilestones,
+        devMilestoneLinks: devMilestoneLinks ?? this.devMilestoneLinks,
       );
 
   // milestones + reminders stored in subcollections; backgroundImagePath is device-local.
@@ -140,8 +140,8 @@ class KidProfile {
           'backgroundUrl': backgroundImagePath,
         if (checkedMilestones.isNotEmpty)
           'checkedMilestones': checkedMilestones.toList(),
-        if (ignoredMilestones.isNotEmpty)
-          'ignoredMilestones': ignoredMilestones.toList(),
+        if (devMilestoneLinks.isNotEmpty)
+          'devMilestoneLinks': devMilestoneLinks,
       };
 
   factory KidProfile.fromJson(Map<String, dynamic> j) => KidProfile(
@@ -162,9 +162,8 @@ class KidProfile {
                 ?.map((e) => e as String)
                 .toSet() ??
             {},
-        ignoredMilestones: (j['ignoredMilestones'] as List<dynamic>?)
-                ?.map((e) => e as String)
-                .toSet() ??
+        devMilestoneLinks: (j['devMilestoneLinks'] as Map<String, dynamic>?)
+                ?.map((k, v) => MapEntry(k, v as String)) ??
             {},
       );
 }

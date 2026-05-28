@@ -356,39 +356,38 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>?> {
   Future<void> toggleDevMilestone(int profileIndex, String milestoneId) async {
     final profile = (state ?? <KidProfile>[])[profileIndex];
     final checked = Set<String>.from(profile.checkedMilestones);
-    // Unignore when marking done
-    final ignored = Set<String>.from(profile.ignoredMilestones)
-      ..remove(milestoneId);
     if (checked.contains(milestoneId)) {
       checked.remove(milestoneId);
     } else {
       checked.add(milestoneId);
     }
-    final updatedProfile = profile.copyWith(
-      checkedMilestones: checked,
-      ignoredMilestones: ignored,
-    );
+    final updatedProfile = profile.copyWith(checkedMilestones: checked);
     _setProfile(profileIndex, updatedProfile);
     await FirestoreService.saveProfile(uid, updatedProfile);
   }
 
-  Future<void> ignoreDevMilestone(int profileIndex, String milestoneId) async {
+  /// Creates a milestone memory from a CDC checklist item, marks it done,
+  /// and stores the link so the checklist can show the 📸 badge.
+  Future<void> addMilestoneFromChecklist(
+    int profileIndex,
+    String cdcMilestoneId,
+    Milestone milestone,
+  ) async {
     final profile = (state ?? <KidProfile>[])[profileIndex];
-    final ignored = Set<String>.from(profile.ignoredMilestones);
-    // Uncheck when ignoring
     final checked = Set<String>.from(profile.checkedMilestones)
-      ..remove(milestoneId);
-    if (ignored.contains(milestoneId)) {
-      ignored.remove(milestoneId);
-    } else {
-      ignored.add(milestoneId);
-    }
+      ..add(cdcMilestoneId);
+    final links = Map<String, String>.from(profile.devMilestoneLinks)
+      ..[cdcMilestoneId] = milestone.id;
     final updatedProfile = profile.copyWith(
+      milestones: [milestone, ...profile.milestones],
       checkedMilestones: checked,
-      ignoredMilestones: ignored,
+      devMilestoneLinks: links,
     );
     _setProfile(profileIndex, updatedProfile);
-    await FirestoreService.saveProfile(uid, updatedProfile);
+    await Future.wait([
+      FirestoreService.saveMilestone(uid, profile.id, milestone),
+      FirestoreService.saveProfile(uid, updatedProfile),
+    ]);
   }
 
   // ── Growth entries ────────────────────────────────────────────────────────
