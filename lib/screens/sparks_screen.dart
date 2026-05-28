@@ -260,7 +260,9 @@ class _SparksScreenState extends ConsumerState<SparksScreen> {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      backgroundColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
       builder: (_) => AddMilestoneSheet(initialMilestone: prefilled),
     );
   }
