@@ -148,11 +148,12 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAddSheet(context, profile, theme, widget.profileIndex),
         backgroundColor: theme.accent,
-        elevation: 4,
-        icon: const Icon(Icons.add_alarm_outlined, color: Colors.white, size: 18),
-        label: const Text('Add Reminder',
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        icon: const Icon(Icons.add_alarm_outlined, color: Colors.white, size: 20),
+        label: const Text('Add reminder',
             style: TextStyle(
-                color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13)),
+                color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14)),
       ),
     );
   }

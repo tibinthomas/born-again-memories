@@ -1825,29 +1825,31 @@ class _QuickPill extends StatelessWidget {
             children: [
               ClipOval(
                 child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                  filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
                   child: Container(
-                    width: 38,
-                    height: 38,
+                    width: 46,
+                    height: 46,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.white.withAlpha(onTap != null ? 45 : 25),
+                      color: Colors.white.withAlpha(onTap != null ? 55 : 28),
                       border: Border.all(
-                        color: Colors.white.withAlpha(onTap != null ? 80 : 45),
-                        width: 0.8,
+                        color: Colors.white.withAlpha(onTap != null ? 110 : 50),
+                        width: 1.0,
                       ),
                     ),
-                    child: Icon(icon, color: Colors.white, size: 17),
+                    child: Icon(icon,
+                        color: Colors.white.withAlpha(onTap != null ? 230 : 140),
+                        size: 20),
                   ),
                 ),
               ),
               if (showBadge)
                 Positioned(
-                  top: -2,
-                  right: -2,
+                  top: -1,
+                  right: -1,
                   child: Container(
-                    width: 10,
-                    height: 10,
+                    width: 11,
+                    height: 11,
                     decoration: BoxDecoration(
                       color: Colors.redAccent,
                       shape: BoxShape.circle,
@@ -1857,13 +1859,14 @@ class _QuickPill extends StatelessWidget {
                 ),
             ],
           ),
-          const SizedBox(height: 5),
+          const SizedBox(height: 6),
           Text(
             label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
+            style: TextStyle(
+              color: Colors.white.withAlpha(onTap != null ? 230 : 140),
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.1,
             ),
           ),
         ],
@@ -1953,18 +1956,18 @@ class _RemindersQuickPill extends StatelessWidget {
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                   child: Container(
-                    width: 38,
-                    height: 38,
+                    width: 46,
+                    height: 46,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: overdue > 0
-                          ? Colors.orange.withAlpha(60)
-                          : Colors.white.withAlpha(45),
+                          ? Colors.orange.withAlpha(70)
+                          : Colors.white.withAlpha(55),
                       border: Border.all(
                         color: overdue > 0
-                            ? Colors.orange.shade300.withAlpha(180)
-                            : Colors.white.withAlpha(80),
-                        width: 0.8,
+                            ? Colors.orange.shade300.withAlpha(200)
+                            : Colors.white.withAlpha(110),
+                        width: 1.0,
                       ),
                     ),
                     child: Icon(
@@ -1972,7 +1975,7 @@ class _RemindersQuickPill extends StatelessWidget {
                           ? Icons.alarm_outlined
                           : Icons.notifications_outlined,
                       color: overdue > 0 ? Colors.orange.shade200 : Colors.white,
-                      size: 17,
+                      size: 20,
                     ),
                   ),
                 ),
@@ -2004,13 +2007,16 @@ class _RemindersQuickPill extends StatelessWidget {
                 ),
             ],
           ),
-          const SizedBox(height: 5),
+          const SizedBox(height: 6),
           Text(
             'Remind',
             style: TextStyle(
-              color: overdue > 0 ? Colors.orange.shade100 : Colors.white,
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
+              color: overdue > 0
+                  ? Colors.orange.shade100
+                  : Colors.white.withAlpha(230),
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.1,
             ),
           ),
         ],

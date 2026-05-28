@@ -120,14 +120,13 @@ class StoriesScreen extends ConsumerWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openWrite(context),
         backgroundColor: accent,
-        elevation: 4,
-        icon: const Icon(Icons.edit_outlined, color: Colors.white, size: 18),
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        icon: const Icon(Icons.edit_rounded, color: Colors.white, size: 20),
         label: const Text(
           'Write a story',
           style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w700,
-              fontSize: 13),
+              color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14),
         ),
       ),
     );
