@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'dart:math' show pi, sin, cos;
+import 'dart:math' show pi, sin;
 import 'dart:ui';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
@@ -1383,11 +1383,19 @@ class _ProfileHeader extends ConsumerWidget {
               ),
               // Decorative bubbles — skipped on low-end devices
               if (!DevicePerformance.isLowEnd) ...[
+                // Upper area
                 Positioned(right: -28, top: -18, child: _Bubble(110, 18)),
-                Positioned(right: 60, bottom: -22, child: _Bubble(80, 14)),
-                Positioned(left: -22, top: 30, child: _Bubble(70, 12)),
-                Positioned(left: 80, bottom: 8, child: _Bubble(28, 22)),
-                Positioned(right: 24, top: 48, child: _Bubble(16, 30)),
+                Positioned(left: -22, top: 30,   child: _Bubble(70, 12)),
+                Positioned(right: 24,  top: 48,  child: _Bubble(16, 30)),
+                // Mid area
+                Positioned(left: 120,  top: 80,  child: _Bubble(40, 12)),
+                Positioned(right: 90,  top: 100, child: _Bubble(24, 20)),
+                // Lower / pill row area
+                Positioned(left: -16,  bottom: 18, child: _Bubble(64, 14)),
+                Positioned(right: -20, bottom: 10, child: _Bubble(80, 12)),
+                Positioned(left: 100,  bottom: 28, child: _Bubble(32, 18)),
+                Positioned(right: 70,  bottom: 38, child: _Bubble(20, 24)),
+                Positioned(left: 220,  bottom: 14, child: _Bubble(44, 14)),
               ],
               // Content
               SafeArea(
@@ -1645,11 +1653,11 @@ class _BubbleState extends State<_Bubble> with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    final ms = (2800 + widget.size * 14).toInt();
+    // Larger bubbles drift more slowly for depth effect
+    final ms = (18000 + widget.size * 80).toInt();
     _ctrl = AnimationController(vsync: this, duration: Duration(milliseconds: ms))
+      ..value = (widget.size * 37 % 100) / 100 // unique phase per bubble
       ..repeat();
-    // Phase-offset so each bubble is out of sync with its neighbours
-    _ctrl.forward(from: (widget.size % 100) / 100);
   }
 
   @override
@@ -1660,14 +1668,19 @@ class _BubbleState extends State<_Bubble> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final travel = (widget.size * 0.13).clamp(6.0, 22.0);
+    final screen = MediaQuery.of(context).size;
+    // Unique phase based on bubble size so each follows a different path
+    final phase = (widget.size * 37 % 100) / 100.0 * 2 * pi;
+
     return AnimatedBuilder(
       animation: _ctrl,
-      builder: (_, _) {
+      builder: (context, _) {
         final t = _ctrl.value * 2 * pi;
-        final dy = sin(t) * travel;
-        final dx = cos(t * 0.65) * travel * 0.45;
-        final scale = 1.0 + sin(t * 1.4 + 1.0) * 0.07;
+        // Lissajous-style path: different X/Y frequencies create a curved
+        // cross-screen trajectory that never exactly repeats
+        final dx = sin(t + phase) * screen.width * 0.38;
+        final dy = sin(t * 1.37 + phase) * screen.height * 0.10;
+        final scale = 0.88 + sin(t * 0.7 + phase) * 0.12;
         return Transform.translate(
           offset: Offset(dx, dy),
           child: Transform.scale(

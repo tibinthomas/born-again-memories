@@ -6,6 +6,7 @@ import '../models/forum_question.dart';
 import '../models/kid_profile.dart';
 import '../providers/profiles_provider.dart';
 import '../services/firestore_service.dart';
+import '../utils/device_performance.dart';
 import '../utils/profile_theme.dart';
 import 'forum_detail_screen.dart';
 
@@ -88,26 +89,29 @@ class ForumScreen extends ConsumerWidget {
                   return ListView.builder(
                     padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
                     itemCount: list.length,
-                    itemBuilder: (_, i) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: _QuestionCard(
-                        question: list[i],
-                        accent: accent,
-                        currentUid: uid,
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ForumDetailScreen(
-                              question: list[i],
-                              currentUid: uid,
-                              accent: accent,
+                    itemBuilder: (_, i) => _AnimatedCard(
+                      index: i,
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _QuestionCard(
+                          question: list[i],
+                          accent: accent,
+                          currentUid: uid,
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ForumDetailScreen(
+                                question: list[i],
+                                currentUid: uid,
+                                accent: accent,
+                              ),
                             ),
                           ),
+                          onEdit: () =>
+                              _showAskSheet(context, accent, uid, editing: list[i]),
+                          onDelete: () =>
+                              _confirmDelete(context, list[i].id),
                         ),
-                        onEdit: () =>
-                            _showAskSheet(context, accent, uid, editing: list[i]),
-                        onDelete: () =>
-                            _confirmDelete(context, list[i].id),
                       ),
                     ),
                   );
@@ -652,6 +656,66 @@ class _EmptyState extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ── Entry animation wrapper ───────────────────────────────────────────────────
+
+class _AnimatedCard extends StatefulWidget {
+  final int index;
+  final Widget child;
+  const _AnimatedCard({required this.index, required this.child});
+
+  @override
+  State<_AnimatedCard> createState() => _AnimatedCardState();
+}
+
+class _AnimatedCardState extends State<_AnimatedCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _opacity;
+  late final Animation<double> _scale;
+  late final Animation<Offset> _slide;
+
+  @override
+  void initState() {
+    super.initState();
+    if (DevicePerformance.isLowEnd) return;
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 560));
+    final curved =
+        CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic);
+    _opacity = Tween(begin: 0.0, end: 1.0).animate(CurvedAnimation(
+        parent: _ctrl,
+        curve: const Interval(0.0, 0.65, curve: Curves.easeOut)));
+    _scale = Tween(begin: 0.92, end: 1.0).animate(curved);
+    _slide = Tween(begin: const Offset(0, 0.07), end: Offset.zero)
+        .animate(curved);
+    final delay = (widget.index * 60).clamp(0, 320);
+    if (delay == 0) {
+      _ctrl.forward();
+    } else {
+      Future.delayed(Duration(milliseconds: delay),
+          () { if (mounted) _ctrl.forward(); });
+    }
+  }
+
+  @override
+  void dispose() {
+    if (!DevicePerformance.isLowEnd) _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (DevicePerformance.isLowEnd) return widget.child;
+    return FadeTransition(
+      opacity: _opacity,
+      child: SlideTransition(
+        position: _slide,
+        child: ScaleTransition(scale: _scale, child: widget.child),
       ),
     );
   }
