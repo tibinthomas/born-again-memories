@@ -35,6 +35,7 @@ import 'milestone_detail_page.dart';
 import 'saved_links_screen.dart';
 import 'shared_feed_screen.dart';
 import '../providers/sharing_provider.dart';
+import 'forum_screen.dart';
 import 'reminders_screen.dart';
 import 'settings_screen.dart';
 import 'stories_screen.dart';
@@ -778,6 +779,12 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                 builder: (_) => StoriesScreen(profileIndex: safeIndex),
               ),
             ),
+            onForum: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ForumScreen(profileIndex: safeIndex),
+              ),
+            ),
             onEditProfile: () => _showEditProfileSheet(context, safeIndex, currentProfile),
             onAddProfile: _showAddProfileSheet,
           ),
@@ -1301,6 +1308,7 @@ class _ProfileHeader extends ConsumerWidget {
   final VoidCallback onChecklist;
   final VoidCallback onSparks;
   final VoidCallback onStories;
+  final VoidCallback onForum;
   final VoidCallback onEditProfile;
   final VoidCallback onAddProfile;
 
@@ -1318,6 +1326,7 @@ class _ProfileHeader extends ConsumerWidget {
     required this.onChecklist,
     required this.onSparks,
     required this.onStories,
+    required this.onForum,
     required this.onEditProfile,
     required this.onAddProfile,
   });
@@ -1584,6 +1593,11 @@ class _ProfileHeader extends ConsumerWidget {
                             icon: Icons.article_outlined,
                             label: 'Stories',
                             onTap: onStories,
+                          )),
+                          Expanded(child: _QuickPill(
+                            icon: Icons.forum_outlined,
+                            label: 'Forum',
+                            onTap: onForum,
                           )),
                           if (settings.documentsEnabled)
                             Expanded(child: _QuickPill(

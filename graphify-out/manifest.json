@@ -49831,6 +49831,10 @@
     "mtime": 1779971840.589131,
     "hash": "cdabc7509c00f71cab8c358cb47b1a9f"
   },
+  "/Users/tibinthomas/my_app/lib/models/forum_question.dart": {
+    "mtime": 1779993713.9831629,
+    "hash": "7691379e540fa2c13e145166b3ad1b9b"
+  },
   "/Users/tibinthomas/my_app/lib/models/milestone.dart": {
     "mtime": 1779975598.5799594,
     "hash": "e28f5f32ec8d39ad76025393936590d7"
@@ -49844,8 +49848,8 @@
     "hash": "b1d0f4123e5439d5d3560388c4c5e710"
   },
   "/Users/tibinthomas/my_app/lib/screens/milestone_home_page.dart": {
-    "mtime": 1779993558.660712,
-    "hash": "1c5285c83deee2f552c58a76c9b3e7dc"
+    "mtime": 1779993914.4809117,
+    "hash": "5cb6c738d64ec544624a428440729fd9"
   },
   "/Users/tibinthomas/my_app/lib/screens/write_story_screen.dart": {
     "mtime": 1779992789.8487544,
@@ -49854,6 +49858,10 @@
   "/Users/tibinthomas/my_app/lib/screens/settings_screen.dart": {
     "mtime": 1779976185.6895144,
     "hash": "9551d8804086216f9a77f60fae87ff3c"
+  },
+  "/Users/tibinthomas/my_app/lib/screens/forum_detail_screen.dart": {
+    "mtime": 1779993875.0253882,
+    "hash": "b291e33d1a2dcdb266d5cdc699a48b00"
   },
   "/Users/tibinthomas/my_app/lib/screens/account_recovery_screen.dart": {
     "mtime": 1778730960.1581626,
@@ -49890,6 +49898,10 @@
   "/Users/tibinthomas/my_app/lib/screens/reminders_screen.dart": {
     "mtime": 1779993596.3947299,
     "hash": "1b470c7a0145d55c307bd30558e47703"
+  },
+  "/Users/tibinthomas/my_app/lib/screens/forum_screen.dart": {
+    "mtime": 1779994607.2094054,
+    "hash": "4e247fee97c5a54ec8aae2625d07a4e6"
   },
   "/Users/tibinthomas/my_app/lib/screens/shared_feed_screen.dart": {
     "mtime": 1778411203.2514083,
@@ -49968,8 +49980,8 @@
     "hash": "9bd0390200365adf65644e4fa64585bb"
   },
   "/Users/tibinthomas/my_app/lib/services/firestore_service.dart": {
-    "mtime": 1779993235.0504894,
-    "hash": "cc2686e23fa815f04bdb2c982ee0f4fb"
+    "mtime": 1779994592.182263,
+    "hash": "c7f3ff44ddff6c71d56e3d5d22d8e333"
   },
   "/Users/tibinthomas/my_app/lib/services/local_storage_service.dart": {
     "mtime": 1779477316.812494,

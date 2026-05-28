@@ -4,6 +4,7 @@ import '../models/app_settings.dart';
 import '../models/attachment.dart';
 import '../models/baby_document.dart';
 import '../models/blog_post.dart';
+import '../models/forum_question.dart';
 import '../models/growth_entry.dart';
 import '../models/kid_profile.dart';
 import '../models/milestone.dart';
@@ -417,5 +418,93 @@ class FirestoreService {
       likes.add(uid);
     }
     await ref.update({'likedByUids': likes});
+  }
+
+  // ── Community Q&A forum ───────────────────────────────────────────────────
+
+  static Stream<List<ForumQuestion>> streamForumQuestions() =>
+      _db.collection('forum').snapshots().map((s) {
+        final list = s.docs
+            .map((d) {
+              try {
+                return ForumQuestion.fromJson({...d.data(), 'id': d.id});
+              } catch (e) {
+                debugPrint('ForumQuestion parse error ${d.id}: $e');
+                return null;
+              }
+            })
+            .whereType<ForumQuestion>()
+            .toList()
+          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        return list;
+      });
+
+  static Future<void> createForumQuestion(ForumQuestion q) =>
+      _db.doc('forum/${q.id}').set(q.toJson());
+
+  static Future<void> updateForumQuestion(ForumQuestion q) =>
+      _db.doc('forum/${q.id}').update({
+        'content': q.content,
+        'tags': q.tags,
+        'edited': true,
+      });
+
+  static Future<void> deleteForumQuestion(String questionId) async {
+    final answers =
+        await _db.collection('forum/$questionId/answers').get();
+    for (final doc in answers.docs) {
+      await doc.reference.delete();
+    }
+    await _db.doc('forum/$questionId').delete();
+  }
+
+  static Stream<List<ForumAnswer>> streamForumAnswers(String questionId) =>
+      _db.collection('forum/$questionId/answers').snapshots().map((s) {
+        final list = s.docs
+            .map((d) {
+              try {
+                return ForumAnswer.fromJson({...d.data(), 'id': d.id});
+              } catch (e) {
+                debugPrint('ForumAnswer parse error ${d.id}: $e');
+                return null;
+              }
+            })
+            .whereType<ForumAnswer>()
+            .toList()
+          ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+        return list;
+      });
+
+  static Future<void> createForumAnswer(
+      String questionId, ForumAnswer answer) async {
+    await _db
+        .doc('forum/$questionId/answers/${answer.id}')
+        .set(answer.toJson());
+    try {
+      await _db
+          .doc('forum/$questionId')
+          .update({'answerCount': FieldValue.increment(1)});
+    } catch (_) {
+      // answerCount is denormalized convenience — failure is non-fatal
+    }
+  }
+
+  static Future<void> updateForumAnswer(
+          String questionId, ForumAnswer answer) =>
+      _db.doc('forum/$questionId/answers/${answer.id}').update({
+        'content': answer.content,
+        'edited': true,
+      });
+
+  static Future<void> deleteForumAnswer(
+      String questionId, String answerId) async {
+    await _db.doc('forum/$questionId/answers/$answerId').delete();
+    try {
+      await _db
+          .doc('forum/$questionId')
+          .update({'answerCount': FieldValue.increment(-1)});
+    } catch (_) {
+      // non-fatal
+    }
   }
 }
