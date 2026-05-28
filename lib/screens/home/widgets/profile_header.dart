@@ -41,14 +41,14 @@ class ProfileHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final sync = ref.watch(backupSyncProvider);
-    final hasBackground = !kIsWeb &&
-        profile.backgroundImagePath != null &&
+    final hasBackground = profile.backgroundImagePath != null &&
         profile.backgroundImagePath!.isNotEmpty &&
-        File(profile.backgroundImagePath!).existsSync();
+        (profile.backgroundImagePath!.startsWith('http') ||
+            (!kIsWeb && File(profile.backgroundImagePath!).existsSync()));
     final hasAvatar = profile.avatarImagePath != null &&
         profile.avatarImagePath!.isNotEmpty &&
-        !kIsWeb &&
-        File(profile.avatarImagePath!).existsSync();
+        (profile.avatarImagePath!.startsWith('http') ||
+            (!kIsWeb && File(profile.avatarImagePath!).existsSync()));
 
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 400),
@@ -64,7 +64,9 @@ class ProfileHeader extends ConsumerWidget {
             gradient: hasBackground ? null : profileTheme.headerGradient,
             image: hasBackground
                 ? DecorationImage(
-                    image: FileImage(File(profile.backgroundImagePath!)),
+                    image: profile.backgroundImagePath!.startsWith('http')
+                        ? NetworkImage(profile.backgroundImagePath!) as ImageProvider
+                        : FileImage(File(profile.backgroundImagePath!)),
                     fit: BoxFit.cover,
                   )
                 : null,
@@ -119,7 +121,9 @@ class ProfileHeader extends ConsumerWidget {
                                     border: Border.all(color: Colors.white, width: 2),
                                     image: hasAvatar
                                         ? DecorationImage(
-                                            image: FileImage(File(profile.avatarImagePath!)),
+                                            image: profile.avatarImagePath!.startsWith('http')
+                                                ? NetworkImage(profile.avatarImagePath!) as ImageProvider
+                                                : FileImage(File(profile.avatarImagePath!)),
                                             fit: BoxFit.cover,
                                           )
                                         : null,
@@ -515,8 +519,8 @@ class MiniProfileAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     final hasAvatar = profile.avatarImagePath != null &&
         profile.avatarImagePath!.isNotEmpty &&
-        !kIsWeb &&
-        File(profile.avatarImagePath!).existsSync();
+        (profile.avatarImagePath!.startsWith('http') ||
+            (!kIsWeb && File(profile.avatarImagePath!).existsSync()));
     final pTheme = ProfileTheme.forProfile(profile);
 
     return GestureDetector(
@@ -533,7 +537,9 @@ class MiniProfileAvatar extends StatelessWidget {
               border: Border.all(color: Colors.white.withAlpha(160), width: 1.5),
               image: hasAvatar
                   ? DecorationImage(
-                      image: FileImage(File(profile.avatarImagePath!)),
+                      image: profile.avatarImagePath!.startsWith('http')
+                          ? NetworkImage(profile.avatarImagePath!) as ImageProvider
+                          : FileImage(File(profile.avatarImagePath!)),
                       fit: BoxFit.cover,
                     )
                   : null,

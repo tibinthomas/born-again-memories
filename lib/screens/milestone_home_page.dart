@@ -9,8 +9,10 @@ import 'package:image_picker/image_picker.dart';
 import '../models/kid_profile.dart';
 import '../models/milestone.dart';
 import '../providers/app_settings_provider.dart';
+import '../providers/auth_provider.dart';
 import '../providers/backup_provider.dart';
 import '../providers/profiles_provider.dart';
+import '../services/drive_service.dart';
 import '../services/local_storage_service.dart';
 import '../utils/app_date_picker.dart';
 import '../utils/chime.dart';
@@ -128,6 +130,8 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
     String? backgroundPath = profile.backgroundImagePath;
     String selectedPresetId = profile.themePresetId ??
         ThemePreset.defaultIdForGender(profile.gender.name);
+    bool isUploadingAvatar = false;
+    bool isUploadingBackground = false;
 
     showModalBottomSheet(
       context: context,
@@ -140,12 +144,12 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
           final pTheme = ProfileTheme.fromPreset(selectedPreset);
           final hasAvatar = avatarPath != null &&
               avatarPath!.isNotEmpty &&
-              !kIsWeb &&
-              File(avatarPath!).existsSync();
+              (avatarPath!.startsWith('http') ||
+                  (!kIsWeb && File(avatarPath!).existsSync()));
           final hasBackground = backgroundPath != null &&
               backgroundPath!.isNotEmpty &&
-              !kIsWeb &&
-              File(backgroundPath!).existsSync();
+              (backgroundPath!.startsWith('http') ||
+                  (!kIsWeb && File(backgroundPath!).existsSync()));
 
           return Container(
             height: MediaQuery.of(context).size.height * 0.85,
@@ -202,13 +206,57 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                     children: [
                       Center(
                         child: GestureDetector(
-                          onTap: () async {
+                          onTap: isUploadingAvatar ? null : () async {
+                            if (kIsWeb) {
+                              final result = await FilePicker.platform.pickFiles(
+                                type: FileType.image,
+                                withData: true,
+                              );
+                              final fileBytes = result?.files.firstOrNull?.bytes;
+                              final fileName = result?.files.firstOrNull?.name;
+                              if (fileBytes == null || fileName == null) return;
+                              setState(() => isUploadingAvatar = true);
+                              try {
+                                final ext = fileName.contains('.')
+                                    ? fileName.split('.').last.toLowerCase()
+                                    : 'jpg';
+                                final mime = 'image/${ext == 'jpg' ? 'jpeg' : ext}';
+                                final authService = ref.read(authServiceProvider);
+                                final url = await DriveService.uploadProfileImageBytes(
+                                  googleSignIn: authService.googleSignIn,
+                                  bytes: fileBytes,
+                                  filename:
+                                      'avatar_${profile.id}_${DateTime.now().millisecondsSinceEpoch}.$ext',
+                                  mimeType: mime,
+                                );
+                                setState(() {
+                                  avatarPath = url;
+                                  isUploadingAvatar = false;
+                                });
+                              } on DriveNotAuthorizedException {
+                                setState(() => isUploadingAvatar = false);
+                                if (ctx.mounted) {
+                                  ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(
+                                    content: Text(
+                                        'Google Drive access needed. Enable Drive Backup in Settings first.'),
+                                  ));
+                                }
+                              } catch (e) {
+                                setState(() => isUploadingAvatar = false);
+                                if (ctx.mounted) {
+                                  ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
+                                    content: Text('Upload failed: $e'),
+                                  ));
+                                }
+                              }
+                              return;
+                            }
                             String? pickedPath;
-                            if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
+                            if (Platform.isIOS || Platform.isAndroid) {
                               final picker = ImagePicker();
                               final file = await picker.pickImage(source: ImageSource.gallery);
                               pickedPath = file?.path;
-                            } else if (!kIsWeb) {
+                            } else {
                               final result = await FilePicker.platform.pickFiles(
                                 type: FileType.image,
                                 allowMultiple: false,
@@ -226,7 +274,6 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                                 croppedPath,
                                 'avatar_${profile.id}_${DateTime.now().millisecondsSinceEpoch}',
                               );
-                              // Delete previously picked (unsaved) avatar to avoid orphans
                               if (avatarPath != null && avatarPath != profile.avatarImagePath) {
                                 LocalStorageService.delete(avatarPath!);
                               }
@@ -243,19 +290,32 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                                   color: pTheme.soft,
                                   image: hasAvatar
                                       ? DecorationImage(
-                                          image: FileImage(File(avatarPath!)),
+                                          image: avatarPath!.startsWith('http')
+                                              ? NetworkImage(avatarPath!) as ImageProvider
+                                              : FileImage(File(avatarPath!)),
                                           fit: BoxFit.cover,
                                         )
                                       : null,
                                 ),
-                                child: hasAvatar
-                                    ? null
-                                    : Center(
-                                        child: Text(
-                                          ProfileTheme.forGender(selectedGender).decalEmoji,
-                                          style: const TextStyle(fontSize: 36),
+                                child: isUploadingAvatar
+                                    ? Center(
+                                        child: SizedBox(
+                                          width: 28,
+                                          height: 28,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2.5,
+                                            color: pTheme.accent,
+                                          ),
                                         ),
-                                      ),
+                                      )
+                                    : hasAvatar
+                                        ? null
+                                        : Center(
+                                            child: Text(
+                                              ProfileTheme.forGender(selectedGender).decalEmoji,
+                                              style: const TextStyle(fontSize: 36),
+                                            ),
+                                          ),
                               ),
                               Positioned(
                                 right: 0,
@@ -266,7 +326,16 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                                     color: pTheme.accent,
                                     shape: BoxShape.circle,
                                   ),
-                                  child: const Icon(Icons.camera_alt, color: Colors.white, size: 16),
+                                  child: isUploadingAvatar
+                                      ? const SizedBox(
+                                          width: 16,
+                                          height: 16,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.white,
+                                          ),
+                                        )
+                                      : const Icon(Icons.camera_alt, color: Colors.white, size: 16),
                                 ),
                               ),
                             ],
@@ -281,7 +350,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                           ),
                         ),
                       const SizedBox(height: 16),
-                      if (!kIsWeb) ...[
+                      ...[
                         Row(
                           children: [
                             Text('Background photo',
@@ -297,7 +366,51 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                         ),
                         const SizedBox(height: 8),
                         GestureDetector(
-                          onTap: () async {
+                          onTap: isUploadingBackground ? null : () async {
+                            if (kIsWeb) {
+                              final result = await FilePicker.platform.pickFiles(
+                                type: FileType.image,
+                                withData: true,
+                              );
+                              final fileBytes = result?.files.firstOrNull?.bytes;
+                              final fileName = result?.files.firstOrNull?.name;
+                              if (fileBytes == null || fileName == null) return;
+                              setState(() => isUploadingBackground = true);
+                              try {
+                                final ext = fileName.contains('.')
+                                    ? fileName.split('.').last.toLowerCase()
+                                    : 'jpg';
+                                final mime = 'image/${ext == 'jpg' ? 'jpeg' : ext}';
+                                final authService = ref.read(authServiceProvider);
+                                final url = await DriveService.uploadProfileImageBytes(
+                                  googleSignIn: authService.googleSignIn,
+                                  bytes: fileBytes,
+                                  filename:
+                                      'bg_${profile.id}_${DateTime.now().millisecondsSinceEpoch}.$ext',
+                                  mimeType: mime,
+                                );
+                                setState(() {
+                                  backgroundPath = url;
+                                  isUploadingBackground = false;
+                                });
+                              } on DriveNotAuthorizedException {
+                                setState(() => isUploadingBackground = false);
+                                if (ctx.mounted) {
+                                  ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(
+                                    content: Text(
+                                        'Google Drive access needed. Enable Drive Backup in Settings first.'),
+                                  ));
+                                }
+                              } catch (e) {
+                                setState(() => isUploadingBackground = false);
+                                if (ctx.mounted) {
+                                  ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
+                                    content: Text('Upload failed: $e'),
+                                  ));
+                                }
+                              }
+                              return;
+                            }
                             String? pickedPath;
                             if (Platform.isIOS || Platform.isAndroid) {
                               final picker = ImagePicker();
@@ -335,7 +448,9 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                               border: Border.all(color: pTheme.accent.withAlpha(80), width: 1.5),
                               image: hasBackground
                                   ? DecorationImage(
-                                      image: FileImage(File(backgroundPath!)),
+                                      image: backgroundPath!.startsWith('http')
+                                          ? NetworkImage(backgroundPath!) as ImageProvider
+                                          : FileImage(File(backgroundPath!)),
                                       fit: BoxFit.cover,
                                       colorFilter: ColorFilter.mode(
                                         Colors.black.withAlpha(30),
@@ -345,7 +460,16 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                                   : null,
                             ),
                             child: Center(
-                              child: Column(
+                              child: isUploadingBackground
+                                  ? SizedBox(
+                                      width: 28,
+                                      height: 28,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        color: pTheme.accent,
+                                      ),
+                                    )
+                                  : Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(

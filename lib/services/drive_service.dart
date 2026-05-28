@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
@@ -160,5 +161,39 @@ class DriveService {
       fileId,
     );
     return 'https://drive.google.com/thumbnail?id=$fileId&sz=w800';
+  }
+
+  // Uploads raw bytes (e.g. from FilePicker on web) to a "Profile Images"
+  // folder in Drive. Returns a shareable thumbnail URL.
+  static Future<String> uploadProfileImageBytes({
+    required GoogleSignIn googleSignIn,
+    required Uint8List bytes,
+    required String filename,
+    required String mimeType,
+  }) async {
+    try {
+      final api = await _api(googleSignIn);
+      final root = await _ensureFolder(api, _appFolderName);
+      final imagesFolder =
+          await _ensureFolder(api, 'Profile Images', parentId: root);
+      final meta = drive.File()
+        ..name = filename
+        ..parents = [imagesFolder];
+      final result = await api.files.create(
+        meta,
+        uploadMedia: drive.Media(
+          Stream.value(bytes),
+          bytes.length,
+          contentType: mimeType,
+        ),
+        $fields: 'id',
+      );
+      return await makeShareable(googleSignIn, result.id!);
+    } on DriveNotAuthorizedException {
+      rethrow;
+    } catch (e) {
+      if (_isDriveAuthError(e)) throw DriveNotAuthorizedException();
+      rethrow;
+    }
   }
 }

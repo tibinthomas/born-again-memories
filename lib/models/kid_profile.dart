@@ -108,7 +108,8 @@ class KidProfile {
         links: links ?? this.links,
       );
 
-  // milestones + reminders stored in subcollections; backgroundImagePath is device-local
+  // milestones + reminders stored in subcollections; backgroundImagePath is device-local.
+  // When running on web the paths are Drive thumbnail URLs — those are synced to Firestore.
   Map<String, dynamic> toJson() => {
         'id': id,
         'name': name,
@@ -118,6 +119,10 @@ class KidProfile {
         'color': color.toARGB32(),
         'gender': gender.name,
         if (themePresetId != null) 'themePresetId': themePresetId,
+        if (avatarImagePath != null && avatarImagePath!.startsWith('http'))
+          'avatarUrl': avatarImagePath,
+        if (backgroundImagePath != null && backgroundImagePath!.startsWith('http'))
+          'backgroundUrl': backgroundImagePath,
       };
 
   factory KidProfile.fromJson(Map<String, dynamic> j) => KidProfile(
@@ -132,5 +137,7 @@ class KidProfile {
           orElse: () => Gender.neutral,
         ),
         themePresetId: j['themePresetId'] as String?,
+        avatarImagePath: j['avatarUrl'] as String?,
+        backgroundImagePath: j['backgroundUrl'] as String?,
       );
 }
