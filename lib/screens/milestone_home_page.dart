@@ -19,6 +19,7 @@ import '../utils/chime.dart';
 import '../utils/device_performance.dart';
 import 'dev_checklist_screen.dart';
 import 'growth_screen.dart';
+import 'pdf_export_sheet.dart';
 import '../utils/image_utils.dart';
 import '../utils/profile_theme.dart';
 import '../utils/theme_preset.dart';
@@ -816,6 +817,21 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                             if (_showSearch) _searchFocusNode.requestFocus();
                           },
                           tooltip: _showSearch ? 'Hide search' : 'Search',
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.picture_as_pdf_outlined,
+                              color: Colors.grey.shade500, size: 22),
+                          onPressed: allMilestones.isEmpty ? null : () {
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              useSafeArea: true,
+                              backgroundColor: Colors.transparent,
+                              builder: (_) => PdfExportSheet(
+                                  profileIndex: safeIndex),
+                            );
+                          },
+                          tooltip: 'Export memory book',
                         ),
                       ],
                     ],
