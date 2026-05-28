@@ -235,7 +235,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                         child: GestureDetector(
                           onTap: isUploadingAvatar ? null : () async {
                             if (kIsWeb) {
-                              final result = await FilePicker.platform.pickFiles(
+                              final result = await FilePicker.pickFiles(
                                 type: FileType.image,
                                 withData: true,
                               );
@@ -284,7 +284,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                               final file = await picker.pickImage(source: ImageSource.gallery);
                               pickedPath = file?.path;
                             } else {
-                              final result = await FilePicker.platform.pickFiles(
+                              final result = await FilePicker.pickFiles(
                                 type: FileType.image,
                                 allowMultiple: false,
                               );
@@ -395,7 +395,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                         GestureDetector(
                           onTap: isUploadingBackground ? null : () async {
                             if (kIsWeb) {
-                              final result = await FilePicker.platform.pickFiles(
+                              final result = await FilePicker.pickFiles(
                                 type: FileType.image,
                                 withData: true,
                               );
@@ -444,7 +444,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                               final file = await picker.pickImage(source: ImageSource.gallery);
                               pickedPath = file?.path;
                             } else {
-                              final result = await FilePicker.platform.pickFiles(
+                              final result = await FilePicker.pickFiles(
                                 type: FileType.image,
                                 allowMultiple: false,
                               );

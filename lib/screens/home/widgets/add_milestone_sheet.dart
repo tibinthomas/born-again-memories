@@ -594,7 +594,7 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
                   final files = await _picker.pickMultipleMedia();
                   if (files.isNotEmpty) await _addXFiles(files);
                 } else {
-                  final result = await FilePicker.platform.pickFiles(
+                  final result = await FilePicker.pickFiles(
                     allowMultiple: true,
                     type: FileType.media,
                   );
@@ -619,7 +619,7 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
               label: 'Audio',
               color: Colors.orange,
               onTap: () async {
-                final result = await FilePicker.platform.pickFiles(
+                final result = await FilePicker.pickFiles(
                   allowMultiple: true,
                   type: FileType.custom,
                   allowedExtensions: ['wav', 'mp3', 'm4a', 'aac'],

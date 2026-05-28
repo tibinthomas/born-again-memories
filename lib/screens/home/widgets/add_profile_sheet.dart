@@ -35,7 +35,7 @@ class _AddProfileSheetState extends ConsumerState<AddProfileSheet> {
       final file = await _picker.pickImage(source: ImageSource.gallery);
       pickedPath = file?.path;
     } else if (!kIsWeb) {
-      final result = await FilePicker.platform.pickFiles(type: FileType.image);
+      final result = await FilePicker.pickFiles(type: FileType.image);
       pickedPath = result?.files.first.path;
     }
     if (pickedPath != null) {
