@@ -17,6 +17,7 @@ import '../services/local_storage_service.dart';
 import '../utils/app_date_picker.dart';
 import '../utils/chime.dart';
 import '../utils/device_performance.dart';
+import 'growth_screen.dart';
 import '../utils/image_utils.dart';
 import '../utils/profile_theme.dart';
 import '../utils/theme_preset.dart';
@@ -749,6 +750,12 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
               ),
             ),
             onLinks: () => SavedLinksScreen.push(context, safeIndex),
+            onGrowth: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => GrowthScreen(profileIndex: safeIndex),
+              ),
+            ),
             onEditProfile: () => _showEditProfileSheet(context, safeIndex, currentProfile),
             onAddProfile: _showAddProfileSheet,
           ),
@@ -1253,6 +1260,7 @@ class _ProfileHeader extends ConsumerWidget {
   final VoidCallback onSharedFeed;
   final VoidCallback onDocuments;
   final VoidCallback onLinks;
+  final VoidCallback onGrowth;
   final VoidCallback onEditProfile;
   final VoidCallback onAddProfile;
 
@@ -1266,6 +1274,7 @@ class _ProfileHeader extends ConsumerWidget {
     required this.onSharedFeed,
     required this.onDocuments,
     required this.onLinks,
+    required this.onGrowth,
     required this.onEditProfile,
     required this.onAddProfile,
   });
@@ -1274,6 +1283,7 @@ class _ProfileHeader extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final sync = ref.watch(backupSyncProvider);
     final sharedCount = ref.watch(sharedSendersCountProvider).valueOrNull ?? 0;
+    final settings = ref.watch(appSettingsProvider);
     final hasBackground = !kIsWeb &&
         profile.backgroundImagePath != null &&
         profile.backgroundImagePath!.isNotEmpty &&
@@ -1509,26 +1519,35 @@ class _ProfileHeader extends ConsumerWidget {
                             icon: Icons.auto_awesome,
                             label: 'Moments',
                           )),
-                          Expanded(child: _QuickPill(
-                            icon: Icons.folder_outlined,
-                            label: 'Docs',
-                            onTap: onDocuments,
-                          )),
-                          Expanded(child: _QuickPill(
-                            icon: Icons.link_outlined,
-                            label: 'Links',
-                            onTap: onLinks,
-                          )),
+                          if (settings.growthTrackingEnabled)
+                            Expanded(child: _QuickPill(
+                              icon: Icons.show_chart_rounded,
+                              label: 'Growth',
+                              onTap: onGrowth,
+                            )),
+                          if (settings.documentsEnabled)
+                            Expanded(child: _QuickPill(
+                              icon: Icons.folder_outlined,
+                              label: 'Docs',
+                              onTap: onDocuments,
+                            )),
+                          if (settings.linksEnabled)
+                            Expanded(child: _QuickPill(
+                              icon: Icons.link_outlined,
+                              label: 'Links',
+                              onTap: onLinks,
+                            )),
                           Expanded(child: _QuickPill(
                             icon: Icons.people_outline_rounded,
                             label: 'Feed',
                             onTap: onSharedFeed,
                             showBadge: sharedCount > 0,
                           )),
-                          Expanded(child: _RemindersQuickPill(
-                            profile: profile,
-                            profileIndex: profileIndex,
-                          )),
+                          if (settings.remindersEnabled)
+                            Expanded(child: _RemindersQuickPill(
+                              profile: profile,
+                              profileIndex: profileIndex,
+                            )),
                         ],
                       ),
                     ],

@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../models/kid_profile.dart';
+import '../../../providers/app_settings_provider.dart';
 import '../../../providers/backup_provider.dart';
 import '../../../utils/device_performance.dart';
 import '../../../utils/profile_theme.dart';
@@ -21,6 +22,7 @@ class ProfileHeader extends ConsumerWidget {
   final VoidCallback onSharedFeed;
   final VoidCallback onDocuments;
   final VoidCallback onLinks;
+  final VoidCallback onGrowth;
   final VoidCallback onEditProfile;
   final VoidCallback onAddProfile;
 
@@ -35,6 +37,7 @@ class ProfileHeader extends ConsumerWidget {
     required this.onSharedFeed,
     required this.onDocuments,
     required this.onLinks,
+    required this.onGrowth,
     required this.onEditProfile,
     required this.onAddProfile,
   });
@@ -42,6 +45,7 @@ class ProfileHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final sync = ref.watch(backupSyncProvider);
+    final settings = ref.watch(appSettingsProvider);
     final hasBackground = profile.backgroundImagePath != null &&
         profile.backgroundImagePath!.isNotEmpty &&
         (profile.backgroundImagePath!.startsWith('http') ||
@@ -284,25 +288,34 @@ class ProfileHeader extends ConsumerWidget {
                             icon: Icons.auto_awesome,
                             label: 'Moments',
                           )),
-                          Expanded(child: QuickPill(
-                            icon: Icons.folder_outlined,
-                            label: 'Docs',
-                            onTap: onDocuments,
-                          )),
-                          Expanded(child: QuickPill(
-                            icon: Icons.link_outlined,
-                            label: 'Links',
-                            onTap: onLinks,
-                          )),
+                          if (settings.growthTrackingEnabled)
+                            Expanded(child: QuickPill(
+                              icon: Icons.show_chart_rounded,
+                              label: 'Growth',
+                              onTap: onGrowth,
+                            )),
+                          if (settings.documentsEnabled)
+                            Expanded(child: QuickPill(
+                              icon: Icons.folder_outlined,
+                              label: 'Docs',
+                              onTap: onDocuments,
+                            )),
+                          if (settings.linksEnabled)
+                            Expanded(child: QuickPill(
+                              icon: Icons.link_outlined,
+                              label: 'Links',
+                              onTap: onLinks,
+                            )),
                           Expanded(child: QuickPill(
                             icon: Icons.people_outline_rounded,
                             label: 'Feed',
                             onTap: onSharedFeed,
                           )),
-                          Expanded(child: RemindersQuickPill(
-                            profile: profile,
-                            profileIndex: profileIndex,
-                          )),
+                          if (settings.remindersEnabled)
+                            Expanded(child: RemindersQuickPill(
+                              profile: profile,
+                              profileIndex: profileIndex,
+                            )),
                         ],
                       ),
                     ],

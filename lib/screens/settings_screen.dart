@@ -288,6 +288,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                   const SizedBox(height: 22),
 
+                  // Features
+                  _sectionLabel('Features'),
+                  _FeaturesCard(
+                    accent: accent,
+                    settings: settings,
+                    onGrowthChanged: (v) => ref.read(appSettingsProvider.notifier)
+                        .update(settings.copyWith(growthTrackingEnabled: v)),
+                    onRemindersChanged: (v) => ref.read(appSettingsProvider.notifier)
+                        .update(settings.copyWith(remindersEnabled: v)),
+                    onDocumentsChanged: (v) => ref.read(appSettingsProvider.notifier)
+                        .update(settings.copyWith(documentsEnabled: v)),
+                    onLinksChanged: (v) => ref.read(appSettingsProvider.notifier)
+                        .update(settings.copyWith(linksEnabled: v)),
+                  ),
+                  const SizedBox(height: 22),
+
                   // More (App Icon + Profiles — collapsible)
                   _MoreSection(
                     accent: accent,
@@ -1632,6 +1648,83 @@ class _PrefRow extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+// ── Features card ─────────────────────────────────────────────────────────────
+
+class _FeaturesCard extends StatelessWidget {
+  final Color accent;
+  final dynamic settings;
+  final ValueChanged<bool> onGrowthChanged;
+  final ValueChanged<bool> onRemindersChanged;
+  final ValueChanged<bool> onDocumentsChanged;
+  final ValueChanged<bool> onLinksChanged;
+
+  const _FeaturesCard({
+    required this.accent,
+    required this.settings,
+    required this.onGrowthChanged,
+    required this.onRemindersChanged,
+    required this.onDocumentsChanged,
+    required this.onLinksChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return _Card(children: [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+        child: Text(
+          'Show or hide sections from the home screen.',
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade400, height: 1.4),
+        ),
+      ),
+      _divider(),
+      _PrefRow(
+        icon: Icons.show_chart_rounded,
+        accent: accent,
+        label: 'Growth tracking',
+        trailing: Switch.adaptive(
+          value: settings.growthTrackingEnabled,
+          onChanged: onGrowthChanged,
+          activeColor: accent,
+        ),
+      ),
+      _divider(),
+      _PrefRow(
+        icon: Icons.notifications_outlined,
+        accent: accent,
+        label: 'Reminders',
+        trailing: Switch.adaptive(
+          value: settings.remindersEnabled,
+          onChanged: onRemindersChanged,
+          activeColor: accent,
+        ),
+      ),
+      _divider(),
+      _PrefRow(
+        icon: Icons.folder_outlined,
+        accent: accent,
+        label: 'Documents',
+        trailing: Switch.adaptive(
+          value: settings.documentsEnabled,
+          onChanged: onDocumentsChanged,
+          activeColor: accent,
+        ),
+      ),
+      _divider(),
+      _PrefRow(
+        icon: Icons.link_outlined,
+        accent: accent,
+        label: 'Saved links',
+        trailing: Switch.adaptive(
+          value: settings.linksEnabled,
+          onChanged: onLinksChanged,
+          activeColor: accent,
+        ),
+      ),
+    ]);
   }
 }
 

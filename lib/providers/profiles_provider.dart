@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/attachment.dart';
 import '../models/baby_document.dart';
+import '../models/growth_entry.dart';
 import '../models/kid_profile.dart';
 import '../models/milestone.dart';
 import '../models/reminder.dart';
@@ -348,6 +349,33 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>?> {
     _setProfile(profileIndex, profile.copyWith(documents: documents));
     final doc = documents.firstWhere((d) => d.id == docId);
     await FirestoreService.saveDocument(uid, profile.id, doc);
+  }
+
+  // ── Growth entries ────────────────────────────────────────────────────────
+
+  Future<void> addGrowthEntry(int profileIndex, GrowthEntry entry) async {
+    final profile = (state ?? <KidProfile>[])[profileIndex];
+    _setProfile(profileIndex,
+        profile.copyWith(growthEntries: [entry, ...profile.growthEntries]));
+    await FirestoreService.saveGrowthEntry(uid, profile.id, entry);
+  }
+
+  Future<void> updateGrowthEntry(int profileIndex, GrowthEntry entry) async {
+    final profile = (state ?? <KidProfile>[])[profileIndex];
+    final entries = profile.growthEntries
+        .map((e) => e.id == entry.id ? entry : e)
+        .toList();
+    _setProfile(profileIndex, profile.copyWith(growthEntries: entries));
+    await FirestoreService.saveGrowthEntry(uid, profile.id, entry);
+  }
+
+  Future<void> deleteGrowthEntry(int profileIndex, String entryId) async {
+    final profile = (state ?? <KidProfile>[])[profileIndex];
+    _setProfile(profileIndex,
+        profile.copyWith(
+          growthEntries: profile.growthEntries.where((e) => e.id != entryId).toList(),
+        ));
+    await FirestoreService.deleteGrowthEntry(uid, profile.id, entryId);
   }
 
   void _setProfile(int index, KidProfile profile) {

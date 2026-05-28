@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/app_settings.dart';
 import '../models/attachment.dart';
 import '../models/baby_document.dart';
+import '../models/growth_entry.dart';
 import '../models/kid_profile.dart';
 import '../models/milestone.dart';
 import '../models/reminder.dart';
@@ -125,17 +126,19 @@ class FirestoreService {
     final snap = await _db.collection('users/$uid/profiles').get();
     return Future.wait(snap.docs.map((doc) async {
       final profile = KidProfile.fromJson(doc.data());
-      final (milestones, reminders, documents, links) = await (
+      final (milestones, reminders, documents, links, growthEntries) = await (
         _loadMilestones(uid, profile.id),
         _loadReminders(uid, profile.id),
         _loadDocuments(uid, profile.id),
         _loadLinks(uid, profile.id),
+        _loadGrowthEntries(uid, profile.id),
       ).wait;
       return profile.copyWith(
         milestones: milestones,
         reminders: reminders,
         documents: documents,
         links: links,
+        growthEntries: growthEntries,
       );
     }));
   }
@@ -162,28 +165,40 @@ class FirestoreService {
       _db.doc('users/$uid/profiles/${profile.id}').set(profile.toJson());
 
   static Future<void> deleteProfile(String uid, String profileId) async {
-    final msSnap = await _db
-        .collection('users/$uid/profiles/$profileId/milestones')
-        .get();
-    final docSnap = await _db
-        .collection('users/$uid/profiles/$profileId/documents')
-        .get();
-    final linkSnap = await _db
-        .collection('users/$uid/profiles/$profileId/links')
-        .get();
+    final (msSnap, docSnap, linkSnap, growthSnap) = await (
+      _db.collection('users/$uid/profiles/$profileId/milestones').get(),
+      _db.collection('users/$uid/profiles/$profileId/documents').get(),
+      _db.collection('users/$uid/profiles/$profileId/links').get(),
+      _db.collection('users/$uid/profiles/$profileId/growthEntries').get(),
+    ).wait;
     final batch = _db.batch();
-    for (final doc in msSnap.docs) {
-      batch.delete(doc.reference);
-    }
-    for (final doc in docSnap.docs) {
-      batch.delete(doc.reference);
-    }
-    for (final doc in linkSnap.docs) {
+    for (final doc in [...msSnap.docs, ...docSnap.docs, ...linkSnap.docs, ...growthSnap.docs]) {
       batch.delete(doc.reference);
     }
     batch.delete(_db.doc('users/$uid/profiles/$profileId'));
     await batch.commit();
   }
+
+  static Future<List<GrowthEntry>> _loadGrowthEntries(
+      String uid, String profileId) async {
+    final snap = await _db
+        .collection('users/$uid/profiles/$profileId/growthEntries')
+        .orderBy('date', descending: true)
+        .get();
+    return snap.docs.map((d) => GrowthEntry.fromJson(d.data())).toList();
+  }
+
+  static Future<void> saveGrowthEntry(
+          String uid, String profileId, GrowthEntry entry) =>
+      _db
+          .doc('users/$uid/profiles/$profileId/growthEntries/${entry.id}')
+          .set(entry.toJson());
+
+  static Future<void> deleteGrowthEntry(
+          String uid, String profileId, String entryId) =>
+      _db
+          .doc('users/$uid/profiles/$profileId/growthEntries/$entryId')
+          .delete();
 
   static Future<void> saveMilestone(
           String uid, String profileId, Milestone milestone) =>
