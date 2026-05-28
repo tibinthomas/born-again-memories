@@ -248,7 +248,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   const SizedBox(height: 22),
 
                   // Share Memories
-                  _sectionLabel('Share Memories'),
+                  _sectionLabel('Share Memories',
+                      description: 'Invite family to view and add to your baby\'s journey.'),
                   _ShareCard(
                     accent: accent,
                     invites: emails,
@@ -259,7 +260,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   const SizedBox(height: 22),
 
                   // Backup
-                  _sectionLabel('Backup'),
+                  _sectionLabel('Backup',
+                      description: 'Keep your memories safe with automatic cloud backup.'),
                   _BackupCard(
                     accent: accent,
                     sync: sync,
@@ -271,7 +273,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   const SizedBox(height: 22),
 
                   // Preferences
-                  _sectionLabel('Preferences'),
+                  _sectionLabel('Preferences',
+                      description: 'Customise sound, haptics, animations and app theme.'),
                   _PreferencesCard(
                     accent: accent,
                     settings: settings,
@@ -289,7 +292,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   const SizedBox(height: 22),
 
                   // Features
-                  _sectionLabel('Features'),
+                  _sectionLabel('Features',
+                      description: 'Show, hide and drag to reorder sections on the home screen.'),
                   _FeaturesCard(
                     accent: accent,
                     settings: settings,
@@ -345,16 +349,34 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Widget _sectionLabel(String text) => Padding(
-        padding: const EdgeInsets.only(left: 4, bottom: 8),
-        child: Text(
-          text,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: Colors.grey.shade500,
-            letterSpacing: 0.2,
-          ),
+  Widget _sectionLabel(String text, {String? description}) => Padding(
+        padding: EdgeInsets.only(left: 4, bottom: description != null ? 4 : 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              text,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade500,
+                letterSpacing: 0.2,
+              ),
+            ),
+            if (description != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 3, bottom: 6),
+                child: Text(
+                  description,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF888888),
+                    height: 1.4,
+                  ),
+                ),
+              ),
+          ],
         ),
       );
 
