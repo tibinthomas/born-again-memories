@@ -19,6 +19,7 @@ import '../utils/chime.dart';
 import '../utils/device_performance.dart';
 import 'dev_checklist_screen.dart';
 import 'growth_screen.dart';
+import 'sparks_screen.dart';
 import 'pdf_export_sheet.dart';
 import '../utils/image_utils.dart';
 import '../utils/profile_theme.dart';
@@ -764,6 +765,12 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                 builder: (_) => DevChecklistScreen(profileIndex: safeIndex),
               ),
             ),
+            onSparks: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => SparksScreen(profileIndex: safeIndex),
+              ),
+            ),
             onEditProfile: () => _showEditProfileSheet(context, safeIndex, currentProfile),
             onAddProfile: _showAddProfileSheet,
           ),
@@ -1285,6 +1292,7 @@ class _ProfileHeader extends ConsumerWidget {
   final VoidCallback onLinks;
   final VoidCallback onGrowth;
   final VoidCallback onChecklist;
+  final VoidCallback onSparks;
   final VoidCallback onEditProfile;
   final VoidCallback onAddProfile;
 
@@ -1300,6 +1308,7 @@ class _ProfileHeader extends ConsumerWidget {
     required this.onLinks,
     required this.onGrowth,
     required this.onChecklist,
+    required this.onSparks,
     required this.onEditProfile,
     required this.onAddProfile,
   });
@@ -1555,6 +1564,12 @@ class _ProfileHeader extends ConsumerWidget {
                               icon: Icons.checklist_rounded,
                               label: 'Checklist',
                               onTap: onChecklist,
+                            )),
+                          if (settings.sparksEnabled)
+                            Expanded(child: _QuickPill(
+                              icon: Icons.bolt_rounded,
+                              label: 'Sparks',
+                              onTap: onSparks,
                             )),
                           if (settings.documentsEnabled)
                             Expanded(child: _QuickPill(

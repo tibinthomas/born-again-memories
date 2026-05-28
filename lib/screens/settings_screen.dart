@@ -297,6 +297,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         .update(settings.copyWith(growthTrackingEnabled: v)),
                     onChecklistChanged: (v) => ref.read(appSettingsProvider.notifier)
                         .update(settings.copyWith(checklistEnabled: v)),
+                    onSparksChanged: (v) => ref.read(appSettingsProvider.notifier)
+                        .update(settings.copyWith(sparksEnabled: v)),
                     onRemindersChanged: (v) => ref.read(appSettingsProvider.notifier)
                         .update(settings.copyWith(remindersEnabled: v)),
                     onDocumentsChanged: (v) => ref.read(appSettingsProvider.notifier)
@@ -1660,6 +1662,7 @@ class _FeaturesCard extends StatelessWidget {
   final dynamic settings;
   final ValueChanged<bool> onGrowthChanged;
   final ValueChanged<bool> onChecklistChanged;
+  final ValueChanged<bool> onSparksChanged;
   final ValueChanged<bool> onRemindersChanged;
   final ValueChanged<bool> onDocumentsChanged;
   final ValueChanged<bool> onLinksChanged;
@@ -1669,6 +1672,7 @@ class _FeaturesCard extends StatelessWidget {
     required this.settings,
     required this.onGrowthChanged,
     required this.onChecklistChanged,
+    required this.onSparksChanged,
     required this.onRemindersChanged,
     required this.onDocumentsChanged,
     required this.onLinksChanged,
@@ -1703,6 +1707,17 @@ class _FeaturesCard extends StatelessWidget {
         trailing: Switch.adaptive(
           value: settings.checklistEnabled,
           onChanged: onChecklistChanged,
+          activeColor: accent,
+        ),
+      ),
+      _divider(),
+      _PrefRow(
+        icon: Icons.bolt_rounded,
+        accent: accent,
+        label: 'Memory Sparks',
+        trailing: Switch.adaptive(
+          value: settings.sparksEnabled,
+          onChanged: onSparksChanged,
           activeColor: accent,
         ),
       ),
