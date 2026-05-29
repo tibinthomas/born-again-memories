@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.tibinthomas.born_again_memories"
+    namespace = "m4memories.surprise.in"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -23,14 +23,14 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.tibinthomas.born_again_memories"
+        applicationId = "m4memories.surprise.in"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-        manifestPlaceholders["appAuthRedirectScheme"] = "com.tibinthomas.born_again_memories"
+        manifestPlaceholders["appAuthRedirectScheme"] = "m4memories.surprise.in"
     }
 
     buildTypes {
