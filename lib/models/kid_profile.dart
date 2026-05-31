@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'baby_document.dart';
+import 'future_plan.dart';
 import 'growth_entry.dart';
 import 'milestone.dart';
 import 'reminder.dart';
@@ -23,6 +24,7 @@ class KidProfile {
   final List<BabyDocument> documents;
   final List<SavedLink> links;
   final List<GrowthEntry> growthEntries;
+  final List<FuturePlan> futurePlans;
   // IDs of CDC developmental milestones the parent has marked as achieved.
   final Set<String> checkedMilestones;
   // CDC milestone ID → app milestone ID (memory created from that checklist item).
@@ -44,6 +46,7 @@ class KidProfile {
     this.documents = const [],
     this.links = const [],
     this.growthEntries = const [],
+    this.futurePlans = const [],
     this.checkedMilestones = const {},
     this.devMilestoneLinks = const {},
   });
@@ -99,6 +102,7 @@ class KidProfile {
     List<BabyDocument>? documents,
     List<SavedLink>? links,
     List<GrowthEntry>? growthEntries,
+    List<FuturePlan>? futurePlans,
     Set<String>? checkedMilestones,
     Map<String, String>? devMilestoneLinks,
   }) =>
@@ -119,6 +123,7 @@ class KidProfile {
         documents: documents ?? this.documents,
         links: links ?? this.links,
         growthEntries: growthEntries ?? this.growthEntries,
+        futurePlans: futurePlans ?? this.futurePlans,
         checkedMilestones: checkedMilestones ?? this.checkedMilestones,
         devMilestoneLinks: devMilestoneLinks ?? this.devMilestoneLinks,
       );

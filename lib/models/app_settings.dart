@@ -17,6 +17,7 @@ class AppSettings {
   final bool linksEnabled;
   final bool storiesEnabled;
   final bool forumEnabled;
+  final bool futurePlansEnabled;
   final List<String> menuOrder;
   // User-defined custom sparks (global across all profiles)
   final List<CustomSpark> customSparks;
@@ -36,9 +37,10 @@ class AppSettings {
     this.linksEnabled = true,
     this.storiesEnabled = true,
     this.forumEnabled = true,
+    this.futurePlansEnabled = true,
     this.menuOrder = const [
       'growth', 'checklist', 'sparks', 'stories', 'forum',
-      'documents', 'links', 'feed', 'reminders',
+      'documents', 'links', 'feed', 'reminders', 'future_plans',
     ],
     this.customSparks = const [],
   });
@@ -58,6 +60,7 @@ class AppSettings {
     bool? linksEnabled,
     bool? storiesEnabled,
     bool? forumEnabled,
+    bool? futurePlansEnabled,
     List<String>? menuOrder,
     List<CustomSpark>? customSparks,
     bool clearCustomIcon = false,
@@ -77,6 +80,7 @@ class AppSettings {
         linksEnabled: linksEnabled ?? this.linksEnabled,
         storiesEnabled: storiesEnabled ?? this.storiesEnabled,
         forumEnabled: forumEnabled ?? this.forumEnabled,
+        futurePlansEnabled: futurePlansEnabled ?? this.futurePlansEnabled,
         menuOrder: menuOrder ?? this.menuOrder,
         customSparks: customSparks ?? this.customSparks,
       );
@@ -95,6 +99,7 @@ class AppSettings {
         'linksEnabled': linksEnabled,
         'storiesEnabled': storiesEnabled,
         'forumEnabled': forumEnabled,
+        'futurePlansEnabled': futurePlansEnabled,
         'menuOrder': menuOrder,
         if (customSparks.isNotEmpty)
           'customSparks': customSparks.map((s) => s.toJson()).toList(),
@@ -115,10 +120,11 @@ class AppSettings {
         linksEnabled: j['linksEnabled'] as bool? ?? true,
         storiesEnabled: j['storiesEnabled'] as bool? ?? true,
         forumEnabled: j['forumEnabled'] as bool? ?? true,
+        futurePlansEnabled: j['futurePlansEnabled'] as bool? ?? true,
         menuOrder: () {
           const def = [
             'growth', 'checklist', 'sparks', 'stories', 'forum',
-            'documents', 'links', 'feed', 'reminders',
+            'documents', 'links', 'feed', 'reminders', 'future_plans',
           ];
           final stored = (j['menuOrder'] as List<dynamic>?)?.cast<String>() ?? [];
           if (stored.isEmpty) return def;

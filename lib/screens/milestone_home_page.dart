@@ -36,6 +36,7 @@ import 'saved_links_screen.dart';
 import 'shared_feed_screen.dart';
 import '../providers/sharing_provider.dart';
 import 'forum_screen.dart';
+import 'future_plans_screen.dart';
 import 'reminders_screen.dart';
 import 'settings_screen.dart';
 import 'stories_screen.dart';
@@ -785,6 +786,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                 builder: (_) => ForumScreen(profileIndex: safeIndex),
               ),
             ),
+            onFuturePlans: () => FuturePlansScreen.push(context, safeIndex),
             onEditProfile: () => _showEditProfileSheet(context, safeIndex, currentProfile),
             onAddProfile: _showAddProfileSheet,
           ),
@@ -1309,6 +1311,7 @@ class _ProfileHeader extends ConsumerWidget {
   final VoidCallback onSparks;
   final VoidCallback onStories;
   final VoidCallback onForum;
+  final VoidCallback onFuturePlans;
   final VoidCallback onEditProfile;
   final VoidCallback onAddProfile;
 
@@ -1327,6 +1330,7 @@ class _ProfileHeader extends ConsumerWidget {
     required this.onSparks,
     required this.onStories,
     required this.onForum,
+    required this.onFuturePlans,
     required this.onEditProfile,
     required this.onAddProfile,
   });
@@ -1616,10 +1620,11 @@ class _ProfileHeader extends ConsumerWidget {
                                           _QuickPill(icon: Icons.people_outline_rounded, label: 'Feed', onTap: onSharedFeed, showBadge: sharedCount > 0),
                                         'reminders' when settings.remindersEnabled =>
                                           _RemindersQuickPill(profile: profile, profileIndex: profileIndex),
+                                        'future_plans' when settings.futurePlansEnabled =>
+                                          _QuickPill(icon: Icons.savings_outlined, label: 'Future', onTap: onFuturePlans),
                                         _ => null,
                                       })
-                                  .whereType<Widget>()
-                                  .toList(),
+                                  .whereType<Widget>(),
                             ],
                           ),
                         ),

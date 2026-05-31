@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/attachment.dart';
 import '../models/baby_document.dart';
+import '../models/future_plan.dart';
 import '../models/growth_entry.dart';
 import '../models/kid_profile.dart';
 import '../models/milestone.dart';
@@ -415,6 +416,33 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>?> {
           growthEntries: profile.growthEntries.where((e) => e.id != entryId).toList(),
         ));
     await FirestoreService.deleteGrowthEntry(uid, profile.id, entryId);
+  }
+
+  // ── Future plans ─────────────────────────────────────────────────────────
+
+  Future<void> addFuturePlan(int profileIndex, FuturePlan plan) async {
+    final profile = (state ?? <KidProfile>[])[profileIndex];
+    _setProfile(profileIndex,
+        profile.copyWith(futurePlans: [plan, ...profile.futurePlans]));
+    await FirestoreService.saveFuturePlan(uid, profile.id, plan);
+  }
+
+  Future<void> updateFuturePlan(int profileIndex, FuturePlan plan) async {
+    final profile = (state ?? <KidProfile>[])[profileIndex];
+    final plans = profile.futurePlans
+        .map((p) => p.id == plan.id ? plan : p)
+        .toList();
+    _setProfile(profileIndex, profile.copyWith(futurePlans: plans));
+    await FirestoreService.saveFuturePlan(uid, profile.id, plan);
+  }
+
+  Future<void> deleteFuturePlan(int profileIndex, String planId) async {
+    final profile = (state ?? <KidProfile>[])[profileIndex];
+    _setProfile(profileIndex,
+        profile.copyWith(
+          futurePlans: profile.futurePlans.where((p) => p.id != planId).toList(),
+        ));
+    await FirestoreService.deleteFuturePlan(uid, profile.id, planId);
   }
 
   void _setProfile(int index, KidProfile profile) {

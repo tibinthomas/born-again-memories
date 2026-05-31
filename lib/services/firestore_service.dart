@@ -5,6 +5,7 @@ import '../models/attachment.dart';
 import '../models/baby_document.dart';
 import '../models/blog_post.dart';
 import '../models/forum_question.dart';
+import '../models/future_plan.dart';
 import '../models/growth_entry.dart';
 import '../models/kid_profile.dart';
 import '../models/milestone.dart';
@@ -129,12 +130,13 @@ class FirestoreService {
     final snap = await _db.collection('users/$uid/profiles').get();
     return Future.wait(snap.docs.map((doc) async {
       final profile = KidProfile.fromJson(doc.data());
-      final (milestones, reminders, documents, links, growthEntries) = await (
+      final (milestones, reminders, documents, links, growthEntries, futurePlans) = await (
         _loadMilestones(uid, profile.id),
         _loadReminders(uid, profile.id),
         _loadDocuments(uid, profile.id),
         _loadLinks(uid, profile.id),
         _loadGrowthEntries(uid, profile.id),
+        _loadFuturePlans(uid, profile.id),
       ).wait;
       return profile.copyWith(
         milestones: milestones,
@@ -142,6 +144,7 @@ class FirestoreService {
         documents: documents,
         links: links,
         growthEntries: growthEntries,
+        futurePlans: futurePlans,
       );
     }));
   }
@@ -271,6 +274,29 @@ class FirestoreService {
           String uid, String profileId, String reminderId) =>
       _db
           .doc('users/$uid/profiles/$profileId/reminders/$reminderId')
+          .delete();
+
+  // ── Future plans ───────────────────────────────────────────────────────────
+
+  static Future<List<FuturePlan>> _loadFuturePlans(
+      String uid, String profileId) async {
+    final snap = await _db
+        .collection('users/$uid/profiles/$profileId/futurePlans')
+        .orderBy('createdAt', descending: true)
+        .get();
+    return snap.docs.map((d) => FuturePlan.fromJson(d.data())).toList();
+  }
+
+  static Future<void> saveFuturePlan(
+          String uid, String profileId, FuturePlan plan) =>
+      _db
+          .doc('users/$uid/profiles/$profileId/futurePlans/${plan.id}')
+          .set(plan.toJson());
+
+  static Future<void> deleteFuturePlan(
+          String uid, String profileId, String planId) =>
+      _db
+          .doc('users/$uid/profiles/$profileId/futurePlans/$planId')
           .delete();
 
   // ── Share invite metadata ──────────────────────────────────────────────────
