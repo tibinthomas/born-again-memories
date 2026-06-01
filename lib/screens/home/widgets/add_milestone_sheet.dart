@@ -545,7 +545,7 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
                 color: Colors.blue,
                 onTap: () async {
                   final f = await _picker.pickImage(source: ImageSource.camera);
-                  if (f != null) _addXFiles([f]);
+                  if (f != null && mounted) _addXFiles([f]);
                 },
               ),
               const SizedBox(width: 8),
@@ -577,7 +577,7 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
                   color: Colors.red,
                   onTap: () async {
                     final f = await _picker.pickVideo(source: ImageSource.camera);
-                    if (f != null) _addXFiles([f]);
+                    if (f != null && mounted) _addXFiles([f]);
                   },
                 ),
               const SizedBox(width: 8),
@@ -589,16 +589,16 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
               onTap: () async {
                 if (kIsWeb) {
                   final files = await _picker.pickMultiImage();
-                  if (files.isNotEmpty) await _addXFiles(files);
+                  if (files.isNotEmpty && mounted) await _addXFiles(files);
                 } else if (Platform.isIOS || Platform.isAndroid) {
                   final files = await _picker.pickMultipleMedia();
-                  if (files.isNotEmpty) await _addXFiles(files);
+                  if (files.isNotEmpty && mounted) await _addXFiles(files);
                 } else {
                   final result = await FilePicker.pickFiles(
                     allowMultiple: true,
                     type: FileType.media,
                   );
-                  if (result != null) {
+                  if (result != null && mounted) {
                     for (final f in result.files.where((f) => f.path != null)) {
                       final ext = _extOf(f);
                       _addAttachment(Attachment(
