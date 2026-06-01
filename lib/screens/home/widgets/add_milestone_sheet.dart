@@ -13,11 +13,9 @@ import '../../../models/attachment.dart';
 import '../../../models/kid_profile.dart';
 import '../../../models/milestone.dart';
 import '../../../providers/app_settings_provider.dart';
-import '../../../providers/auth_provider.dart';
 import '../../../providers/backup_provider.dart';
 import '../../../providers/milestone_form_provider.dart';
 import '../../../providers/profiles_provider.dart';
-import '../../../services/google_photos_service.dart';
 import '../../../services/local_storage_service.dart';
 import '../../../utils/app_date_picker.dart';
 import '../../../utils/attachment_helper.dart';
@@ -25,7 +23,6 @@ import '../../../utils/chime.dart';
 import '../../../utils/date_formatter.dart';
 import '../../../utils/milestone_templates.dart';
 import '../../../utils/profile_theme.dart';
-import '../../google_photos_picker.dart';
 import '../../video_recorder_screen.dart';
 
 class AddMilestoneSheet extends ConsumerStatefulWidget {
@@ -157,33 +154,7 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
     return dot != -1 ? f.name.substring(dot + 1).toLowerCase() : '';
   }
 
-  Future<void> _pickFromGooglePhotos() async {
-    final authService = ref.read(authServiceProvider);
-    final gs = authService.googleSignIn;
 
-    final granted = await GooglePhotosService.requestScope(gs);
-    if (!granted || !mounted) return;
-
-    final selected = await GooglePhotosPicker.open(context);
-    if (selected == null || selected.isEmpty || !mounted) return;
-
-    for (int i = 0; i < selected.length; i++) {
-      final item = selected[i];
-      try {
-        final path = await GooglePhotosService.downloadItem(gs, item);
-        if (!mounted) return;
-        _addAttachment(Attachment(
-          id: '${DateTime.now().microsecondsSinceEpoch}_$i',
-          name: item.filename.isNotEmpty
-              ? item.filename
-              : 'photo.${item.isVideo ? 'mp4' : 'jpg'}',
-          localPath: path,
-          type: item.isVideo ? AttachmentType.video : AttachmentType.image,
-          sizeBytes: 0,
-        ));
-      } catch (_) {}
-    }
-  }
 
   Future<void> _startLiveRecording() async {
     final tempDir = await getTemporaryDirectory();
@@ -649,40 +620,6 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
             ),
           ],
         ),
-        if (!kIsWeb && (Platform.isIOS || Platform.isAndroid) &&
-            !ref.read(authServiceProvider).isAppleUser)
-          Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: InkWell(
-              onTap: _pickFromGooglePhotos,
-              borderRadius: BorderRadius.circular(10),
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.green.withAlpha(15),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.green.withAlpha(50)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.photo_library_rounded,
-                        size: 16, color: Colors.green.shade700),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Google Photos',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.green.shade700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
         if (_attachments.isNotEmpty) ...[
           const SizedBox(height: 14),
           SizedBox(
