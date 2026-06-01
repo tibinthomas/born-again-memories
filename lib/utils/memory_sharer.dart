@@ -1,16 +1,17 @@
 import 'dart:io';
 import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+
 import '../models/kid_profile.dart';
 import '../models/milestone.dart';
 import '../utils/profile_theme.dart';
 import '../widgets/memory_share_card.dart';
 
 /// Shows a share sheet with a branded memory card preview.
-/// The card is captured as a PNG and shared via the OS share dialog.
 class MemorySharer {
   static final GlobalKey _key = GlobalKey();
 
@@ -54,8 +55,29 @@ class _ShareSheet extends StatefulWidget {
   State<_ShareSheet> createState() => _ShareSheetState();
 }
 
-class _ShareSheetState extends State<_ShareSheet> {
+class _ShareSheetState extends State<_ShareSheet>
+    with SingleTickerProviderStateMixin {
   bool _sharing = false;
+  late final AnimationController _pulse;
+  late final Animation<double> _scaleAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulse = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    )..repeat(reverse: true);
+    _scaleAnim = Tween<double>(begin: 1.0, end: 1.03).animate(
+      CurvedAnimation(parent: _pulse, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _pulse.dispose();
+    super.dispose();
+  }
 
   Future<String?> _captureCard() async {
     try {
@@ -105,41 +127,81 @@ class _ShareSheetState extends State<_ShareSheet> {
     final theme = ProfileTheme.forGender(widget.gender);
 
     return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFFFAF8F5),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      decoration: BoxDecoration(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        // Subtle gradient tinted with the profile accent
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            theme.soft,
+            Colors.white,
+            theme.cardBg,
+          ],
+        ),
       ),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.only(bottom: 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Handle
-            Center(
-              child: Container(
-                margin: const EdgeInsets.only(top: 12, bottom: 14),
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Handle
+          Center(
+            child: Container(
+              margin: const EdgeInsets.only(top: 12, bottom: 10),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: theme.accent.withAlpha(80),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+
+          // Header
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 4, 24, 0),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    gradient: theme.headerGradient,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Text('✨', style: TextStyle(fontSize: 16)),
                 ),
-              ),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Share this memory',
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF1A1A2E),
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    Text(
+                      'Your moment, beautifully packaged',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade500,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
+          ),
 
-            const Text(
-              'Share this memory',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF2D2D2D),
-              ),
-            ),
-            const SizedBox(height: 18),
+          const SizedBox(height: 20),
 
-            // ── Card preview ──────────────────────────────
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+          // Card preview with subtle float animation
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 28),
+            child: ScaleTransition(
+              scale: _scaleAnim,
               child: RepaintBoundary(
                 key: widget.cardKey,
                 child: MemoryShareCard(
@@ -149,90 +211,218 @@ class _ShareSheetState extends State<_ShareSheet> {
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+          ),
 
-            // ── Sharing buttons ───────────────────────────
-            if (_sharing)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 16),
-                child: CircularProgressIndicator(),
-              )
-            else
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _ShareBtn(
-                      label: 'WhatsApp',
-                      icon: Icons.chat_rounded,
-                      color: const Color(0xFF25D366),
-                      onTap: _share,
+          const SizedBox(height: 24),
+
+          // Divider with label
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 28),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Divider(color: theme.accent.withAlpha(40), height: 1),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Text(
+                    'Share via',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: theme.accent.withAlpha(160),
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
                     ),
-                    _ShareBtn(
-                      label: 'Instagram',
-                      icon: Icons.camera_alt_rounded,
-                      color: const Color(0xFFE1306C),
-                      onTap: _share,
-                    ),
-                    _ShareBtn(
-                      label: 'More',
-                      icon: Icons.share_rounded,
-                      color: theme.accent,
-                      onTap: _share,
-                    ),
-                  ],
+                  ),
+                ),
+                Expanded(
+                  child: Divider(color: theme.accent.withAlpha(40), height: 1),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 18),
+
+          // Share buttons
+          if (_sharing)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: SizedBox(
+                width: 28,
+                height: 28,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  color: theme.accent,
                 ),
               ),
-          ],
-        ),
+            )
+          else
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _ShareBtn(
+                    label: 'WhatsApp',
+                    emoji: '💬',
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF25D366), Color(0xFF128C7E)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    onTap: _share,
+                  ),
+                  _ShareBtn(
+                    label: 'Instagram',
+                    emoji: '📸',
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFF58529), Color(0xFFE1306C), Color(0xFF833AB4)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    onTap: _share,
+                  ),
+                  _ShareBtn(
+                    label: 'Save',
+                    emoji: '💾',
+                    gradient: LinearGradient(
+                      colors: [theme.accent, theme.accent.withAlpha(180)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    onTap: _share,
+                  ),
+                  _ShareBtn(
+                    label: 'More',
+                    emoji: '🔗',
+                    gradient: LinearGradient(
+                      colors: [
+                        const Color(0xFF6C6C6C),
+                        const Color(0xFF3C3C3C),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    onTap: _share,
+                  ),
+                ],
+              ),
+            ),
+
+          const SizedBox(height: 8),
+
+          // Hint text
+          Text(
+            'Tap any option to share your memory card',
+            style: TextStyle(
+              fontSize: 11,
+              color: Colors.grey.shade400,
+            ),
+          ),
+
+          SizedBox(
+            height: MediaQuery.of(context).padding.bottom + 16,
+          ),
+        ],
       ),
     );
   }
 }
 
-// ── Share channel button ──────────────────────────────────────────────────────
+// ── Share button ──────────────────────────────────────────────────────────────
 
-class _ShareBtn extends StatelessWidget {
+class _ShareBtn extends StatefulWidget {
   final String label;
-  final IconData icon;
-  final Color color;
+  final String emoji;
+  final Gradient gradient;
   final VoidCallback onTap;
 
   const _ShareBtn({
     required this.label,
-    required this.icon,
-    required this.color,
+    required this.emoji,
+    required this.gradient,
     required this.onTap,
   });
 
   @override
+  State<_ShareBtn> createState() => _ShareBtnState();
+}
+
+class _ShareBtnState extends State<_ShareBtn>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _scale;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 120),
+      lowerBound: 0.0,
+      upperBound: 0.08,
+    );
+    _scale = Tween<double>(begin: 1.0, end: 0.92).animate(
+      CurvedAnimation(parent: _ctrl, curve: Curves.easeOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 58,
-            height: 58,
-            decoration: BoxDecoration(
-              color: color.withAlpha(22),
-              shape: BoxShape.circle,
-              border: Border.all(color: color.withAlpha(70), width: 1.5),
+      onTapDown: (_) => _ctrl.forward(),
+      onTapUp: (_) {
+        _ctrl.reverse();
+        widget.onTap();
+      },
+      onTapCancel: () => _ctrl.reverse(),
+      child: ScaleTransition(
+        scale: _scale,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                gradient: widget.gradient,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: (widget.gradient as LinearGradient)
+                        .colors
+                        .first
+                        .withAlpha(80),
+                    blurRadius: 14,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Center(
+                child: Text(
+                  widget.emoji,
+                  style: const TextStyle(fontSize: 24),
+                ),
+              ),
             ),
-            child: Icon(icon, color: color, size: 26),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade700,
+            const SizedBox(height: 7),
+            Text(
+              widget.label,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF3A3A3A),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

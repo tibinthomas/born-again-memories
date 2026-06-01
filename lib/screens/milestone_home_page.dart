@@ -1592,8 +1592,9 @@ class _ProfileHeader extends ConsumerWidget {
                         blendMode: BlendMode.dstIn,
                         child: SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
+                          clipBehavior: Clip.none,
                           physics: const BouncingScrollPhysics(),
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          padding: const EdgeInsets.fromLTRB(8, 4, 8, 0),
                           child: Row(
                             children: [
                               _QuickPill(
