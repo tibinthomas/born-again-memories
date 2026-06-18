@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'dart:async';
+import 'dart:math' show pi, sin;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -80,7 +81,7 @@ class BabyMilestonesApp extends ConsumerWidget {
       home: authState.when(
         data: (user) =>
             user != null ? const _AuthedRoot() : const LoginScreen(),
-        loading: () => const _SplashScreen(),
+        loading: () => const _AppLoadingScreen(),
         error: (err, stack) => const LoginScreen(),
       ),
     );
@@ -185,7 +186,7 @@ class _AuthedRootState extends ConsumerState<_AuthedRoot> {
   @override
   Widget build(BuildContext context) {
     if (!_checked) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const _AppLoadingScreen();
     }
     if (_pendingDeletion) {
       return AccountRecoveryScreen(
@@ -197,80 +198,55 @@ class _AuthedRootState extends ConsumerState<_AuthedRoot> {
   }
 }
 
-class _SplashScreen extends StatefulWidget {
-  const _SplashScreen();
+// ── Shared loading / splash screen ────────────────────────────────────────────
+
+class _AppLoadingScreen extends StatefulWidget {
+  const _AppLoadingScreen();
 
   @override
-  State<_SplashScreen> createState() => _SplashScreenState();
+  State<_AppLoadingScreen> createState() => _AppLoadingScreenState();
 }
 
-class _SplashScreenState extends State<_SplashScreen>
+class _AppLoadingScreenState extends State<_AppLoadingScreen>
     with TickerProviderStateMixin {
-  late final AnimationController _logoCtrl;
-  late final AnimationController _textCtrl;
-  late final AnimationController _floatCtrl;
+  // One long-running controller drives all bubbles (Lissajous paths)
+  late final AnimationController _bubbleCtrl;
 
-  late final Animation<double> _logoScale;
-  late final Animation<double> _logoOpacity;
-  late final Animation<double> _textOpacity;
-  late final Animation<Offset> _textSlide;
-
-  static const _particles = ['⭐', '🌸', '💫', '🎀', '✨', '🌙', '💕', '🍼'];
+  // Bubble specs: (size, startX-fraction, startY-fraction, color)
+  static const _bubbles = [
+    (110.0, -0.08, 0.04, Color(0xFFFFD6A5)),  // top-left peach
+    (70.0,   0.02, 0.38, Color(0xFFFFB3C6)),  // mid-left pink
+    (90.0,   0.82, 0.10, Color(0xFFB5D8FF)),  // top-right blue
+    (55.0,   0.72, 0.55, Color(0xFFFFD6E8)),  // mid-right blush
+    (80.0,   0.30, 0.80, Color(0xFFD6EEFF)),  // bottom-center blue
+    (40.0,   0.55, 0.20, Color(0xFFFFF0A0)),  // upper-mid yellow
+    (60.0,   0.15, 0.65, Color(0xFFFFE4C8)),  // lower-left peach
+    (35.0,   0.88, 0.78, Color(0xFFCBF0D9)),  // bottom-right mint
+  ];
 
   @override
   void initState() {
     super.initState();
-
-    _logoCtrl = AnimationController(
+    _bubbleCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
-    );
-    _textCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-    );
-    _floatCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 3000),
-    )..repeat(reverse: true);
-
-    _logoScale = CurvedAnimation(
-      parent: _logoCtrl,
-      curve: Curves.elasticOut,
-    );
-    _logoOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _logoCtrl,
-        curve: const Interval(0.0, 0.4, curve: Curves.easeIn),
-      ),
-    );
-    _textOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _textCtrl, curve: Curves.easeIn),
-    );
-    _textSlide = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _textCtrl, curve: Curves.easeOut));
-
-    _logoCtrl.forward();
-    Future.delayed(const Duration(milliseconds: 400), () {
-      if (mounted) _textCtrl.forward();
-    });
+      duration: const Duration(milliseconds: 22000),
+    )..repeat();
   }
 
   @override
   void dispose() {
-    _logoCtrl.dispose();
-    _textCtrl.dispose();
-    _floatCtrl.dispose();
+    _bubbleCtrl.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+
     return Scaffold(
       body: Container(
+        width: double.infinity,
+        height: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -278,100 +254,71 @@ class _SplashScreenState extends State<_SplashScreen>
             colors: [
               Color(0xFFFFF8F0),
               Color(0xFFFFF0F5),
-              Color(0xFFE8F4FF),
+              Color(0xFFEEF6FF),
             ],
           ),
         ),
         child: Stack(
+          clipBehavior: Clip.none,
           children: [
-            // Decorative blobs
-            Positioned(
-              top: -60,
-              left: -60,
-              child: _Blob(size: 200, color: const Color(0xFFFFE4C8)),
-            ),
-            Positioned(
-              top: size.height * 0.3,
-              right: -80,
-              child: _Blob(size: 180, color: const Color(0xFFFFD6E8)),
-            ),
-            Positioned(
-              bottom: -80,
-              left: size.width * 0.2,
-              child: _Blob(size: 220, color: const Color(0xFFD6EEFF)),
-            ),
-            // Floating particles
-            for (int i = 0; i < _particles.length; i++)
-              _FloatingParticle(
-                emoji: _particles[i],
-                floatCtrl: _floatCtrl,
-                left: (size.width * ((i * 0.137 + 0.05) % 1.0)),
-                top: size.height * ((i * 0.173 + 0.08) % 0.85),
-                phaseOffset: i * 0.13,
+            // ── Lissajous bubbles ────────────────────────────────────
+            for (final b in _bubbles)
+              _SplashBubble(
+                ctrl: _bubbleCtrl,
+                diameter: b.$1,
+                color: b.$4,
+                originX: size.width * b.$2,
+                originY: size.height * b.$3,
               ),
-            // Main content
+
+            // ── Icon + text (static, centred) ────────────────────────
             Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Logo circle
-                  ScaleTransition(
-                    scale: _logoScale,
-                    child: FadeTransition(
-                      opacity: _logoOpacity,
-                      child: Container(
-                        width: 120,
-                        height: 120,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white,
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFFFFB347).withOpacity(0.35),
-                              blurRadius: 40,
-                              spreadRadius: 8,
-                            ),
-                            BoxShadow(
-                              color: const Color(0xFFFFB347).withOpacity(0.15),
-                              blurRadius: 80,
-                              spreadRadius: 20,
-                            ),
-                          ],
+                  // App icon
+                  Container(
+                    width: 124,
+                    height: 124,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFFFB347).withAlpha(90),
+                          blurRadius: 48,
+                          spreadRadius: 8,
                         ),
-                        child: const Center(
-                          child: Text('👶', style: TextStyle(fontSize: 60)),
+                        BoxShadow(
+                          color: const Color(0xFFFFB347).withAlpha(40),
+                          blurRadius: 90,
+                          spreadRadius: 24,
                         ),
-                      ),
+                      ],
+                    ),
+                    child: const Center(
+                      child: Text('👶', style: TextStyle(fontSize: 62)),
                     ),
                   ),
-                  const SizedBox(height: 32),
-                  // App name + tagline
-                  SlideTransition(
-                    position: _textSlide,
-                    child: FadeTransition(
-                      opacity: _textOpacity,
-                      child: Column(
-                        children: [
-                          const Text(
-                            'M 4 Memories',
-                            style: TextStyle(
-                              fontSize: 26,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF4A3728),
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Every moment, treasured forever',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: const Color(0xFF4A3728).withOpacity(0.6),
-                              letterSpacing: 0.3,
-                            ),
-                          ),
-                        ],
-                      ),
+                  const SizedBox(height: 30),
+                  // App name
+                  const Text(
+                    'M 4 Memories',
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF4A3728),
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  // Tagline
+                  Text(
+                    'Every moment, treasured forever',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: const Color(0xFF4A3728).withAlpha(150),
+                      letterSpacing: 0.3,
                     ),
                   ),
                 ],
@@ -384,63 +331,51 @@ class _SplashScreenState extends State<_SplashScreen>
   }
 }
 
-class _Blob extends StatelessWidget {
-  final double size;
+// ── Single Lissajous bubble ───────────────────────────────────────────────────
+
+class _SplashBubble extends StatelessWidget {
+  final AnimationController ctrl;
+  final double diameter;
   final Color color;
-  const _Blob({required this.size, required this.color});
+  final double originX;
+  final double originY;
 
-  @override
-  Widget build(BuildContext context) => Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(shape: BoxShape.circle, color: color),
-      );
-}
-
-class _FloatingParticle extends StatelessWidget {
-  final String emoji;
-  final AnimationController floatCtrl;
-  final double left;
-  final double top;
-  final double phaseOffset;
-
-  const _FloatingParticle({
-    required this.emoji,
-    required this.floatCtrl,
-    required this.left,
-    required this.top,
-    required this.phaseOffset,
+  const _SplashBubble({
+    required this.ctrl,
+    required this.diameter,
+    required this.color,
+    required this.originX,
+    required this.originY,
   });
 
   @override
   Widget build(BuildContext context) {
-    final offset = Tween<Offset>(
-      begin: const Offset(0, 0),
-      end: const Offset(0, -18),
-    ).animate(
-      CurvedAnimation(
-        parent: floatCtrl,
-        curve: Interval(
-          (phaseOffset % 1.0),
-          ((phaseOffset + 0.5) % 1.0).clamp(0.01, 1.0),
-          curve: Curves.easeInOut,
-        ),
-      ),
-    );
+    // Unique phase per bubble so each follows a different path
+    final phase = (diameter * 37 % 100) / 100.0 * 2 * pi;
 
-    return Positioned(
-      left: left,
-      top: top,
-      child: AnimatedBuilder(
-        animation: floatCtrl,
-        builder: (_, __) => Transform.translate(
-          offset: offset.value,
-          child: Opacity(
-            opacity: 0.55,
-            child: Text(emoji, style: const TextStyle(fontSize: 22)),
+    return AnimatedBuilder(
+      animation: ctrl,
+      builder: (context, child) {
+        final t = ctrl.value * 2 * pi;
+        final dx = sin(t + phase) * 55.0;
+        final dy = sin(t * 1.37 + phase) * 38.0;
+        final scale = 0.88 + sin(t * 0.7 + phase) * 0.12;
+        return Positioned(
+          left: originX + dx,
+          top: originY + dy,
+          child: Transform.scale(
+            scale: scale,
+            child: Container(
+              width: diameter,
+              height: diameter,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: color.withAlpha(180),
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
