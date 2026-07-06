@@ -27,7 +27,9 @@ class FirestoreService {
       String uid, String email, String? displayName) =>
       _db.doc('users/$uid').set(
         {
-          'email': email,
+          // Lowercased so sharedWithEmails / isEmailRegistered lookups
+          // (which compare lowercase) always match.
+          'email': email.toLowerCase(),
           if (displayName != null && displayName.isNotEmpty)
             'displayName': displayName,
         },
@@ -42,8 +44,19 @@ class FirestoreService {
   static Future<void> updateUserDoc(String uid, Map<String, dynamic> data) =>
       _db.doc('users/$uid').set(data, SetOptions(merge: true));
 
-  static Future<void> saveFcmToken(String uid, String token) =>
-      _db.doc('users/$uid').set({'fcmToken': token}, SetOptions(merge: true));
+  // The token lives in the owner-only data subcollection, not on the user doc,
+  // because the user doc is readable by any signed-in user.
+  static Future<void> saveFcmToken(String uid, String token) async {
+    await _db
+        .doc('users/$uid/data/fcm')
+        .set({'token': token}, SetOptions(merge: true));
+    // Scrub the legacy copy from the world-readable user doc.
+    try {
+      await _db.doc('users/$uid').update({'fcmToken': FieldValue.delete()});
+    } catch (_) {
+      // User doc may not exist yet on first launch — nothing to scrub.
+    }
+  }
 
   // ── Shared-milestone notifications ────────────────────────────────────────
 
@@ -438,12 +451,12 @@ class FirestoreService {
     final snap = await ref.get();
     if (!snap.exists) return;
     final likes = List<String>.from(snap.data()?['likedByUids'] ?? []);
-    if (likes.contains(uid)) {
-      likes.remove(uid);
-    } else {
-      likes.add(uid);
-    }
-    await ref.update({'likedByUids': likes});
+    // arrayUnion/arrayRemove so concurrent likers can't overwrite each other.
+    await ref.update({
+      'likedByUids': likes.contains(uid)
+          ? FieldValue.arrayRemove([uid])
+          : FieldValue.arrayUnion([uid]),
+    });
   }
 
   // ── Community Q&A forum ───────────────────────────────────────────────────
@@ -478,10 +491,12 @@ class FirestoreService {
   static Future<void> deleteForumQuestion(String questionId) async {
     final answers =
         await _db.collection('forum/$questionId/answers').get();
+    final batch = _db.batch();
     for (final doc in answers.docs) {
-      await doc.reference.delete();
+      batch.delete(doc.reference);
     }
-    await _db.doc('forum/$questionId').delete();
+    batch.delete(_db.doc('forum/$questionId'));
+    await batch.commit();
   }
 
   static Stream<List<ForumAnswer>> streamForumAnswers(String questionId) =>

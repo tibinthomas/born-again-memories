@@ -49996,8 +49996,8 @@
     "hash": "9bd0390200365adf65644e4fa64585bb"
   },
   "/Users/tibinthomas/my_app/lib/services/firestore_service.dart": {
-    "mtime": 1780055313.7273219,
-    "hash": "9f5951d26e982541014456c2d47442d1"
+    "mtime": 1783333964.837374,
+    "hash": "3fffdf0ca5ba011e91e81d90774caea6"
   },
   "/Users/tibinthomas/my_app/lib/services/local_storage_service.dart": {
     "mtime": 1779477316.812494,
@@ -50056,8 +50056,8 @@
     "hash": "454b018f4afb4bb864f7decc64503826"
   },
   "/Users/tibinthomas/my_app/functions/index.js": {
-    "mtime": 1779481700.8123944,
-    "hash": "adfa6955c6b3c6c6c77780ef071b20f5"
+    "mtime": 1783333972.7091258,
+    "hash": "2bb97ef9409276f38b045830b180736a"
   },
   "/Users/tibinthomas/my_app/windows/runner/flutter_window.cpp": {
     "mtime": 1777367340.4747229,
@@ -50098,6 +50098,10 @@
   "/Users/tibinthomas/my_app/windows/flutter/generated_plugin_registrant.h": {
     "mtime": 1777687428.1062233,
     "hash": "0ea33875f9f8e118f9c2ded03e2e2835"
+  },
+  "/Users/tibinthomas/my_app/devtools_options.yaml": {
+    "mtime": 1782526609.5155275,
+    "hash": "d1ff5187b1b67653e7357395895e8449"
   },
   "/Users/tibinthomas/my_app/README.md": {
     "mtime": 1777816822.6678069,

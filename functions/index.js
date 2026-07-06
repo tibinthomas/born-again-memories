@@ -37,8 +37,12 @@ exports.onMilestoneCreated = onDocumentCreated(
       .where("email", "in", sharedWith.slice(0, 10)) // 'in' supports max 10
       .get();
 
-    const tokens = usersSnap.docs
-      .map((d) => d.data().fcmToken)
+    // Tokens live in each user's owner-only data subcollection
+    // (users/{uid}/data/fcm), not on the publicly readable user doc.
+    const tokenRefs = usersSnap.docs.map((d) => db.doc(`users/${d.id}/data/fcm`));
+    const tokenSnaps = tokenRefs.length > 0 ? await db.getAll(...tokenRefs) : [];
+    const tokens = tokenSnaps
+      .map((s) => s.get("token"))
       .filter(Boolean);
 
     if (tokens.length === 0) return;
