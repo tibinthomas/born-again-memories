@@ -1,0 +1,54 @@
+{
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "database": {
+    "rules": "database.rules.json"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "functions": {
+    "source": "functions"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "born-again-memories",
+          "appId": "1:535814593524:android:c49d8d992c758102d9b7a1",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "born-again-memories",
+          "appId": "1:535814593524:ios:75a148255a397b63d9b7a1",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "macos": {
+        "default": {
+          "projectId": "born-again-memories",
+          "appId": "1:535814593524:ios:515057fd62fded58d9b7a1",
+          "uploadDebugSymbols": false,
+          "fileOutput": "macos/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "born-again-memories",
+          "configurations": {
+            "android": "1:535814593524:android:c49d8d992c758102d9b7a1",
+            "ios": "1:535814593524:ios:75a148255a397b63d9b7a1",
+            "macos": "1:535814593524:ios:515057fd62fded58d9b7a1",
+            "web": "1:535814593524:web:27fdf608a059fdb2d9b7a1",
+            "windows": "1:535814593524:web:0f249faf282e54f3d9b7a1"
+          }
+        }
+      }
+    }
+  }
+}
