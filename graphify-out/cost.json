@@ -18,6 +18,20 @@
       "output_tokens": 0,
       "files": 2,
       "type": "update"
+    },
+    {
+      "date": "2026-07-06T15:34:05.787993+00:00",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "files": 103,
+      "note": "clean rebuild after .graphifyignore; chunks 2-4 pending"
+    },
+    {
+      "date": "2026-07-06T15:55:19.299516+00:00",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "files": 103,
+      "note": "completed semantic extraction after session-limit interruption"
     }
   ],
   "total_input_tokens": 1800,

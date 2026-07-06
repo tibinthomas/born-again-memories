@@ -1,0 +1,30 @@
+# Vendored dependency code — not this app's source
+ios/Pods/
+macos/Pods/
+functions/node_modules/
+
+# Flutter-generated platform glue and build ephemera
+ios/Flutter/
+macos/Flutter/
+windows/flutter/ephemeral/
+linux/flutter/ephemeral/
+**/GeneratedPluginRegistrant.*
+**/generated_plugin_registrant.*
+**/generated_plugins.cmake
+android/.gradle/
+android/local.properties
+build/
+
+# Lockfiles and generated icons/manifests
+pubspec.lock
+Podfile.lock
+web/icons/
+web/favicon.png
+
+# App icon sets and launch images — no knowledge value
+**/Assets.xcassets/
+android/app/src/main/res/
+
+# Untouched Flutter template scaffolding for desktop targets
+linux/
+windows/
