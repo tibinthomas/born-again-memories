@@ -51,7 +51,7 @@ class AuthService {
 
   bool get isAppleUser =>
       !kIsWeb &&
-      !kIsWeb && (Platform.isIOS || Platform.isMacOS) &&
+      (Platform.isIOS || Platform.isMacOS) &&
       (_auth.currentUser?.providerData.any((p) => p.providerId == 'apple.com') ??
           false);
 

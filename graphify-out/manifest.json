@@ -49740,20 +49740,20 @@
     "hash": "b0f1d65c185fd5f40fc6289a33f53303"
   },
   "/Users/tibinthomas/my_app/lib/providers/auth_provider.dart": {
-    "mtime": 1780061154.4437478,
-    "hash": "a4d7238f2c067b211c616dccc0547496"
+    "mtime": 1783334763.1537514,
+    "hash": "b6e21ce28440392951641e779ea1fc4c"
   },
   "/Users/tibinthomas/my_app/lib/providers/milestone_form_provider.dart": {
     "mtime": 1778293682.9163911,
     "hash": "e4a9c924d2608024e754e64fd8c27a1e"
   },
   "/Users/tibinthomas/my_app/lib/providers/profiles_provider.dart": {
-    "mtime": 1780055348.5352104,
-    "hash": "0af89d2f4cb9c30488fe00347aefbc25"
+    "mtime": 1783334745.9622319,
+    "hash": "ebd251ce17dbe7131f96134ee7f5ac35"
   },
   "/Users/tibinthomas/my_app/lib/providers/backup_provider.dart": {
-    "mtime": 1778817982.17215,
-    "hash": "af51639ab6d3792e07917c1ebd151216"
+    "mtime": 1783334761.3061898,
+    "hash": "73677ca566a1ec31393f65891e048d5f"
   },
   "/Users/tibinthomas/my_app/lib/utils/theme_preset.dart": {
     "mtime": 1778411199.8167543,
@@ -49868,8 +49868,8 @@
     "hash": "738d66c8c6be52b27756607c9bed2ba0"
   },
   "/Users/tibinthomas/my_app/lib/screens/settings_screen.dart": {
-    "mtime": 1780001245.097696,
-    "hash": "b60997196bb5b82630a2c31b7e479e34"
+    "mtime": 1783334801.7392972,
+    "hash": "bbb0a1cfe03368ad8febc516a6899047"
   },
   "/Users/tibinthomas/my_app/lib/screens/forum_detail_screen.dart": {
     "mtime": 1779993875.0253882,
@@ -49956,8 +49956,8 @@
     "hash": "23b4a0a288ec9ea528f3316ba10478ee"
   },
   "/Users/tibinthomas/my_app/lib/screens/home/widgets/add_milestone_sheet.dart": {
-    "mtime": 1780310218.0816517,
-    "hash": "e895adb4ff91bd7e66ec43f555b814e3"
+    "mtime": 1783334758.5256517,
+    "hash": "06831ea008c08c5c00493bb9853e858b"
   },
   "/Users/tibinthomas/my_app/lib/screens/home/widgets/profile_switcher_sheet.dart": {
     "mtime": 1778720157.3295732,

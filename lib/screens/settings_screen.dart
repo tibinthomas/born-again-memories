@@ -4,7 +4,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/kid_profile.dart';
 import '../models/share_invite.dart';
@@ -742,13 +741,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               onPressed: confirmed
                   ? () {
                       Navigator.pop(ctx);
-                      final currentIndex = ref.read(selectedProfileIndexProvider);
+                      // deleteProfile clamps selectedProfileIndexProvider itself.
                       ref.read(profilesProvider.notifier).deleteProfile(index);
-                      final remaining = ref.read(profilesProvider)?.length ?? 0;
-                      if (remaining > 0) {
-                        ref.read(selectedProfileIndexProvider.notifier).state =
-                            currentIndex.clamp(0, remaining - 1);
-                      }
                     }
                   : null,
               style: FilledButton.styleFrom(backgroundColor: Colors.red),

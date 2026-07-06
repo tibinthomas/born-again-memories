@@ -549,5 +549,9 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
 
 final backupSyncProvider =
     StateNotifierProvider<BackupSyncNotifier, BackupSyncState>((ref) {
+  // Recreate per signed-in user so cached Drive/iCloud state (backup email,
+  // quota, access flags) never leaks across account switches, and so _init
+  // re-runs once auth is actually ready instead of bailing on a null uid.
+  ref.watch(authStateProvider.select((a) => a.value?.uid));
   return BackupSyncNotifier(ref);
 });

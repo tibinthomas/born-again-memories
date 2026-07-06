@@ -65,6 +65,13 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>?> {
     final list = state ?? <KidProfile>[];
     final profile = list[index];
     state = <KidProfile>[...list]..removeAt(index);
+    // Keep the selected index valid now that the list is shorter.
+    final remaining = state?.length ?? 0;
+    final selected = _ref.read(selectedProfileIndexProvider);
+    if (selected >= remaining) {
+      _ref.read(selectedProfileIndexProvider.notifier).state =
+          remaining == 0 ? 0 : remaining - 1;
+    }
     await FirestoreService.deleteProfile(uid, profile.id);
   }
 
@@ -79,11 +86,17 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>?> {
         profile.copyWith(milestones: [milestone, ...profile.milestones]));
     await FirestoreService.saveMilestone(uid, profile.id, milestone);
 
-    // Notify users who have shared access to this account.
-    final sharedEmails = _ref
+    // Notify users who have shared access to this account. Fall back to the
+    // Firestore list if sharedEmailsProvider hasn't finished its initial load.
+    var sharedEmails = _ref
         .read(sharedEmailsProvider)
         .map((i) => i.email)
         .toList();
+    if (sharedEmails.isEmpty) {
+      final doc = await FirestoreService.getUserDoc(uid);
+      sharedEmails =
+          List<String>.from(doc?['sharedWithEmails'] as List? ?? []);
+    }
     if (sharedEmails.isNotEmpty) {
       final user = FirebaseAuth.instance.currentUser;
       final senderName = user?.displayName?.isNotEmpty == true
@@ -515,7 +528,12 @@ final profilesProvider =
   return ProfilesNotifier(uid, ref);
 });
 
-final selectedProfileIndexProvider = StateProvider<int>((ref) => 0);
+final selectedProfileIndexProvider = StateProvider<int>((ref) {
+  // Reset to the first profile whenever the signed-in user changes, so a
+  // stale index from a previous account can't point past the new list.
+  ref.watch(authStateProvider.select((a) => a.value?.uid));
+  return 0;
+});
 
 class AddProfileFormState {
   final DateTime dob;

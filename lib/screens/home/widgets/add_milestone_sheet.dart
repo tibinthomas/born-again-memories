@@ -760,8 +760,12 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
             }
             if (!valid) return false;
 
-            final profileIndex = ref.read(selectedProfileIndexProvider);
-            final profile = (ref.read(profilesProvider) ?? [])[profileIndex];
+            final profiles = ref.read(profilesProvider) ?? [];
+            if (profiles.isEmpty) return false;
+            final profileIndex = ref
+                .read(selectedProfileIndexProvider)
+                .clamp(0, profiles.length - 1);
+            final profile = profiles[profileIndex];
 
             final docsDir = await getApplicationDocumentsDirectory();
             final saved = <Attachment>[];
