@@ -29,14 +29,25 @@ class _StoryDetailScreenState extends State<StoryDetailScreen> {
   }
 
   Future<void> _toggleLike() async {
-    await FirestoreService.toggleLike(_post.id, widget.currentUid);
-    final wasLiked = _post.isLikedBy(widget.currentUid);
-    setState(() {
-      final updated = wasLiked
-          ? (List<String>.from(_post.likedByUids)..remove(widget.currentUid))
-          : (List<String>.from(_post.likedByUids)..add(widget.currentUid));
-      _post = _post.copyWith(likedByUids: updated);
-    });
+    try {
+      await FirestoreService.toggleLike(_post.id, widget.currentUid);
+      if (!mounted) return;
+      final wasLiked = _post.isLikedBy(widget.currentUid);
+      setState(() {
+        final updated = wasLiked
+            ? (List<String>.from(_post.likedByUids)..remove(widget.currentUid))
+            : (List<String>.from(_post.likedByUids)..add(widget.currentUid));
+        _post = _post.copyWith(likedByUids: updated);
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Error: $e'),
+          backgroundColor: Colors.red.shade400,
+          behavior: SnackBarBehavior.floating,
+        ));
+      }
+    }
   }
 
   @override

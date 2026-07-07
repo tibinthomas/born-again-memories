@@ -631,6 +631,7 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
 
     // Request notification permissions on first save
     await NotificationService.requestPermissions();
+    if (!mounted) return;
 
     setState(() => _saving = true);
 
