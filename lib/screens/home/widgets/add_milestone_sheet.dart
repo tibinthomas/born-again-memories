@@ -724,6 +724,7 @@ class _TagsSection extends StatelessWidget {
                         const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                     suffixIcon: IconButton(
                       icon: Icon(Icons.add, size: 16, color: pTheme.accent),
+                      tooltip: 'Add tag',
                       onPressed: () => onAdd(tagController.text),
                       padding: EdgeInsets.zero,
                     ),

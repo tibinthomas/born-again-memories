@@ -308,6 +308,7 @@ class _Header extends StatelessWidget {
             showSearch ? Icons.search_off_rounded : Icons.search_rounded,
             color: Colors.white,
           ),
+          tooltip: showSearch ? 'Close search' : 'Search',
           onPressed: onSearchToggle,
         ),
       ],
@@ -683,6 +684,7 @@ class _DocumentCard extends ConsumerWidget {
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
                           visualDensity: VisualDensity.compact,
+                          tooltip: doc.isFavorite ? 'Remove from favorites' : 'Add to favorites',
                           icon: Icon(
                             doc.isFavorite ? Icons.star_rounded : Icons.star_outline_rounded,
                             size: 22,

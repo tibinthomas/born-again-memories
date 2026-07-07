@@ -155,6 +155,7 @@ class _WriteStoryScreenState extends ConsumerState<WriteStoryScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.close_rounded),
+          tooltip: 'Close',
           onPressed: () => Navigator.pop(context),
           color: const Color(0xFF1A1A2E),
         ),

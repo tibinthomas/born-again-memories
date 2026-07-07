@@ -134,6 +134,7 @@ class _SavedLinksScreenState extends ConsumerState<SavedLinksScreen> {
                   _showSearch ? Icons.search_off_rounded : Icons.search_rounded,
                   color: Colors.white,
                 ),
+                tooltip: _showSearch ? 'Close search' : 'Search',
                 onPressed: () {
                   setState(() {
                     _showSearch = !_showSearch;
@@ -1106,6 +1107,7 @@ class _LinkFormSheetState extends ConsumerState<_LinkFormSheet> {
                 IconButton(
                   onPressed: () => Navigator.pop(context),
                   icon: const Icon(Icons.close),
+                  tooltip: 'Close',
                 ),
               ],
             ),
@@ -1163,6 +1165,7 @@ class _LinkFormSheetState extends ConsumerState<_LinkFormSheet> {
                       hintText: 'e.g. inspo',
                       suffixIcon: IconButton(
                         icon: const Icon(Icons.add),
+                        tooltip: 'Add tag',
                         onPressed: _addTag,
                       ),
                     ),

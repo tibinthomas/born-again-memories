@@ -77,6 +77,7 @@ class _GrowthScreenState extends ConsumerState<GrowthScreen>
                   IconButton(
                     onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+                    tooltip: 'Back',
                     color: const Color(0xFF1A1A2E),
                   ),
                   Expanded(

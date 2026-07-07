@@ -412,6 +412,9 @@ class _CrystalCardState extends State<_CrystalCard>
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
                           visualDensity: VisualDensity.compact,
+                          tooltip: milestone.isFavorite
+                              ? 'Remove from favorites'
+                              : 'Add to favorites',
                           icon: Icon(
                             milestone.isFavorite
                                 ? Icons.star_rounded

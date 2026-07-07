@@ -354,6 +354,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                                     suffixIcon: _searchQuery.isNotEmpty
                                         ? IconButton(
                                             icon: const Icon(Icons.close, size: 16),
+                                            tooltip: 'Clear search',
                                             onPressed: () {
                                               _searchController.clear();
                                               setState(() => _searchQuery = '');
