@@ -1002,7 +1002,7 @@ class _EntrySheetState extends ConsumerState<_EntrySheet> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       padding: EdgeInsets.fromLTRB(
-          20, 16, 20, MediaQuery.of(context).viewInsets.bottom + 32),
+          20, 16, 20, MediaQuery.viewInsetsOf(context).bottom + 32),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,

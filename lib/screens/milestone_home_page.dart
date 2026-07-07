@@ -180,7 +180,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                   (!kIsWeb && File(backgroundPath!).existsSync()));
 
           return Container(
-            height: MediaQuery.of(context).size.height * 0.85,
+            height: MediaQuery.sizeOf(context).height * 0.85,
             decoration: BoxDecoration(
               color: theme.scaffoldBackgroundColor,
               borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
@@ -1674,7 +1674,7 @@ class _BubbleState extends State<_Bubble> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final screen = MediaQuery.of(context).size;
+    final screen = MediaQuery.sizeOf(context);
     // Unique phase based on bubble size so each follows a different path
     final phase = (widget.size * 37 % 100) / 100.0 * 2 * pi;
 

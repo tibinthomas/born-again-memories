@@ -2190,7 +2190,7 @@ class _BackupPermissionsSheetState extends State<_BackupPermissionsSheet> {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.fromLTRB(
-          24, 16, 24, MediaQuery.of(context).viewInsets.bottom + 32),
+          24, 16, 24, MediaQuery.viewInsetsOf(context).bottom + 32),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,

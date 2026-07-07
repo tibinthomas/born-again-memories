@@ -29,12 +29,17 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>?> {
   }
 
   Future<void> _load() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user?.email != null) {
-      FirestoreService.saveUserMeta(uid, user!.email!, user.displayName);
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user?.email != null) {
+        FirestoreService.saveUserMeta(uid, user!.email!, user.displayName);
+      }
+      final profiles = await FirestoreService.loadProfiles(uid);
+      if (mounted) state = profiles;
+    } catch (e) {
+      debugPrint('ProfilesNotifier._load error: $e');
+      if (mounted) state = <KidProfile>[];
     }
-    final profiles = await FirestoreService.loadProfiles(uid);
-    if (mounted) state = profiles;
   }
 
   Future<void> addProfile(

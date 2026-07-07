@@ -497,7 +497,7 @@ class _AnswerInputBar extends StatelessWidget {
         ],
       ),
       padding: EdgeInsets.fromLTRB(
-          16, 10, 12, MediaQuery.of(context).viewInsets.bottom + 12),
+          16, 10, 12, MediaQuery.viewInsetsOf(context).bottom + 12),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -631,7 +631,7 @@ class _EditQuestionSheetState extends State<_EditQuestionSheet> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.fromLTRB(
-          20, 16, 20, MediaQuery.of(context).viewInsets.bottom + 24),
+          20, 16, 20, MediaQuery.viewInsetsOf(context).bottom + 24),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,

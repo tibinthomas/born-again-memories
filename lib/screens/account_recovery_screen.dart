@@ -38,8 +38,12 @@ class _AccountRecoveryScreenState extends ConsumerState<AccountRecoveryScreen> {
           (_) => false,
         );
       }
-    } catch (_) {
-      if (mounted) setState(() => _recovering = false);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _recovering = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Recovery failed. Please try again.')),
+      );
     }
   }
 
@@ -76,8 +80,19 @@ class _AccountRecoveryScreenState extends ConsumerState<AccountRecoveryScreen> {
           (_) => false,
         );
       }
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      setState(() => _deleting = false);
+      final msg = e.code == 'requires-recent-login'
+          ? 'Please sign out and sign back in, then try again.'
+          : (e.message ?? 'Deletion failed. Please try again.');
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
     } catch (_) {
-      if (mounted) setState(() => _deleting = false);
+      if (!mounted) return;
+      setState(() => _deleting = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Deletion failed. Please try again.')),
+      );
     }
   }
 

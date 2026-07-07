@@ -218,8 +218,8 @@ class _MilestoneDetailPageState extends State<MilestoneDetailPage>
                 if (_currentIndex > 0)
                   Positioned(
                     left: 8,
-                    top: MediaQuery.of(context).padding.top + 60,
-                    bottom: MediaQuery.of(context).size.height * 0.48,
+                    top: MediaQuery.paddingOf(context).top + 60,
+                    bottom: MediaQuery.sizeOf(context).height * 0.48,
                     child: Center(
                       child: _NavArrow(
                         icon: Icons.chevron_left_rounded,
@@ -230,8 +230,8 @@ class _MilestoneDetailPageState extends State<MilestoneDetailPage>
                 if (_currentIndex < widget.milestones.length - 1)
                   Positioned(
                     right: 8,
-                    top: MediaQuery.of(context).padding.top + 60,
-                    bottom: MediaQuery.of(context).size.height * 0.48,
+                    top: MediaQuery.paddingOf(context).top + 60,
+                    bottom: MediaQuery.sizeOf(context).height * 0.48,
                     child: Center(
                       child: _NavArrow(
                         icon: Icons.chevron_right_rounded,
@@ -243,7 +243,7 @@ class _MilestoneDetailPageState extends State<MilestoneDetailPage>
                 Positioned(
                   left: 0,
                   right: 0,
-                  bottom: MediaQuery.of(context).size.height * 0.47 + 8,
+                  bottom: MediaQuery.sizeOf(context).height * 0.47 + 8,
                   child: Center(
                     child: _PageDots(
                       count: widget.milestones.length,
@@ -388,7 +388,7 @@ class _FloatingTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      top: MediaQuery.of(context).padding.top + 58,
+      top: MediaQuery.paddingOf(context).top + 58,
       left: 24,
       right: 24,
       child: Column(
@@ -971,7 +971,7 @@ class _PhotoDialogState extends State<_PhotoDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
+    final size = MediaQuery.sizeOf(context);
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: EdgeInsets.zero,
@@ -1006,7 +1006,7 @@ class _PhotoDialogState extends State<_PhotoDialog> {
 
             // Top bar
             Positioned(
-              top: MediaQuery.of(context).padding.top + 8,
+              top: MediaQuery.paddingOf(context).top + 8,
               left: 12,
               right: 12,
               child: Row(
@@ -1227,7 +1227,7 @@ class _VideoDialogState extends State<_VideoDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
+    final size = MediaQuery.sizeOf(context);
     return Dialog(
       backgroundColor: Colors.black,
       insetPadding: EdgeInsets.zero,
@@ -1270,7 +1270,7 @@ class _VideoDialogState extends State<_VideoDialog> {
 
                     // Close button
                     Positioned(
-                      top: MediaQuery.of(context).padding.top + 8,
+                      top: MediaQuery.paddingOf(context).top + 8,
                       left: 12,
                       child: _GlassButton(
                           icon: Icons.close,
@@ -1307,7 +1307,7 @@ class _VideoDialogState extends State<_VideoDialog> {
                     // Progress bar
                     if (_ctrl != null)
                       Positioned(
-                        bottom: MediaQuery.of(context).padding.bottom + 16,
+                        bottom: MediaQuery.paddingOf(context).bottom + 16,
                         left: 16,
                         right: 16,
                         child: Column(

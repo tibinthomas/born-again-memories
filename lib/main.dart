@@ -170,7 +170,12 @@ class _AuthedRootState extends ConsumerState<_AuthedRoot> {
     final deletedAt =
         DateTime.fromMillisecondsSinceEpoch((deletedAtMs as num).toInt());
     if (DateTime.now().difference(deletedAt).inDays >= 28) {
-      await ref.read(authServiceProvider).permanentlyDelete();
+      try {
+        await ref.read(authServiceProvider).permanentlyDelete();
+      } catch (_) {
+        // Deletion failed (e.g. requires-recent-login). Fall through so the
+        // recovery screen is shown — the user can sign in and retry from there.
+      }
       if (mounted) setState(() => _checked = true);
       return;
     }
@@ -241,7 +246,7 @@ class _AppLoadingScreenState extends State<_AppLoadingScreen>
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
+    final size = MediaQuery.sizeOf(context);
 
     return Scaffold(
       body: Container(

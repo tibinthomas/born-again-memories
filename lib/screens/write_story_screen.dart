@@ -200,7 +200,7 @@ class _WriteStoryScreenState extends ConsumerState<WriteStoryScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(
-              16, 8, 16, MediaQuery.of(context).viewInsets.bottom + 32),
+              16, 8, 16, MediaQuery.viewInsetsOf(context).bottom + 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

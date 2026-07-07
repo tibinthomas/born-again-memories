@@ -206,9 +206,7 @@ class AuthService {
 
   // Called after the 28-day window expires — permanently removes the Firebase Auth account.
   Future<void> permanentlyDelete() async {
-    try {
-      await _auth.currentUser?.delete();
-    } catch (_) {}
+    await _auth.currentUser?.delete(); // propagates FirebaseAuthException to callers
     try {
       await googleSignIn.signOut();
     } catch (_) {}

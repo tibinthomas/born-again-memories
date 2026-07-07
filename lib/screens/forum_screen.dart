@@ -429,7 +429,7 @@ class _AskQuestionSheetState extends State<_AskQuestionSheet> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.fromLTRB(
-          20, 16, 20, MediaQuery.of(context).viewInsets.bottom + 24),
+          20, 16, 20, MediaQuery.viewInsetsOf(context).bottom + 24),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,

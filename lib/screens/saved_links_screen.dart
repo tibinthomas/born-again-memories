@@ -1074,13 +1074,13 @@ class _LinkFormSheetState extends ConsumerState<_LinkFormSheet> {
         _previewData != null;
 
     return Container(
-      height: MediaQuery.of(context).size.height * 0.78,
+      height: MediaQuery.sizeOf(context).height * 0.78,
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Padding(
-        padding: EdgeInsets.only(left: 20, right: 20, top: 16, bottom: MediaQuery.of(context).viewInsets.bottom + 16),
+        padding: EdgeInsets.only(left: 20, right: 20, top: 16, bottom: MediaQuery.viewInsetsOf(context).bottom + 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

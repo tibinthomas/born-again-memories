@@ -816,7 +816,7 @@ class _PlanSheetState extends ConsumerState<_PlanSheet> {
                 16,
                 8,
                 16,
-                MediaQuery.of(context).viewInsets.bottom + 24,
+                MediaQuery.viewInsetsOf(context).bottom + 24,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

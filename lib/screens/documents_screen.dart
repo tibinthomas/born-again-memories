@@ -925,7 +925,7 @@ class _DocumentSheetState extends ConsumerState<_DocumentSheet> {
         left: 20,
         right: 20,
         top: 8,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+        bottom: MediaQuery.viewInsetsOf(context).bottom + 24,
       ),
       child: SingleChildScrollView(
         child: Column(
