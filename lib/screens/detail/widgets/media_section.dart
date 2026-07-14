@@ -223,7 +223,10 @@ class PhotoThumbnail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!attachment.isViewable) {
+    if (!attachment.isViewable &&
+        attachment.localPath.isEmpty &&
+        attachment.driveFileId == null &&
+        attachment.iCloudFileId == null) {
       return Container(
         width: 140,
         height: 200,
@@ -363,7 +366,10 @@ class _PhotoDialogState extends State<PhotoDialog> {
               onPageChanged: (i) => setState(() => _index = i),
               itemBuilder: (_, i) {
                 final a = widget.photos[i];
-                if (!a.isViewable) {
+                if (!a.isViewable &&
+                    a.localPath.isEmpty &&
+                    a.driveFileId == null &&
+                    a.iCloudFileId == null) {
                   return const Center(
                       child: Icon(Icons.broken_image, color: Colors.white54));
                 }

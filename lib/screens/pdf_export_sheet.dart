@@ -4,6 +4,7 @@ import 'package:printing/printing.dart';
 
 import '../models/kid_profile.dart';
 import '../models/milestone.dart';
+import '../providers/auth_provider.dart';
 import '../providers/profiles_provider.dart';
 import '../services/pdf_export_service.dart';
 import '../utils/profile_theme.dart';
@@ -79,6 +80,7 @@ class _PdfExportSheetState extends ConsumerState<PdfExportSheet> {
         profile: _profile,
         milestones: milestones,
         includePhotos: _includePhotos,
+        googleSignIn: ref.read(authServiceProvider).googleSignIn,
       );
       if (!mounted) return;
       final name = '${_profile.name.replaceAll(' ', '_')}_MemoryBook.pdf';

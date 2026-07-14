@@ -16,8 +16,8 @@ class KidProfile {
   final DateTime? timeOfBirth;
   final Color color;
   final Gender gender;
-  final String? avatarImagePath; // device-local only, not synced to cloud
-  final String? backgroundImagePath; // device-local only, not synced to cloud
+  final String? avatarImagePath;
+  final String? backgroundImagePath;
   final String? themePresetId;
   final List<Milestone> milestones;
   final List<Reminder> reminders;
@@ -128,8 +128,8 @@ class KidProfile {
         devMilestoneLinks: devMilestoneLinks ?? this.devMilestoneLinks,
       );
 
-  // milestones + reminders stored in subcollections; backgroundImagePath is device-local.
-  // When running on web the paths are Drive thumbnail URLs — those are synced to Firestore.
+  // Milestones and reminders are stored in subcollections. Web images use
+  // Drive URLs; native images keep their app-storage path for the same device.
   Map<String, dynamic> toJson() => {
         'id': id,
         'name': name,
@@ -141,8 +141,12 @@ class KidProfile {
         if (themePresetId != null) 'themePresetId': themePresetId,
         if (avatarImagePath != null && avatarImagePath!.startsWith('http'))
           'avatarUrl': avatarImagePath,
+        if (avatarImagePath != null && !avatarImagePath!.startsWith('http'))
+          'avatarLocalPath': avatarImagePath,
         if (backgroundImagePath != null && backgroundImagePath!.startsWith('http'))
           'backgroundUrl': backgroundImagePath,
+        if (backgroundImagePath != null && !backgroundImagePath!.startsWith('http'))
+          'backgroundLocalPath': backgroundImagePath,
         if (checkedMilestones.isNotEmpty)
           'checkedMilestones': checkedMilestones.toList(),
         if (devMilestoneLinks.isNotEmpty)
@@ -161,8 +165,10 @@ class KidProfile {
           orElse: () => Gender.neutral,
         ),
         themePresetId: j['themePresetId'] as String?,
-        avatarImagePath: j['avatarUrl'] as String?,
-        backgroundImagePath: j['backgroundUrl'] as String?,
+        avatarImagePath:
+            (j['avatarUrl'] ?? j['avatarLocalPath']) as String?,
+        backgroundImagePath:
+            (j['backgroundUrl'] ?? j['backgroundLocalPath']) as String?,
         checkedMilestones: (j['checkedMilestones'] as List<dynamic>?)
                 ?.map((e) => e as String)
                 .toSet() ??

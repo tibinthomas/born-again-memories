@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:path_provider/path_provider.dart';
 
 class LocalStorageService {
@@ -10,6 +11,28 @@ class LocalStorageService {
     final dest = File('${attachmentsDir.path}/$filename');
     await File(sourcePath).copy(dest.path);
     return dest.path;
+  }
+
+  static Future<String> saveAttachmentBytes(
+    Uint8List bytes,
+    String filename,
+  ) async {
+    final dir = await getApplicationDocumentsDirectory();
+    final attachmentsDir = Directory('${dir.path}/attachments');
+    await attachmentsDir.create(recursive: true);
+    final dest = File('${attachmentsDir.path}/$filename');
+    await dest.writeAsBytes(bytes, flush: true);
+    return dest.path;
+  }
+
+  static Future<String?> resolveAttachmentPath(String storedPath) async {
+    if (storedPath.isEmpty || storedPath.startsWith('http')) return null;
+    if (await File(storedPath).exists()) return storedPath;
+    final filename = storedPath.replaceAll('\\', '/').split('/').last;
+    if (filename.isEmpty) return null;
+    final dir = await getApplicationDocumentsDirectory();
+    final relocated = File('${dir.path}/attachments/$filename');
+    return await relocated.exists() ? relocated.path : null;
   }
 
   static Future<String> copyDocumentToStorage(
@@ -31,6 +54,40 @@ class LocalStorageService {
     final dest = File('${avatarsDir.path}/$filename.$ext');
     await File(sourcePath).copy(dest.path);
     return dest.path;
+  }
+
+  /// Resolves a persisted avatar after an app-container path change and also
+  /// recovers avatars saved before their local path was serialized.
+  static Future<String?> resolveAvatarPath(
+    String profileId,
+    String? storedPath,
+  ) async {
+    if (storedPath?.startsWith('http') == true) return storedPath;
+    if (storedPath != null && await File(storedPath).exists()) return storedPath;
+
+    final dir = await getApplicationDocumentsDirectory();
+    final avatarsDir = Directory('${dir.path}/avatars');
+    if (!await avatarsDir.exists()) return null;
+
+    if (storedPath != null && storedPath.isNotEmpty) {
+      final filename = storedPath.replaceAll('\\', '/').split('/').last;
+      final relocated = File('${avatarsDir.path}/$filename');
+      if (await relocated.exists()) return relocated.path;
+    }
+
+    final candidates = await avatarsDir
+        .list()
+        .where((entity) => entity is File)
+        .cast<File>()
+        .where((file) => file.path
+            .replaceAll('\\', '/')
+            .split('/')
+            .last
+            .startsWith('avatar_${profileId}_'))
+        .toList();
+    if (candidates.isEmpty) return null;
+    candidates.sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
+    return candidates.first.path;
   }
 
   static Future<String> copyBackgroundToStorage(

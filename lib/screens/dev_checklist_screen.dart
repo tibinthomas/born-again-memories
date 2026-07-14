@@ -38,6 +38,10 @@ class _DevChecklistScreenState extends ConsumerState<DevChecklistScreen> {
 
   void _handleTap(DevMilestone m) {
     final profile = (ref.read(profilesProvider) ?? [])[widget.profileIndex];
+    final ageMonths =
+        DateTime.now().difference(profile.dateOfBirth).inDays ~/ 30;
+    if (ageMonths < m.ageMonths) return;
+
     final isChecked = profile.checkedMilestones.contains(m.id);
     final linkedId = profile.devMilestoneLinks[m.id];
 
@@ -587,7 +591,7 @@ class _DomainSection extends StatelessWidget {
           final hasLink = linkedIds.contains(m.id);
 
           return InkWell(
-            onTap: () => onTap(m),
+            onTap: isFuture ? null : () => onTap(m),
             child: Padding(
               padding: const EdgeInsets.fromLTRB(14, 9, 12, 9),
               child: Row(
@@ -596,7 +600,7 @@ class _DomainSection extends StatelessWidget {
                   // Checkbox
                   GestureDetector(
                     behavior: HitTestBehavior.opaque,
-                    onTap: () => onTap(m),
+                    onTap: isFuture ? null : () => onTap(m),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       width: 24,
@@ -645,7 +649,7 @@ class _DomainSection extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.only(left: 6),
                       child: GestureDetector(
-                        onTap: () => onTap(m),
+                        onTap: isFuture ? null : () => onTap(m),
                         child: Container(
                           padding: const EdgeInsets.all(5),
                           decoration: BoxDecoration(
@@ -661,7 +665,7 @@ class _DomainSection extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.only(left: 6),
                       child: GestureDetector(
-                        onTap: () => onAddMemory(m),
+                        onTap: isFuture ? null : () => onAddMemory(m),
                         child: Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 7, vertical: 4),

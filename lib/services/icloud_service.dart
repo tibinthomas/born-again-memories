@@ -1,4 +1,9 @@
+import 'dart:async';
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:icloud_storage/icloud_storage.dart';
+import 'package:path_provider/path_provider.dart';
 import '../models/attachment.dart';
 
 class ICloudNotAvailableException implements Exception {}
@@ -70,6 +75,47 @@ class ICloudService {
         relativePath: relativePath,
       );
     } catch (_) {}
+  }
+
+  /// Downloads a backed-up attachment to a temporary file and returns it.
+  static Future<Uint8List> downloadFileBytes(String relativePath) async {
+    final tempDirectory = await getTemporaryDirectory();
+    final destination = File(
+      '${tempDirectory.path}/icloud_${DateTime.now().microsecondsSinceEpoch}',
+    );
+    final completed = Completer<void>();
+    StreamSubscription<double>? progressSubscription;
+    var progressAttached = false;
+
+    try {
+      await ICloudStorage.download(
+        containerId: _containerId,
+        relativePath: relativePath,
+        destinationFilePath: destination.path,
+        onProgress: (stream) {
+          progressAttached = true;
+          progressSubscription = stream.listen(
+            (_) {},
+            onDone: () {
+              if (!completed.isCompleted) completed.complete();
+            },
+            onError: (Object error, StackTrace stackTrace) {
+              if (!completed.isCompleted) {
+                completed.completeError(error, stackTrace);
+              }
+            },
+            cancelOnError: true,
+          );
+        },
+      );
+      if (progressAttached) {
+        await completed.future.timeout(const Duration(seconds: 30));
+      }
+      return await destination.readAsBytes();
+    } finally {
+      await progressSubscription?.cancel();
+      if (await destination.exists()) await destination.delete();
+    }
   }
 
   static Future<void> deleteAllBackups() async {

@@ -11,7 +11,7 @@ class AttachmentPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     Widget content;
 
-    if (attachment.webBytes != null || (attachment.type == AttachmentType.image && attachment.localExists)) {
+    if (attachment.type == AttachmentType.image) {
       content = ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: attachmentImageWidget(attachment, width: 90, height: 90),

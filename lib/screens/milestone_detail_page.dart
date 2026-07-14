@@ -300,7 +300,6 @@ class _MilestoneView extends StatelessWidget {
     final pTheme = ProfileTheme.forProfile(profile);
     final firstPhoto = milestone.attachments
         .where((a) => a.type == AttachmentType.image)
-        .where((a) => a.isViewable)
         .firstOrNull;
 
     return Stack(
@@ -844,7 +843,10 @@ class _PhotoThumbnail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!attachment.isViewable) {
+    if (!attachment.isViewable &&
+        attachment.localPath.isEmpty &&
+        attachment.driveFileId == null &&
+        attachment.iCloudFileId == null) {
       return Container(
         width: 140,
         height: 200,
@@ -984,7 +986,10 @@ class _PhotoDialogState extends State<_PhotoDialog> {
               onPageChanged: (i) => setState(() => _index = i),
               itemBuilder: (_, i) {
                 final a = widget.photos[i];
-                if (!a.isViewable) {
+                if (!a.isViewable &&
+                    a.localPath.isEmpty &&
+                    a.driveFileId == null &&
+                    a.iCloudFileId == null) {
                   return const Center(
                       child: Icon(Icons.broken_image, color: Colors.white54));
                 }

@@ -118,6 +118,30 @@ class DriveService {
     } catch (_) {}
   }
 
+  /// Downloads an app-owned backup without changing its sharing permissions.
+  static Future<Uint8List> downloadFileBytes({
+    required GoogleSignIn googleSignIn,
+    required String driveFileId,
+  }) async {
+    try {
+      final api = await _api(googleSignIn);
+      final media = await api.files.get(
+        driveFileId,
+        downloadOptions: drive.DownloadOptions.fullMedia,
+      ) as drive.Media;
+      final bytes = BytesBuilder(copy: false);
+      await for (final chunk in media.stream) {
+        bytes.add(chunk);
+      }
+      return bytes.takeBytes();
+    } on DriveNotAuthorizedException {
+      rethrow;
+    } catch (e) {
+      if (_isDriveAuthError(e)) throw DriveNotAuthorizedException();
+      rethrow;
+    }
+  }
+
   static Future<DriveQuota?> getQuota(GoogleSignIn googleSignIn) async {
     try {
       final api = await _api(googleSignIn);

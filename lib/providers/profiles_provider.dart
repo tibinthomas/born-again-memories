@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/kid_profile.dart';
 import '../services/firestore_service.dart';
+import '../services/local_storage_service.dart';
 import 'auth_provider.dart';
 import 'profile_ops/attachments_ops.dart';
 import 'profile_ops/dev_checklist_ops.dart';
@@ -48,7 +49,22 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>?>
       if (user?.email != null) {
         FirestoreService.saveUserMeta(uid, user!.email!, user.displayName);
       }
-      final profiles = await FirestoreService.loadProfiles(uid);
+      final loadedProfiles = await FirestoreService.loadProfiles(uid);
+      final profiles = <KidProfile>[];
+      for (final profile in loadedProfiles) {
+        final avatarPath = await LocalStorageService.resolveAvatarPath(
+          profile.id,
+          profile.avatarImagePath,
+        );
+        profiles.add(
+          avatarPath == profile.avatarImagePath
+              ? profile
+              : profile.copyWith(
+                  avatarImagePath: avatarPath,
+                  clearAvatar: avatarPath == null,
+                ),
+        );
+      }
       if (mounted) state = profiles;
     } catch (e) {
       debugPrint('ProfilesNotifier._load error: $e');

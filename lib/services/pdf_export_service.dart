@@ -1,14 +1,19 @@
 import 'dart:io';
+import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show Color;
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import '../models/attachment.dart';
 import '../models/kid_profile.dart';
 import '../models/milestone.dart';
+import '../services/drive_service.dart';
+import '../services/icloud_service.dart';
 import '../utils/profile_theme.dart';
 
 class PdfExportService {
@@ -17,6 +22,7 @@ class PdfExportService {
     required KidProfile profile,
     required List<Milestone> milestones,
     required bool includePhotos,
+    GoogleSignIn? googleSignIn,
   }) async {
     final theme = ProfileTheme.forProfile(profile);
     final accentPdf = _toPdf(theme.accent);
@@ -31,10 +37,16 @@ class PdfExportService {
     final Map<String, Uint8List> imageCache = {};
     if (includePhotos) {
       for (final m in milestones) {
-        final first = _firstImage(m);
-        if (first == null) continue;
-        final bytes = await _loadImageBytes(first);
-        if (bytes != null) imageCache[first.id] = bytes;
+        for (final image in _images(m)) {
+          final bytes = await _loadImageBytes(
+            image,
+            googleSignIn: googleSignIn,
+          );
+          if (bytes != null) {
+            imageCache[m.id] = bytes;
+            break;
+          }
+        }
       }
     }
 
@@ -56,7 +68,7 @@ class PdfExportService {
             milestone: m,
             profile: profile,
             accentPdf: accentPdf,
-            imageBytes: imageCache[_firstImage(m)?.id],
+            imageBytes: imageCache[m.id],
           ),
       ],
     ));
@@ -285,9 +297,11 @@ class PdfExportService {
                         verticalRadius: 6,
                         child: pw.Image(
                           pw.MemoryImage(imageBytes),
-                          width: double.infinity,
-                          height: 160,
-                          fit: pw.BoxFit.cover,
+                          // pdf cannot serialize an infinite numeric width.
+                          // Keep the photo within the A4 card's content area.
+                          width: 460,
+                          height: 240,
+                          fit: pw.BoxFit.contain,
                         ),
                       ),
                     ],
@@ -327,25 +341,74 @@ class PdfExportService {
 
   // ── Helpers ───────────────────────────────────────────────────────────────
 
-  static Attachment? _firstImage(Milestone m) =>
-      m.attachments.where((a) => a.type == AttachmentType.image).firstOrNull;
+  static Iterable<Attachment> _images(Milestone m) =>
+      m.attachments.where((a) => a.type == AttachmentType.image);
 
-  static Future<Uint8List?> _loadImageBytes(Attachment a) async {
+  static Future<Uint8List?> _loadImageBytes(
+    Attachment a, {
+    GoogleSignIn? googleSignIn,
+  }) async {
     try {
+      Uint8List? bytes;
       // In-memory web bytes (short-lived but available during the session)
-      if (a.webBytes != null) return a.webBytes;
+      if (a.webBytes != null) bytes = a.webBytes;
       // Local file (native)
-      if (!kIsWeb && a.localPath.isNotEmpty) {
+      if (bytes == null &&
+          !kIsWeb &&
+          a.localPath.isNotEmpty &&
+          !a.localPath.startsWith('http')) {
         final f = File(a.localPath);
-        if (await f.exists()) return await f.readAsBytes();
+        if (await f.exists()) {
+          bytes = await f.readAsBytes();
+        } else {
+          final normalizedPath = a.localPath.replaceAll('\\', '/');
+          final filename = normalizedPath.split('/').last;
+          if (filename.isNotEmpty &&
+              normalizedPath.contains('/Documents/attachments/')) {
+            final documents = await getApplicationDocumentsDirectory();
+            final relocated = File('${documents.path}/attachments/$filename');
+            if (await relocated.exists()) bytes = await relocated.readAsBytes();
+          }
+        }
       }
       // Drive shareable URL (stored as localPath on web after upload)
-      if (a.localPath.startsWith('http')) {
+      if (bytes == null && a.localPath.startsWith('http')) {
         final resp = await http.get(Uri.parse(a.localPath))
             .timeout(const Duration(seconds: 10));
-        if (resp.statusCode == 200) return resp.bodyBytes;
+        if (resp.statusCode == 200) bytes = resp.bodyBytes;
       }
-    } catch (_) {}
+      if (bytes == null && googleSignIn != null && a.driveFileId != null) {
+        bytes = await DriveService.downloadFileBytes(
+          googleSignIn: googleSignIn,
+          driveFileId: a.driveFileId!,
+        );
+      }
+      if (bytes == null && !kIsWeb && a.iCloudFileId != null) {
+        bytes = await ICloudService.downloadFileBytes(a.iCloudFileId!);
+      }
+      if (bytes == null) return null;
+
+      final codec = await ui.instantiateImageCodec(
+        bytes,
+        targetWidth: 1600,
+        allowUpscaling: false,
+      );
+      try {
+        final frame = await codec.getNextFrame();
+        try {
+          final png = await frame.image.toByteData(
+            format: ui.ImageByteFormat.png,
+          );
+          return png?.buffer.asUint8List();
+        } finally {
+          frame.image.dispose();
+        }
+      } finally {
+        codec.dispose();
+      }
+    } catch (e) {
+      debugPrint('[PdfExport] Could not load photo "${a.name}": $e');
+    }
     return null;
   }
 
