@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/memory_sparks.dart';
 import '../models/custom_spark.dart';
-import '../models/milestone.dart';
 import '../providers/app_settings_provider.dart';
 import '../providers/profiles_provider.dart';
 import '../utils/profile_theme.dart';
@@ -242,18 +241,6 @@ class _SparksScreenState extends ConsumerState<SparksScreen> {
     required String sparkTitle,
     required String prefillTitle,
   }) {
-    final profiles = ref.read(profilesProvider) ?? [];
-    final profile = profiles[widget.profileIndex];
-    final count = profile.milestones.length;
-    final prefilled = Milestone(
-      id: DateTime.now().microsecondsSinceEpoch.toString(),
-      title: prefillTitle,
-      description: '',
-      date: DateTime.now(),
-      color: Colors.primaries[count % Colors.primaries.length].shade300,
-      sparkId: sparkId,
-      sparkTitle: sparkTitle,
-    );
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -261,7 +248,12 @@ class _SparksScreenState extends ConsumerState<SparksScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      builder: (_) => AddMilestoneSheet(initialMilestone: prefilled),
+      builder: (_) => AddMilestoneSheet(
+        profileIndex: widget.profileIndex,
+        prefillTitle: prefillTitle,
+        sparkId: sparkId,
+        sparkTitle: sparkTitle,
+      ),
     );
   }
 

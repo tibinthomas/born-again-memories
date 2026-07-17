@@ -306,10 +306,15 @@ class _MilestoneView extends StatelessWidget {
       fit: StackFit.expand,
       children: [
         // Background
-        _Background(bgAttachment: firstPhoto, gradient: pTheme.headerGradient),
+        _Background(
+          bgAttachment: firstPhoto,
+          gradient: pTheme.headerGradient,
+          showSharpImage: isSlideshow,
+        ),
 
         // Animated bubble layer (sits above bg, below content)
-        if (animationsEnabled) _BubbleLayer(pTheme: pTheme, seed: milestone.id),
+        if (animationsEnabled && !isSlideshow)
+          _BubbleLayer(pTheme: pTheme, seed: milestone.id),
 
         // Slideshow: just the cinematic overlay with title
         if (isSlideshow)
@@ -333,8 +338,13 @@ class _MilestoneView extends StatelessWidget {
 class _Background extends StatelessWidget {
   final Attachment? bgAttachment;
   final LinearGradient gradient;
+  final bool showSharpImage;
 
-  const _Background({this.bgAttachment, required this.gradient});
+  const _Background({
+    this.bgAttachment,
+    required this.gradient,
+    this.showSharpImage = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -342,13 +352,16 @@ class _Background extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        if (hasImage)
+        if (hasImage && showSharpImage) ...[
+          const ColoredBox(color: Colors.black),
+          attachmentImageWidget(bgAttachment!, fit: BoxFit.contain),
+        ] else if (hasImage)
           attachmentImageWidget(bgAttachment!, fit: BoxFit.cover)
         else
           DecoratedBox(decoration: BoxDecoration(gradient: gradient)),
 
         // Blur + dark overlay
-        if (hasImage)
+        if (hasImage && !showSharpImage)
           BackdropFilter(
             filter: ui.ImageFilter.blur(sigmaX: 22, sigmaY: 22),
             child: const ColoredBox(color: Colors.transparent),
@@ -361,8 +374,12 @@ class _Background extends StatelessWidget {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Colors.black.withAlpha(hasImage ? 80 : 40),
-                Colors.black.withAlpha(hasImage ? 180 : 120),
+                Colors.black.withAlpha(
+                  hasImage ? (showSharpImage ? 25 : 80) : 40,
+                ),
+                Colors.black.withAlpha(
+                  hasImage ? (showSharpImage ? 115 : 180) : 120,
+                ),
               ],
               stops: const [0.0, 1.0],
             ),
@@ -1600,7 +1617,7 @@ class _TitleBubbleLayerState extends State<_TitleBubbleLayer>
         final h = box.maxHeight;
         return AnimatedBuilder(
           animation: _ctrl,
-          builder: (_, __) {
+          builder: (_, _) {
             final t = _ctrl.value * 2 * math.pi;
             double s(double v) => math.sin(v);
             double c(double v) => math.cos(v);

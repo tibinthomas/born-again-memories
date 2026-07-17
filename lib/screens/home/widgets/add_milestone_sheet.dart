@@ -27,7 +27,19 @@ import '../../video_recorder_screen.dart';
 
 class AddMilestoneSheet extends ConsumerStatefulWidget {
   final Milestone? initialMilestone;
-  const AddMilestoneSheet({super.key, this.initialMilestone});
+  final int? profileIndex;
+  final String? prefillTitle;
+  final String? sparkId;
+  final String? sparkTitle;
+
+  const AddMilestoneSheet({
+    super.key,
+    this.initialMilestone,
+    this.profileIndex,
+    this.prefillTitle,
+    this.sparkId,
+    this.sparkTitle,
+  });
 
   @override
   ConsumerState<AddMilestoneSheet> createState() => _AddMilestoneSheetState();
@@ -70,6 +82,9 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
         if (!mounted) return;
         ref.read(addMilestoneFormProvider.notifier).setDate(initial.date);
       });
+    } else if (widget.prefillTitle != null) {
+      _titleController.text = widget.prefillTitle!;
+      _showingTemplates = false;
     }
     if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
       _checkCameras();
@@ -276,8 +291,10 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
 
     final profiles = ref.read(profilesProvider) ?? [];
     if (profiles.isEmpty) return false;
-    final profileIndex =
-        ref.read(selectedProfileIndexProvider).clamp(0, profiles.length - 1);
+    final requestedProfileIndex = widget.profileIndex ??
+        ref.read(selectedProfileIndexProvider) ??
+        0;
+    final profileIndex = requestedProfileIndex.clamp(0, profiles.length - 1);
     final profile = profiles[profileIndex];
     final date = ref.read(addMilestoneFormProvider).date;
 
@@ -331,6 +348,8 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
               color: original.color,
               attachments: saved,
               tags: List.unmodifiable(_tags),
+              sparkId: original.sparkId,
+              sparkTitle: original.sparkTitle,
             ),
           );
     } else {
@@ -345,6 +364,8 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
               color: Colors.primaries[existingCount % Colors.primaries.length].shade300,
               attachments: saved,
               tags: List.unmodifiable(_tags),
+              sparkId: widget.sparkId,
+              sparkTitle: widget.sparkTitle,
             ),
           );
     }
@@ -503,7 +524,9 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final profileIndex = ref.read(selectedProfileIndexProvider);
+    final profileIndex = widget.profileIndex ??
+        ref.read(selectedProfileIndexProvider) ??
+        0;
     final profiles = ref.read(profilesProvider) ?? [];
     final profile = profiles.isNotEmpty
         ? profiles[profileIndex.clamp(0, profiles.length - 1)]
