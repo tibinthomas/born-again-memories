@@ -3,7 +3,16 @@ plugins {
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
-    id("com.google.gms.google-services")
+}
+
+// Firebase is initialized from lib/firebase_options.dart. Apply the native
+// resource generator when the project-specific Android config is available,
+// but do not make local builds fail solely because that uncommitted file is
+// absent.
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
+} else {
+    logger.warn("google-services.json not found; native Google services configuration is disabled")
 }
 
 android {

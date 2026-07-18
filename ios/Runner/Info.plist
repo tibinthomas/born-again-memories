@@ -22,12 +22,38 @@
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.535814593524-2ivnq4cakusq84cd3c65la319getapt1</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
-	<key>LSRequiresIPhoneOS</key>
-	<true/>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>https</string>
+		<string>http</string>
+	</array>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>NSCalendarsUsageDescription</key>
+	<string>Used to add reminders to your calendar so you never miss a milestone.</string>
+	<key>NSCalendarsWriteOnlyAccessUsageDescription</key>
+	<string>Used to add reminders to your calendar so you never miss a milestone.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Used to capture photos and videos for milestones.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Used to record videos for milestones.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Used to pick photos and videos for milestones.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -49,38 +75,12 @@
 			</array>
 		</dict>
 	</dict>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
 		<string>remote-notification</string>
-	</array>
-	<key>UIApplicationSupportsIndirectInputEvents</key>
-	<true/>
-	<key>NSCameraUsageDescription</key>
-	<string>Used to capture photos and videos for milestones.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Used to pick photos and videos for milestones.</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>Used to record videos for milestones.</string>
-	<key>NSCalendarsUsageDescription</key>
-	<string>Used to add reminders to your calendar so you never miss a milestone.</string>
-	<key>NSCalendarsWriteOnlyAccessUsageDescription</key>
-	<string>Used to add reminders to your calendar so you never miss a milestone.</string>
-	<key>LSApplicationQueriesSchemes</key>
-	<array>
-		<string>https</string>
-		<string>http</string>
-	</array>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>com.googleusercontent.apps.535814593524-2ivnq4cakusq84cd3c65la319getapt1</string>
-			</array>
-		</dict>
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
