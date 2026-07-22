@@ -8,6 +8,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/kid_profile.dart';
 import '../models/share_invite.dart';
 import '../providers/app_settings_provider.dart';
+import '../models/feature_visibility.dart';
+import '../providers/feature_visibility_provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/backup_provider.dart';
 import '../providers/profiles_provider.dart';
@@ -38,7 +40,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   ProfileTheme _profileTheme() {
     final profiles = ref.read(profilesProvider) ?? [];
     if (profiles.isEmpty) return ProfileTheme.forGender(Gender.neutral);
-    final idx = ref.read(selectedProfileIndexProvider)
+    final idx = ref
+        .read(selectedProfileIndexProvider)
         .clamp(0, profiles.length - 1);
     return ProfileTheme.forProfile(profiles[idx]);
   }
@@ -50,11 +53,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       type: FileType.image,
       allowMultiple: false,
     );
-    if (result == null || result.files.isEmpty || result.files.first.path == null) return;
-    final stablePath = await LocalStorageService.saveCustomIcon(result.files.first.path!);
-    ref.read(appSettingsProvider.notifier).update(
-      ref.read(appSettingsProvider).copyWith(customIcon: stablePath),
+    if (result == null ||
+        result.files.isEmpty ||
+        result.files.first.path == null)
+      return;
+    final stablePath = await LocalStorageService.saveCustomIcon(
+      result.files.first.path!,
     );
+    ref
+        .read(appSettingsProvider.notifier)
+        .update(ref.read(appSettingsProvider).copyWith(customIcon: stablePath));
   }
 
   void _playTestSound() async {
@@ -88,12 +96,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: [
-            Icon(Icons.swap_horiz_rounded,
-                color: Colors.orange.shade700, size: 22),
+            Icon(
+              Icons.swap_horiz_rounded,
+              color: Colors.orange.shade700,
+              size: 22,
+            ),
             const SizedBox(width: 10),
             const Expanded(
-              child: Text('Different Drive account',
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+              child: Text(
+                'Different Drive account',
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+              ),
             ),
           ],
         ),
@@ -101,13 +114,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Your media is currently backed up to:',
-                style: TextStyle(fontSize: 13, color: Colors.grey.shade600)),
+            Text(
+              'Your media is currently backed up to:',
+              style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+            ),
             const SizedBox(height: 6),
             _DriveEmailChip(email: oldEmail, color: Colors.blue.shade600),
             const SizedBox(height: 14),
-            Text('You selected a different account:',
-                style: TextStyle(fontSize: 13, color: Colors.grey.shade600)),
+            Text(
+              'You selected a different account:',
+              style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+            ),
             const SizedBox(height: 6),
             _DriveEmailChip(email: newEmail, color: Colors.orange.shade700),
             const SizedBox(height: 16),
@@ -121,8 +138,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.warning_amber_rounded,
-                      color: Colors.amber.shade700, size: 15),
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.amber.shade700,
+                    size: 15,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -130,9 +150,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       'Drive. The old backups remain on the previous account '
                       'but will no longer be managed by this app.',
                       style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.amber.shade900,
-                          height: 1.45),
+                        fontSize: 12,
+                        color: Colors.amber.shade900,
+                        height: 1.45,
+                      ),
                     ),
                   ),
                 ],
@@ -152,7 +173,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             style: FilledButton.styleFrom(
               backgroundColor: Colors.orange.shade700,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('Switch & Re-upload'),
@@ -178,6 +200,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final stats = ref.watch(backupStatsProvider);
     final emails = ref.watch(sharedEmailsProvider);
     final profiles = ref.watch(profilesProvider) ?? [];
+    final visibility =
+        ref.watch(featureVisibilityProvider).valueOrNull ??
+        const FeatureVisibility.allVisible();
 
     final pTheme = _profileTheme();
     final accent = pTheme.accent;
@@ -220,7 +245,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 children: [
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      size: 20,
+                    ),
                     tooltip: 'Back',
                     color: const Color(0xFF1A1A2E),
                   ),
@@ -242,100 +270,150 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 48),
                 children: [
                   // Account
-                  _AccountCard(accent: accent, secondary: secondary,
+                  if (visibility.isEnabled(AppModule.accountsAndPrivacy)) ...[
+                    _AccountCard(
+                      accent: accent,
+                      secondary: secondary,
                       onSignOut: () => _confirmSignOut(accent),
-                  ),
-                  const SizedBox(height: 22),
+                    ),
+                    const SizedBox(height: 22),
+                  ],
 
                   // Share Memories
-                  _sectionLabel('Share Memories',
-                      description: 'Invite family to view and add to your baby\'s journey.'),
-                  _ShareCard(
-                    accent: accent,
-                    invites: emails,
-                    onAdd: () => _showAddEmailDialog(accent),
-                    onRemove: (e) => _confirmRemoveEmail(accent, e),
-                    onResend: (e) => ref.read(sharedEmailsProvider.notifier).resend(e),
-                  ),
-                  const SizedBox(height: 22),
+                  if (visibility.isEnabled(AppModule.familySharing)) ...[
+                    _sectionLabel(
+                      'Share Memories',
+                      description:
+                          'Invite family to view and add to your baby\'s journey.',
+                    ),
+                    _ShareCard(
+                      accent: accent,
+                      invites: emails,
+                      onAdd: () => _showAddEmailDialog(accent),
+                      onRemove: (e) => _confirmRemoveEmail(accent, e),
+                      onResend: (e) =>
+                          ref.read(sharedEmailsProvider.notifier).resend(e),
+                    ),
+                    const SizedBox(height: 22),
+                  ],
 
                   // Backup
-                  _sectionLabel('Backup',
-                      description: 'Keep your memories safe with automatic cloud backup.'),
-                  _BackupCard(
-                    accent: accent,
-                    sync: sync,
-                    stats: stats,
-                    isAppleUser: ref.read(authServiceProvider).isAppleUser,
-                    onGrantAndSync: () => ref.read(backupSyncProvider.notifier).grantAndSync(),
-                    onSyncNow: () => ref.read(backupSyncProvider.notifier).syncNow(),
-                  ),
-                  const SizedBox(height: 22),
+                  if (visibility.isEnabled(AppModule.backupAndSync)) ...[
+                    _sectionLabel(
+                      'Backup',
+                      description:
+                          'Keep your memories safe with automatic cloud backup.',
+                    ),
+                    _BackupCard(
+                      accent: accent,
+                      sync: sync,
+                      stats: stats,
+                      isAppleUser: ref.read(authServiceProvider).isAppleUser,
+                      onGrantAndSync: () =>
+                          ref.read(backupSyncProvider.notifier).grantAndSync(),
+                      onSyncNow: () =>
+                          ref.read(backupSyncProvider.notifier).syncNow(),
+                    ),
+                    const SizedBox(height: 22),
+                  ],
 
                   // Preferences
-                  _sectionLabel('Preferences',
-                      description: 'Customise sound, haptics, animations and app theme.'),
-                  _PreferencesCard(
-                    accent: accent,
-                    settings: settings,
-                    testingSound: _testingSound,
-                    onSoundChanged: (v) => ref.read(appSettingsProvider.notifier)
-                        .update(settings.copyWith(soundEnabled: v)),
-                    onVolumeChanged: (v) => ref.read(appSettingsProvider.notifier)
-                        .update(settings.copyWith(soundVolume: v)),
-                    onHapticChanged: (v) => ref.read(appSettingsProvider.notifier)
-                        .update(settings.copyWith(hapticEnabled: v)),
-                    onAnimationsChanged: (v) => ref.read(appSettingsProvider.notifier)
-                        .update(settings.copyWith(animationsEnabled: v)),
-                    onTestSound: _playTestSound,
-                  ),
-                  const SizedBox(height: 22),
+                  if (visibility.isEnabled(
+                    AppModule.personalizationAndAccessibility,
+                  )) ...[
+                    _sectionLabel(
+                      'Preferences',
+                      description:
+                          'Customise sound, haptics, animations and app theme.',
+                    ),
+                    _PreferencesCard(
+                      accent: accent,
+                      settings: settings,
+                      testingSound: _testingSound,
+                      onSoundChanged: (v) => ref
+                          .read(appSettingsProvider.notifier)
+                          .update(settings.copyWith(soundEnabled: v)),
+                      onVolumeChanged: (v) => ref
+                          .read(appSettingsProvider.notifier)
+                          .update(settings.copyWith(soundVolume: v)),
+                      onHapticChanged: (v) => ref
+                          .read(appSettingsProvider.notifier)
+                          .update(settings.copyWith(hapticEnabled: v)),
+                      onAnimationsChanged: (v) => ref
+                          .read(appSettingsProvider.notifier)
+                          .update(settings.copyWith(animationsEnabled: v)),
+                      onTestSound: _playTestSound,
+                    ),
+                    const SizedBox(height: 22),
+                  ],
 
                   // Features
-                  _sectionLabel('Features',
-                      description: 'Show, hide and drag to reorder sections on the home screen.'),
+                  _sectionLabel(
+                    'Features',
+                    description:
+                        'Show, hide and drag to reorder sections on the home screen.',
+                  ),
                   _FeaturesCard(
                     accent: accent,
                     settings: settings,
+                    visibility: visibility,
                     onToggle: (key, value) {
                       final n = ref.read(appSettingsProvider.notifier);
                       n.update(switch (key) {
-                        'growth'    => settings.copyWith(growthTrackingEnabled: value),
-                        'checklist' => settings.copyWith(checklistEnabled: value),
-                        'sparks'    => settings.copyWith(sparksEnabled: value),
-                        'reminders' => settings.copyWith(remindersEnabled: value),
-                        'documents' => settings.copyWith(documentsEnabled: value),
-                        'links'     => settings.copyWith(linksEnabled: value),
-                        'stories'   => settings.copyWith(storiesEnabled: value),
-                        'forum'     => settings.copyWith(forumEnabled: value),
-                        _           => settings,
+                        'growth' => settings.copyWith(
+                          growthTrackingEnabled: value,
+                        ),
+                        'checklist' => settings.copyWith(
+                          checklistEnabled: value,
+                        ),
+                        'sparks' => settings.copyWith(sparksEnabled: value),
+                        'reminders' => settings.copyWith(
+                          remindersEnabled: value,
+                        ),
+                        'documents' => settings.copyWith(
+                          documentsEnabled: value,
+                        ),
+                        'links' => settings.copyWith(linksEnabled: value),
+                        'stories' => settings.copyWith(storiesEnabled: value),
+                        'forum' => settings.copyWith(forumEnabled: value),
+                        'future_plans' => settings.copyWith(
+                          futurePlansEnabled: value,
+                        ),
+                        _ => settings,
                       });
                     },
-                    onReorder: (order) => ref.read(appSettingsProvider.notifier)
+                    onReorder: (order) => ref
+                        .read(appSettingsProvider.notifier)
                         .update(settings.copyWith(menuOrder: order)),
                   ),
                   const SizedBox(height: 22),
 
                   // More (App Icon + Profiles — collapsible)
-                  _MoreSection(
-                    accent: accent,
-                    settings: settings,
-                    profiles: profiles,
-                    onPickIcon: _pickIcon,
-                    onClearIcon: () async {
-                      await LocalStorageService.deleteCustomIcon();
-                      ref.read(appSettingsProvider.notifier)
-                          .update(settings.copyWith(clearCustomIcon: true));
-                    },
-                    onDeleteProfile: (name, i) =>
-                        _confirmDeleteProfile(accent, name, i),
-                  ),
+                  if (visibility.isEnabled(AppModule.childProfiles) ||
+                      visibility.isEnabled(
+                        AppModule.personalizationAndAccessibility,
+                      ))
+                    _MoreSection(
+                      accent: accent,
+                      settings: settings,
+                      profiles: profiles,
+                      onPickIcon: _pickIcon,
+                      onClearIcon: () async {
+                        await LocalStorageService.deleteCustomIcon();
+                        ref
+                            .read(appSettingsProvider.notifier)
+                            .update(settings.copyWith(clearCustomIcon: true));
+                      },
+                      onDeleteProfile: (name, i) =>
+                          _confirmDeleteProfile(accent, name, i),
+                    ),
                   const SizedBox(height: 22),
 
                   // Danger zone
-                  _DangerCard(
-                    onDeleteAccount: () => _confirmDeleteAccount(accent),
-                  ),
+                  if (visibility.isEnabled(AppModule.accountsAndPrivacy))
+                    _DangerCard(
+                      onDeleteAccount: () => _confirmDeleteAccount(accent),
+                    ),
                   const SizedBox(height: 28),
 
                   // About
@@ -350,35 +428,35 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Widget _sectionLabel(String text, {String? description}) => Padding(
-        padding: EdgeInsets.only(left: 4, bottom: description != null ? 4 : 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              text,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey.shade500,
-                letterSpacing: 0.2,
+    padding: EdgeInsets.only(left: 4, bottom: description != null ? 4 : 8),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          text,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey.shade500,
+            letterSpacing: 0.2,
+          ),
+        ),
+        if (description != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 3, bottom: 6),
+            child: Text(
+              description,
+              style: const TextStyle(
+                fontSize: 12,
+                color: Color(0xFF888888),
+                height: 1.4,
               ),
             ),
-            if (description != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 3, bottom: 6),
-                child: Text(
-                  description,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF888888),
-                    height: 1.4,
-                  ),
-                ),
-              ),
-          ],
-        ),
-      );
+          ),
+      ],
+    ),
+  );
 
   // ── Dialogs ────────────────────────────────────────────────────────────────
 
@@ -389,7 +467,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setState) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           title: const Text('Remove sharing?'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -397,13 +477,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             children: [
               Text(
                 'They will no longer be able to see your shared memories.',
-                style: TextStyle(fontSize: 13, color: Colors.grey.shade600, height: 1.4),
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey.shade600,
+                  height: 1.4,
+                ),
               ),
               const SizedBox(height: 16),
               Text(
                 'Type the Gmail address to confirm:',
                 style: TextStyle(
-                    fontSize: 12, fontWeight: FontWeight.w500, color: Colors.grey.shade600),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey.shade600,
+                ),
               ),
               const SizedBox(height: 8),
               TextField(
@@ -414,19 +501,26 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     setState(() => confirmed = v.trim().toLowerCase() == email),
                 decoration: InputDecoration(
                   hintText: email,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                     borderSide: const BorderSide(color: Colors.red, width: 1.5),
                   ),
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
                 ),
               ),
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
             FilledButton(
               onPressed: confirmed
                   ? () {
@@ -445,8 +539,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   void _showAddEmailDialog(Color accent) {
     final ctrl = TextEditingController();
-    final existingEmails =
-        ref.read(sharedEmailsProvider).map((i) => i.email).toSet();
+    final existingEmails = ref
+        .read(sharedEmailsProvider)
+        .map((i) => i.email)
+        .toSet();
 
     // phase: 'form' | 'checking' | 'notFound'
     var phase = 'form';
@@ -460,7 +556,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           if (phase == 'notFound') {
             return AlertDialog(
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20)),
+                borderRadius: BorderRadius.circular(20),
+              ),
               title: const Text('Not on the app yet'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -510,7 +607,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
           return AlertDialog(
             shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20)),
+              borderRadius: BorderRadius.circular(20),
+            ),
             title: const Text('Share with'),
             content: TextField(
               controller: ctrl,
@@ -522,15 +620,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 hintText: 'example@gmail.com',
                 errorText: raw.isEmpty ? null : error,
                 border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(color: accent, width: 1.5),
                 ),
                 errorBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide:
-                      BorderSide(color: Colors.red.shade400, width: 1.5),
+                  borderSide: BorderSide(
+                    color: Colors.red.shade400,
+                    width: 1.5,
+                  ),
                 ),
               ),
             ),
@@ -549,9 +650,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         if (!ctx.mounted) return;
                         if (registered) {
                           Navigator.pop(ctx);
-                          ref
-                              .read(sharedEmailsProvider.notifier)
-                              .add(raw);
+                          ref.read(sharedEmailsProvider.notifier).add(raw);
                         } else {
                           pendingEmail = raw;
                           setDlgState(() => phase = 'notFound');
@@ -563,7 +662,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         height: 16,
                         width: 16,
                         child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Colors.white),
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
                       )
                     : const Text('Add'),
               ),
@@ -591,7 +692,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     if (email.isEmpty) return null;
     final emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
     if (!emailRegex.hasMatch(email)) return 'Enter a valid email address';
-    if (!email.endsWith('@gmail.com')) return 'Only Gmail addresses are supported';
+    if (!email.endsWith('@gmail.com'))
+      return 'Only Gmail addresses are supported';
     if (existing.contains(email)) return 'Already added';
     return null;
   }
@@ -605,7 +707,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setState) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           title: const Text('Delete profile?'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -626,7 +730,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     final p = entry.value;
                     final isTarget = i == index;
                     final pTheme = ProfileTheme.forProfile(p);
-                    final hasAvatar = p.avatarImagePath != null &&
+                    final hasAvatar =
+                        p.avatarImagePath != null &&
                         p.avatarImagePath!.isNotEmpty &&
                         !kIsWeb &&
                         File(p.avatarImagePath!).existsSync();
@@ -639,7 +744,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         Container(
                           color: isTarget ? Colors.red.shade50 : null,
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 9),
+                            horizontal: 12,
+                            vertical: 9,
+                          ),
                           child: Row(
                             children: [
                               Container(
@@ -653,20 +760,27 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                   image: (!isTarget && hasAvatar)
                                       ? DecorationImage(
                                           image: FileImage(
-                                              File(p.avatarImagePath!)),
-                                          fit: BoxFit.cover)
+                                            File(p.avatarImagePath!),
+                                          ),
+                                          fit: BoxFit.cover,
+                                        )
                                       : null,
                                 ),
                                 child: (!isTarget && hasAvatar)
                                     ? null
                                     : Center(
                                         child: isTarget
-                                            ? Icon(Icons.delete_outline_rounded,
+                                            ? Icon(
+                                                Icons.delete_outline_rounded,
                                                 size: 15,
-                                                color: Colors.red.shade400)
-                                            : Text(pTheme.decalEmoji,
+                                                color: Colors.red.shade400,
+                                              )
+                                            : Text(
+                                                pTheme.decalEmoji,
                                                 style: const TextStyle(
-                                                    fontSize: 13)),
+                                                  fontSize: 13,
+                                                ),
+                                              ),
                                       ),
                               ),
                               const SizedBox(width: 10),
@@ -687,7 +801,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               if (isTarget)
                                 Container(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 7, vertical: 3),
+                                    horizontal: 7,
+                                    vertical: 3,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: Colors.red.shade100,
                                     borderRadius: BorderRadius.circular(6),
@@ -695,9 +811,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                   child: Text(
                                     'Will be deleted',
                                     style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.red.shade500),
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.red.shade500,
+                                    ),
                                   ),
                                 ),
                             ],
@@ -711,33 +828,48 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const SizedBox(height: 14),
               Text(
                 'All milestones and memories for $displayName will be permanently removed.',
-                style: TextStyle(fontSize: 12, color: Colors.grey.shade600, height: 1.4),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey.shade600,
+                  height: 1.4,
+                ),
               ),
               const SizedBox(height: 14),
-              Text('Type "$profileName" to confirm:',
-                  style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade600,
-                      fontWeight: FontWeight.w500)),
+              Text(
+                'Type "$profileName" to confirm:',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey.shade600,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
               const SizedBox(height: 8),
               TextField(
                 autofocus: true,
-                onChanged: (v) => setState(() => confirmed = v.trim() == profileName),
+                onChanged: (v) =>
+                    setState(() => confirmed = v.trim() == profileName),
                 decoration: InputDecoration(
                   hintText: profileName,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                     borderSide: const BorderSide(color: Colors.red, width: 1.5),
                   ),
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
                 ),
               ),
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
             FilledButton(
               onPressed: confirmed
                   ? () {
@@ -763,7 +895,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         title: const Text('Sign out?'),
         content: const Text('You will be returned to the login screen.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
           TextButton(
             onPressed: () async {
               Navigator.pop(ctx);
@@ -791,7 +926,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     } else if (!isApple && sync.driveAccessGranted) {
       _showCloudBackupChoiceDialog(accent, isICloud: false);
     } else {
-      _showFinalDeleteDialog(deleteDriveBackup: false, deleteICloudBackup: false);
+      _showFinalDeleteDialog(
+        deleteDriveBackup: false,
+        deleteICloudBackup: false,
+      );
     }
   }
 
@@ -814,7 +952,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
-              _showFinalDeleteDialog(deleteDriveBackup: false, deleteICloudBackup: false);
+              _showFinalDeleteDialog(
+                deleteDriveBackup: false,
+                deleteICloudBackup: false,
+              );
             },
             child: const Text('Keep backup'),
           ),
@@ -826,21 +967,29 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 deleteICloudBackup: isICloud,
               );
             },
-            child: const Text('Delete backup', style: TextStyle(color: Colors.red)),
+            child: const Text(
+              'Delete backup',
+              style: TextStyle(color: Colors.red),
+            ),
           ),
         ],
       ),
     );
   }
 
-  void _showFinalDeleteDialog({required bool deleteDriveBackup, required bool deleteICloudBackup}) {
+  void _showFinalDeleteDialog({
+    required bool deleteDriveBackup,
+    required bool deleteICloudBackup,
+  }) {
     final controller = TextEditingController();
     final isApple = ref.read(authServiceProvider).isAppleUser;
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDlgState) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           title: const Text('Delete account?'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -849,19 +998,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               Text(
                 deleteICloudBackup
                     ? 'Your account and iCloud backup will be deleted. '
-                        'Your memories are kept for 28 days in case you change your mind — '
-                        'but without the iCloud files.'
+                          'Your memories are kept for 28 days in case you change your mind — '
+                          'but without the iCloud files.'
                     : deleteDriveBackup
-                        ? 'Your account and Google Drive backup will be deleted. '
-                            'Your memories are kept for 28 days in case you change your mind — '
-                            'but without the Drive files.'
-                        : isApple
-                            ? 'Your account will be scheduled for deletion. '
-                                'Your memories are kept for 28 days — sign back in to recover them. '
-                                'Your iCloud backup will be kept.'
-                            : 'Your account will be scheduled for deletion. '
-                                'Your memories are kept for 28 days — sign back in to recover them. '
-                                'Your Google Drive backup will be kept.',
+                    ? 'Your account and Google Drive backup will be deleted. '
+                          'Your memories are kept for 28 days in case you change your mind — '
+                          'but without the Drive files.'
+                    : isApple
+                    ? 'Your account will be scheduled for deletion. '
+                          'Your memories are kept for 28 days — sign back in to recover them. '
+                          'Your iCloud backup will be kept.'
+                    : 'Your account will be scheduled for deletion. '
+                          'Your memories are kept for 28 days — sign back in to recover them. '
+                          'Your Google Drive backup will be kept.',
               ),
               const SizedBox(height: 16),
               const Text(
@@ -937,7 +1086,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Re-authentication cancelled.')));
+        const SnackBar(content: Text('Re-authentication cancelled.')),
+      );
     }
   }
 
@@ -981,8 +1131,13 @@ class _Card extends StatelessWidget {
   }
 }
 
-Widget _divider() =>
-    Divider(height: 1, thickness: 1, indent: 16, endIndent: 16, color: Colors.grey.shade100);
+Widget _divider() => Divider(
+  height: 1,
+  thickness: 1,
+  indent: 16,
+  endIndent: 16,
+  color: Colors.grey.shade100,
+);
 
 // ── Account card ──────────────────────────────────────────────────────────────
 
@@ -1000,67 +1155,80 @@ class _AccountCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
-    return _Card(children: [
-      // Gradient top strip
-      Container(
-        height: 4,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(colors: [accent, secondary]),
+    return _Card(
+      children: [
+        // Gradient top strip
+        Container(
+          height: 4,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(colors: [accent, secondary]),
+          ),
         ),
-      ),
-      Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 24,
-              backgroundImage: user?.photoURL != null ? NetworkImage(user!.photoURL!) : null,
-              backgroundColor: Color.lerp(Colors.white, accent, 0.15),
-              child: user?.photoURL == null
-                  ? Icon(Icons.person_rounded, color: accent, size: 26)
-                  : null,
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    user?.displayName ?? 'Unknown',
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w700, fontSize: 15, color: Color(0xFF1A1A2E)),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    user?.email ?? '',
-                    style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
-                  ),
-                ],
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 24,
+                backgroundImage: user?.photoURL != null
+                    ? NetworkImage(user!.photoURL!)
+                    : null,
+                backgroundColor: Color.lerp(Colors.white, accent, 0.15),
+                child: user?.photoURL == null
+                    ? Icon(Icons.person_rounded, color: accent, size: 26)
+                    : null,
               ),
-            ),
-            GestureDetector(
-              onTap: onSignOut,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.red.shade50,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.red.shade100),
-                ),
-                child: Text(
-                  'Sign out',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.red.shade400,
-                  ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      user?.displayName ?? 'Unknown',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 15,
+                        color: Color(0xFF1A1A2E),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      user?.email ?? '',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade500,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-          ],
+              GestureDetector(
+                onTap: onSignOut,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.red.shade100),
+                  ),
+                  child: Text(
+                    'Sign out',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.red.shade400,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
-    ]);
+      ],
+    );
   }
 }
 
@@ -1083,15 +1251,19 @@ class _ShareCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _Card(children: [
-      if (invites.isEmpty)
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
-          child: Text('Not shared with anyone yet.',
-              style: TextStyle(fontSize: 13, color: Colors.grey.shade400)),
-        )
-      else
-        ...invites.map((invite) => Column(
+    return _Card(
+      children: [
+        if (invites.isEmpty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+            child: Text(
+              'Not shared with anyone yet.',
+              style: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+            ),
+          )
+        else
+          ...invites.map(
+            (invite) => Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 _InviteRow(
@@ -1102,26 +1274,31 @@ class _ShareCard extends StatelessWidget {
                 ),
                 _divider(),
               ],
-            )),
-      // Add button
-      GestureDetector(
-        onTap: onAdd,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-          child: Row(
-            children: [
-              Icon(Icons.add_circle_outline, size: 18, color: accent),
-              const SizedBox(width: 10),
-              Text(
-                'Add Gmail address',
-                style: TextStyle(
-                    fontSize: 13, color: accent, fontWeight: FontWeight.w600),
-              ),
-            ],
+            ),
+          ),
+        // Add button
+        GestureDetector(
+          onTap: onAdd,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+            child: Row(
+              children: [
+                Icon(Icons.add_circle_outline, size: 18, color: accent),
+                const SizedBox(width: 10),
+                Text(
+                  'Add Gmail address',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: accent,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
-    ]);
+      ],
+    );
   }
 }
 
@@ -1140,25 +1317,30 @@ class _InviteRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (badgeColor, badgeBg, badgeIcon, badgeLabel) = switch (invite.status) {
+    final (
+      badgeColor,
+      badgeBg,
+      badgeIcon,
+      badgeLabel,
+    ) = switch (invite.status) {
       ShareInviteStatus.active => (
-          const Color(0xFF27AE60),
-          const Color(0xFFEAF7EF),
-          Icons.check_circle_rounded,
-          'Active',
-        ),
+        const Color(0xFF27AE60),
+        const Color(0xFFEAF7EF),
+        Icons.check_circle_rounded,
+        'Active',
+      ),
       ShareInviteStatus.pending => (
-          const Color(0xFFE67E22),
-          const Color(0xFFFEF3E2),
-          Icons.schedule_rounded,
-          'Pending',
-        ),
+        const Color(0xFFE67E22),
+        const Color(0xFFFEF3E2),
+        Icons.schedule_rounded,
+        'Pending',
+      ),
       ShareInviteStatus.expired => (
-          Colors.red.shade400,
-          Colors.red.shade50,
-          Icons.error_outline_rounded,
-          'Expired',
-        ),
+        Colors.red.shade400,
+        Colors.red.shade50,
+        Icons.error_outline_rounded,
+        'Expired',
+      ),
     };
 
     return Padding(
@@ -1175,7 +1357,10 @@ class _InviteRow extends StatelessWidget {
                 child: Text(
                   invite.email[0].toUpperCase(),
                   style: TextStyle(
-                      fontSize: 13, fontWeight: FontWeight.w700, color: accent),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: accent,
+                  ),
                 ),
               ),
               const SizedBox(width: 10),
@@ -1186,9 +1371,10 @@ class _InviteRow extends StatelessWidget {
                     Text(
                       invite.email,
                       style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: Color(0xFF1A1A2E)),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF1A1A2E),
+                      ),
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 3),
@@ -1197,7 +1383,9 @@ class _InviteRow extends StatelessWidget {
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 7, vertical: 2),
+                            horizontal: 7,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: badgeBg,
                             borderRadius: BorderRadius.circular(6),
@@ -1210,9 +1398,10 @@ class _InviteRow extends StatelessWidget {
                               Text(
                                 badgeLabel,
                                 style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: badgeColor),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: badgeColor,
+                                ),
                               ),
                             ],
                           ),
@@ -1222,14 +1411,18 @@ class _InviteRow extends StatelessWidget {
                           Text(
                             'Viewing your memories',
                             style: TextStyle(
-                                fontSize: 11, color: Colors.grey.shade500),
+                              fontSize: 11,
+                              color: Colors.grey.shade500,
+                            ),
                           ),
                         ] else if (invite.isPending) ...[
                           const SizedBox(width: 6),
                           Text(
                             'Waiting for them to sign up',
                             style: TextStyle(
-                                fontSize: 11, color: Colors.grey.shade400),
+                              fontSize: 11,
+                              color: Colors.grey.shade400,
+                            ),
                           ),
                         ],
                       ],
@@ -1242,8 +1435,10 @@ class _InviteRow extends StatelessWidget {
                 GestureDetector(
                   onTap: onResend,
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
                     decoration: BoxDecoration(
                       color: Color.lerp(Colors.white, accent, 0.10),
                       borderRadius: BorderRadius.circular(8),
@@ -1252,17 +1447,21 @@ class _InviteRow extends StatelessWidget {
                     child: Text(
                       'Resend',
                       style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: accent),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: accent,
+                      ),
                     ),
                   ),
                 ),
               const SizedBox(width: 8),
               GestureDetector(
                 onTap: onRemove,
-                child: Icon(Icons.remove_circle_outline_rounded,
-                    size: 20, color: Colors.grey.shade400),
+                child: Icon(
+                  Icons.remove_circle_outline_rounded,
+                  size: 20,
+                  color: Colors.grey.shade400,
+                ),
               ),
             ],
           ),
@@ -1278,16 +1477,20 @@ class _InviteRow extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.info_outline_rounded,
-                      size: 14, color: Colors.red.shade300),
+                  Icon(
+                    Icons.info_outline_rounded,
+                    size: 14,
+                    color: Colors.red.shade300,
+                  ),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       'This invite expired after 30 days. Tap Resend to refresh it.',
                       style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.red.shade400,
-                          height: 1.4),
+                        fontSize: 11,
+                        color: Colors.red.shade400,
+                        height: 1.4,
+                      ),
                     ),
                   ),
                 ],
@@ -1321,223 +1524,295 @@ class _BackupCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cloudGranted =
-        isAppleUser ? sync.iCloudAccessGranted : sync.driveAccessGranted;
+    final cloudGranted = isAppleUser
+        ? sync.iCloudAccessGranted
+        : sync.driveAccessGranted;
     final providerLabel = isAppleUser ? 'iCloud' : 'Google Drive';
-    final enableLabel = isAppleUser ? 'Enable iCloud Backup' : 'Enable Drive Backup';
+    final enableLabel = isAppleUser
+        ? 'Enable iCloud Backup'
+        : 'Enable Drive Backup';
 
     String lastSync = 'Never';
     if (sync.lastSyncedAt != null) {
       final d = DateTime.now().difference(sync.lastSyncedAt!);
-      if (d.inMinutes < 1) lastSync = 'Just now';
-      else if (d.inHours < 1) lastSync = '${d.inMinutes}m ago';
-      else if (d.inDays < 1) lastSync = '${d.inHours}h ago';
-      else lastSync = '${d.inDays}d ago';
+      if (d.inMinutes < 1)
+        lastSync = 'Just now';
+      else if (d.inHours < 1)
+        lastSync = '${d.inMinutes}m ago';
+      else if (d.inDays < 1)
+        lastSync = '${d.inHours}h ago';
+      else
+        lastSync = '${d.inDays}d ago';
     }
 
-    return _Card(children: [
-      Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 34,
-                  height: 34,
-                  decoration: BoxDecoration(
-                    color: Color.lerp(Colors.white, accent, 0.12),
-                    borderRadius: BorderRadius.circular(10),
+    return _Card(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: Color.lerp(Colors.white, accent, 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      cloudGranted
+                          ? Icons.cloud_done_outlined
+                          : Icons.cloud_upload_outlined,
+                      color: accent,
+                      size: 18,
+                    ),
                   ),
-                  child: Icon(
-                    cloudGranted
-                        ? Icons.cloud_done_outlined
-                        : Icons.cloud_upload_outlined,
-                    color: accent,
-                    size: 18,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        sync.isSyncing
-                            ? 'Backing up…'
-                            : cloudGranted
-                                ? (stats.allDone
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          sync.isSyncing
+                              ? 'Backing up…'
+                              : cloudGranted
+                              ? (stats.allDone
                                     ? 'All backed up'
                                     : '${stats.backedUp} of ${stats.total} files')
-                                : providerLabel,
-                        style: const TextStyle(
+                              : providerLabel,
+                          style: const TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 14,
-                            color: Color(0xFF1A1A2E)),
-                      ),
-                      if (cloudGranted)
-                        Text(
-                          'Last backup: $lastSync',
-                          style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                            color: Color(0xFF1A1A2E),
+                          ),
                         ),
-                    ],
-                  ),
-                ),
-                if (cloudGranted)
-                  GestureDetector(
-                    onTap: sync.isSyncing ? null : onSyncNow,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Color.lerp(Colors.white, accent, 0.10),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: accent.withAlpha(60)),
-                      ),
-                      child: sync.isSyncing
-                          ? SizedBox(
-                              width: 14,
-                              height: 14,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: accent))
-                          : Text(
-                              'Sync',
-                              style: TextStyle(
-                                  fontSize: 12, fontWeight: FontWeight.w600, color: accent),
+                        if (cloudGranted)
+                          Text(
+                            'Last backup: $lastSync',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey.shade500,
                             ),
-                    ),
-                  ),
-              ],
-            ),
-            if (cloudGranted && stats.total > 0) ...[
-              const SizedBox(height: 12),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: stats.backedUp / stats.total,
-                  minHeight: 4,
-                  backgroundColor: Colors.grey.shade100,
-                  valueColor: AlwaysStoppedAnimation(accent),
-                ),
-              ),
-            ],
-            if (cloudGranted) ...[
-              const SizedBox(height: 8),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(Icons.warning_amber_rounded, size: 13, color: Colors.amber.shade700),
-                  const SizedBox(width: 5),
-                  Expanded(
-                    child: Text(
-                      isAppleUser
-                          ? 'Files are stored in your iCloud account under the "BornAgainMemories" app folder. Disabling iCloud or removing the app from iCloud will break backup.'
-                          : 'Files are stored in "⚠️ Born Again Memories — App Data (Do Not Delete)" in your Google Drive. Do not rename or delete this folder — doing so will break backup and may cause data loss.',
-                      style: TextStyle(fontSize: 11, color: Colors.amber.shade800, height: 1.4),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-            if (!cloudGranted) ...[
-              const SizedBox(height: 12),
-              Text(
-                'Back up photos and videos to $providerLabel.',
-                style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
-              ),
-              if (sync.accessError != null) ...[
-                const SizedBox(height: 4),
-                Text(sync.accessError!,
-                    style: const TextStyle(fontSize: 12, color: Colors.red)),
-              ],
-              const SizedBox(height: 10),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: accent,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape:
-                        RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  onPressed: sync.isRequestingAccess ? null : onGrantAndSync,
-                  icon: sync.isRequestingAccess
-                      ? const SizedBox(
-                          width: 14,
-                          height: 14,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : Icon(isAppleUser ? Icons.cloud_upload : Icons.cloud_upload, size: 16),
-                  label: Text(sync.isRequestingAccess ? 'Requesting…' : enableLabel),
-                ),
-              ),
-            ],
-            if (!isAppleUser && sync.driveAccessGranted && sync.quota != null) ...[
-              const SizedBox(height: 8),
-              Row(children: [
-                Icon(Icons.storage_rounded, size: 12, color: Colors.grey.shade400),
-                const SizedBox(width: 4),
-                Text(
-                  '${_SettingsScreenState._fmtBytes(sync.quota!.usedBytes)}'
-                  '${sync.quota!.limitBytes != null ? ' / ${_SettingsScreenState._fmtBytes(sync.quota!.limitBytes!)}' : ''} used',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: sync.quota!.isNearlyFull ? Colors.orange : Colors.grey.shade400,
-                  ),
-                ),
-              ]),
-            ],
-            if (sync.syncError != null) ...[
-              const SizedBox(height: 8),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.red.shade50,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.red.shade100),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.error_outline_rounded, size: 13, color: Colors.red.shade500),
-                        const SizedBox(width: 5),
-                        Text(
-                          '${stats.failed > 0 ? "${stats.failed} file${stats.failed == 1 ? "" : "s"} failed — " : ""}Backup error',
-                          style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.red.shade500),
-                        ),
+                          ),
                       ],
                     ),
-                    const SizedBox(height: 6),
-                    SelectableText(
-                      sync.syncError!,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.red.shade700,
-                        fontFamily: 'monospace',
-                        height: 1.4,
+                  ),
+                  if (cloudGranted)
+                    GestureDetector(
+                      onTap: sync.isSyncing ? null : onSyncNow,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Color.lerp(Colors.white, accent, 0.10),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: accent.withAlpha(60)),
+                        ),
+                        child: sync.isSyncing
+                            ? SizedBox(
+                                width: 14,
+                                height: 14,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: accent,
+                                ),
+                              )
+                            : Text(
+                                'Sync',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: accent,
+                                ),
+                              ),
+                      ),
+                    ),
+                ],
+              ),
+              if (cloudGranted && stats.total > 0) ...[
+                const SizedBox(height: 12),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: stats.backedUp / stats.total,
+                    minHeight: 4,
+                    backgroundColor: Colors.grey.shade100,
+                    valueColor: AlwaysStoppedAnimation(accent),
+                  ),
+                ),
+              ],
+              if (cloudGranted) ...[
+                const SizedBox(height: 8),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.warning_amber_rounded,
+                      size: 13,
+                      color: Colors.amber.shade700,
+                    ),
+                    const SizedBox(width: 5),
+                    Expanded(
+                      child: Text(
+                        isAppleUser
+                            ? 'Files are stored in your iCloud account under the "BornAgainMemories" app folder. Disabling iCloud or removing the app from iCloud will break backup.'
+                            : 'Files are stored in "⚠️ Born Again Memories — App Data (Do Not Delete)" in your Google Drive. Do not rename or delete this folder — doing so will break backup and may cause data loss.',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.amber.shade800,
+                          height: 1.4,
+                        ),
                       ),
                     ),
                   ],
                 ),
-              ),
-            ] else if (stats.failed > 0) ...[
-              const SizedBox(height: 6),
-              Row(children: [
-                const Icon(Icons.warning_amber_rounded, size: 12, color: Colors.orange),
-                const SizedBox(width: 4),
-                Text('${stats.failed} failed — tap Sync to retry',
-                    style: const TextStyle(fontSize: 11, color: Colors.orange)),
-              ]),
+              ],
+              if (!cloudGranted) ...[
+                const SizedBox(height: 12),
+                Text(
+                  'Back up photos and videos to $providerLabel.',
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                ),
+                if (sync.accessError != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    sync.accessError!,
+                    style: const TextStyle(fontSize: 12, color: Colors.red),
+                  ),
+                ],
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: accent,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: sync.isRequestingAccess ? null : onGrantAndSync,
+                    icon: sync.isRequestingAccess
+                        ? const SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Icon(
+                            isAppleUser
+                                ? Icons.cloud_upload
+                                : Icons.cloud_upload,
+                            size: 16,
+                          ),
+                    label: Text(
+                      sync.isRequestingAccess ? 'Requesting…' : enableLabel,
+                    ),
+                  ),
+                ),
+              ],
+              if (!isAppleUser &&
+                  sync.driveAccessGranted &&
+                  sync.quota != null) ...[
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.storage_rounded,
+                      size: 12,
+                      color: Colors.grey.shade400,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${_SettingsScreenState._fmtBytes(sync.quota!.usedBytes)}'
+                      '${sync.quota!.limitBytes != null ? ' / ${_SettingsScreenState._fmtBytes(sync.quota!.limitBytes!)}' : ''} used',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: sync.quota!.isNearlyFull
+                            ? Colors.orange
+                            : Colors.grey.shade400,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              if (sync.syncError != null) ...[
+                const SizedBox(height: 8),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.red.shade100),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.error_outline_rounded,
+                            size: 13,
+                            color: Colors.red.shade500,
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            '${stats.failed > 0 ? "${stats.failed} file${stats.failed == 1 ? "" : "s"} failed — " : ""}Backup error',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.red.shade500,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      SelectableText(
+                        sync.syncError!,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.red.shade700,
+                          fontFamily: 'monospace',
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ] else if (stats.failed > 0) ...[
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.warning_amber_rounded,
+                      size: 12,
+                      color: Colors.orange,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${stats.failed} failed — tap Sync to retry',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Colors.orange,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              if (cloudGranted && !kIsWeb)
+                _BackupPermissionTips(accent: accent),
             ],
-            if (cloudGranted && !kIsWeb) _BackupPermissionTips(accent: accent),
-          ],
+          ),
         ),
-      ),
-    ]);
+      ],
+    );
   }
 }
 
@@ -1566,73 +1841,87 @@ class _PreferencesCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _Card(children: [
-      // Sound toggle
-      _PrefRow(
-        icon: Icons.music_note_rounded,
-        accent: accent,
-        label: 'Sound effects',
-        trailing: Switch.adaptive(
-          value: settings.soundEnabled,
-          onChanged: onSoundChanged,
-          activeColor: accent,
+    return _Card(
+      children: [
+        // Sound toggle
+        _PrefRow(
+          icon: Icons.music_note_rounded,
+          accent: accent,
+          label: 'Sound effects',
+          trailing: Switch.adaptive(
+            value: settings.soundEnabled,
+            onChanged: onSoundChanged,
+            activeColor: accent,
+          ),
         ),
-      ),
-      if (settings.soundEnabled) ...[
+        if (settings.soundEnabled) ...[
+          _divider(),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 12, 4),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.volume_down_rounded,
+                  size: 16,
+                  color: Colors.grey.shade400,
+                ),
+                Expanded(
+                  child: Slider(
+                    value: settings.soundVolume,
+                    min: 0,
+                    max: 1,
+                    divisions: 10,
+                    activeColor: accent,
+                    onChanged: onVolumeChanged,
+                  ),
+                ),
+                Icon(
+                  Icons.volume_up_rounded,
+                  size: 16,
+                  color: Colors.grey.shade400,
+                ),
+                const SizedBox(width: 6),
+                GestureDetector(
+                  onTap: testingSound ? null : onTestSound,
+                  child: Icon(
+                    testingSound
+                        ? Icons.volume_up_rounded
+                        : Icons.play_circle_outline_rounded,
+                    color: accent,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 4),
+              ],
+            ),
+          ),
+        ],
         _divider(),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 4, 12, 4),
-          child: Row(
-            children: [
-              Icon(Icons.volume_down_rounded, size: 16, color: Colors.grey.shade400),
-              Expanded(
-                child: Slider(
-                  value: settings.soundVolume,
-                  min: 0, max: 1, divisions: 10,
-                  activeColor: accent,
-                  onChanged: onVolumeChanged,
-                ),
-              ),
-              Icon(Icons.volume_up_rounded, size: 16, color: Colors.grey.shade400),
-              const SizedBox(width: 6),
-              GestureDetector(
-                onTap: testingSound ? null : onTestSound,
-                child: Icon(
-                  testingSound ? Icons.volume_up_rounded : Icons.play_circle_outline_rounded,
-                  color: accent,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 4),
-            ],
+        // Haptic toggle
+        _PrefRow(
+          icon: Icons.vibration_rounded,
+          accent: accent,
+          label: 'Haptic feedback',
+          trailing: Switch.adaptive(
+            value: settings.hapticEnabled,
+            onChanged: onHapticChanged,
+            activeColor: accent,
+          ),
+        ),
+        _divider(),
+        // Animations toggle
+        _PrefRow(
+          icon: Icons.animation_rounded,
+          accent: accent,
+          label: 'Animations & bubbles',
+          trailing: Switch.adaptive(
+            value: settings.animationsEnabled,
+            onChanged: onAnimationsChanged,
+            activeColor: accent,
           ),
         ),
       ],
-      _divider(),
-      // Haptic toggle
-      _PrefRow(
-        icon: Icons.vibration_rounded,
-        accent: accent,
-        label: 'Haptic feedback',
-        trailing: Switch.adaptive(
-          value: settings.hapticEnabled,
-          onChanged: onHapticChanged,
-          activeColor: accent,
-        ),
-      ),
-      _divider(),
-      // Animations toggle
-      _PrefRow(
-        icon: Icons.animation_rounded,
-        accent: accent,
-        label: 'Animations & bubbles',
-        trailing: Switch.adaptive(
-          value: settings.animationsEnabled,
-          onChanged: onAnimationsChanged,
-          activeColor: accent,
-        ),
-      ),
-    ]);
+    );
   }
 }
 
@@ -1666,8 +1955,10 @@ class _PrefRow extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(label,
-                style: const TextStyle(fontSize: 14, color: Color(0xFF1A1A2E))),
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 14, color: Color(0xFF1A1A2E)),
+            ),
           ),
           trailing,
         ],
@@ -1687,132 +1978,179 @@ class _FeatureItem {
 }
 
 const _featureItems = [
-  _FeatureItem('growth',    Icons.show_chart_rounded,      'Growth tracking'),
-  _FeatureItem('checklist', Icons.checklist_rounded,        'Developmental checklist'),
-  _FeatureItem('sparks',    Icons.bolt_rounded,             'Memory Sparks'),
-  _FeatureItem('stories',   Icons.article_outlined,         'Stories'),
-  _FeatureItem('forum',     Icons.forum_outlined,           'Q&A Forum'),
-  _FeatureItem('documents', Icons.folder_outlined,          'Documents'),
-  _FeatureItem('links',     Icons.link_outlined,            'Saved links'),
-  _FeatureItem('feed',      Icons.people_outline_rounded,   'Shared feed', hasToggle: false),
-  _FeatureItem('reminders', Icons.notifications_outlined,   'Reminders'),
+  _FeatureItem('growth', Icons.show_chart_rounded, 'Growth tracking'),
+  _FeatureItem('checklist', Icons.checklist_rounded, 'Developmental checklist'),
+  _FeatureItem('sparks', Icons.bolt_rounded, 'Memory Sparks'),
+  _FeatureItem('stories', Icons.article_outlined, 'Stories'),
+  _FeatureItem('forum', Icons.forum_outlined, 'Q&A Forum'),
+  _FeatureItem('documents', Icons.folder_outlined, 'Documents'),
+  _FeatureItem('links', Icons.link_outlined, 'Saved links'),
+  _FeatureItem(
+    'feed',
+    Icons.people_outline_rounded,
+    'Shared feed',
+    hasToggle: false,
+  ),
+  _FeatureItem('reminders', Icons.notifications_outlined, 'Reminders'),
+  _FeatureItem('future_plans', Icons.savings_outlined, 'Future plans'),
 ];
 
 class _FeaturesCard extends StatelessWidget {
   final Color accent;
   final dynamic settings;
+  final FeatureVisibility visibility;
   final void Function(String key, bool value) onToggle;
   final ValueChanged<List<String>> onReorder;
 
   const _FeaturesCard({
     required this.accent,
     required this.settings,
+    required this.visibility,
     required this.onToggle,
     required this.onReorder,
   });
 
   bool _isEnabled(String key) => switch (key) {
-        'growth'    => settings.growthTrackingEnabled as bool,
-        'checklist' => settings.checklistEnabled as bool,
-        'sparks'    => settings.sparksEnabled as bool,
-        'stories'   => settings.storiesEnabled as bool,
-        'forum'     => settings.forumEnabled as bool,
-        'documents' => settings.documentsEnabled as bool,
-        'links'     => settings.linksEnabled as bool,
-        'reminders' => settings.remindersEnabled as bool,
-        _           => true,
-      };
+    'growth' => settings.growthTrackingEnabled as bool,
+    'checklist' => settings.checklistEnabled as bool,
+    'sparks' => settings.sparksEnabled as bool,
+    'stories' => settings.storiesEnabled as bool,
+    'forum' => settings.forumEnabled as bool,
+    'documents' => settings.documentsEnabled as bool,
+    'links' => settings.linksEnabled as bool,
+    'reminders' => settings.remindersEnabled as bool,
+    'future_plans' => settings.futurePlansEnabled as bool,
+    _ => true,
+  };
+
+  bool _isAvailable(String key) => switch (key) {
+    'growth' => visibility.isEnabled(AppModule.growthTracking),
+    'checklist' => visibility.isEnabled(AppModule.developmentChecklist),
+    'sparks' => visibility.isEnabled(AppModule.memorySparks),
+    'stories' => visibility.isEnabled(AppModule.stories),
+    'forum' => visibility.isEnabled(AppModule.parentingForum),
+    'documents' => visibility.isEnabled(AppModule.documentStorage),
+    'links' => visibility.isEnabled(AppModule.savedLinks),
+    'feed' => visibility.isEnabled(AppModule.familySharing),
+    'reminders' => visibility.isEnabled(AppModule.reminders),
+    'future_plans' => visibility.isEnabled(AppModule.futurePlans),
+    _ => true,
+  };
 
   @override
   Widget build(BuildContext context) {
     final order = List<String>.from(settings.menuOrder as List);
     final ordered = order
-        .map((k) => _featureItems.firstWhere((i) => i.key == k,
-            orElse: () => _FeatureItem(k, Icons.circle, k)))
+        .where(_isAvailable)
+        .map(
+          (k) => _featureItems.firstWhere(
+            (i) => i.key == k,
+            orElse: () => _FeatureItem(k, Icons.circle, k),
+          ),
+        )
         .toList();
 
-    return _Card(children: [
-      Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                'Show, hide or drag to reorder.',
-                style: TextStyle(fontSize: 12, color: Colors.grey.shade400),
-              ),
-            ),
-            Icon(Icons.drag_handle_rounded,
-                size: 14, color: Colors.grey.shade300),
-          ],
-        ),
-      ),
-      ReorderableListView(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        buildDefaultDragHandles: false,
-        onReorder: (oldIndex, newIndex) {
-          if (newIndex > oldIndex) newIndex--;
-          final updated = List<String>.from(order)
-            ..removeAt(oldIndex)
-            ..insert(newIndex, order[oldIndex]);
-          onReorder(updated);
-        },
-        children: List.generate(ordered.length, (i) {
-          final item = ordered[i];
-          final enabled = _isEnabled(item.key);
-          final canToggle = item.hasToggle != false;
-          return Column(
-            key: ValueKey(item.key),
-            mainAxisSize: MainAxisSize.min,
+    return _Card(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+          child: Row(
             children: [
-              if (i > 0) _divider(),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                child: Row(
-                  children: [
-                    ReorderableDragStartListener(
-                      index: i,
-                      child: Icon(Icons.drag_handle_rounded,
-                          size: 20, color: Colors.grey.shade300),
-                    ),
-                    const SizedBox(width: 12),
-                    Container(
-                      width: 30,
-                      height: 30,
-                      decoration: BoxDecoration(
-                        color: Color.lerp(Colors.white, accent, 0.12),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(item.icon, size: 16, color: accent),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(item.label,
-                          style: const TextStyle(
-                              fontSize: 14, color: Color(0xFF1A1A2E))),
-                    ),
-                    if (canToggle)
-                      Switch.adaptive(
-                        value: enabled,
-                        onChanged: (v) => onToggle(item.key, v),
-                        activeColor: accent,
-                      )
-                    else
-                      Padding(
-                        padding: const EdgeInsets.only(right: 4),
-                        child: Text('Always on',
-                            style: TextStyle(
-                                fontSize: 11, color: Colors.grey.shade400)),
-                      ),
-                  ],
+              Expanded(
+                child: Text(
+                  'Show, hide or drag to reorder.',
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade400),
                 ),
               ),
+              Icon(
+                Icons.drag_handle_rounded,
+                size: 14,
+                color: Colors.grey.shade300,
+              ),
             ],
-          );
-        }),
-      ),
-    ]);
+          ),
+        ),
+        ReorderableListView(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          buildDefaultDragHandles: false,
+          onReorder: (oldIndex, newIndex) {
+            if (newIndex > oldIndex) newIndex--;
+            final updated = List<String>.from(order)
+              ..removeAt(oldIndex)
+              ..insert(newIndex, order[oldIndex]);
+            onReorder(updated);
+          },
+          children: List.generate(ordered.length, (i) {
+            final item = ordered[i];
+            final enabled = _isEnabled(item.key);
+            final canToggle = item.hasToggle != false;
+            return Column(
+              key: ValueKey(item.key),
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (i > 0) _divider(),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                  child: Row(
+                    children: [
+                      ReorderableDragStartListener(
+                        index: i,
+                        child: Icon(
+                          Icons.drag_handle_rounded,
+                          size: 20,
+                          color: Colors.grey.shade300,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Container(
+                        width: 30,
+                        height: 30,
+                        decoration: BoxDecoration(
+                          color: Color.lerp(Colors.white, accent, 0.12),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(item.icon, size: 16, color: accent),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          item.label,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF1A1A2E),
+                          ),
+                        ),
+                      ),
+                      if (canToggle)
+                        Switch.adaptive(
+                          value: enabled,
+                          onChanged: (v) => onToggle(item.key, v),
+                          activeColor: accent,
+                        )
+                      else
+                        Padding(
+                          padding: const EdgeInsets.only(right: 4),
+                          child: Text(
+                            'Always on',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey.shade400,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          }),
+        ),
+      ],
+    );
   }
 }
 
@@ -1867,8 +2205,11 @@ class _MoreSectionState extends State<_MoreSection> {
                 AnimatedRotation(
                   turns: _expanded ? 0.5 : 0,
                   duration: const Duration(milliseconds: 200),
-                  child: Icon(Icons.keyboard_arrow_down_rounded,
-                      size: 18, color: Colors.grey.shade400),
+                  child: Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    size: 18,
+                    color: Colors.grey.shade400,
+                  ),
                 ),
               ],
             ),
@@ -1880,128 +2221,168 @@ class _MoreSectionState extends State<_MoreSection> {
           duration: const Duration(milliseconds: 250),
           curve: Curves.easeOutCubic,
           child: _expanded
-              ? _Card(children: [
-                  // Settings icon
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: Color.lerp(Colors.white, widget.accent, 0.12),
-                            borderRadius: BorderRadius.circular(10),
-                            image: widget.settings.customIcon != null && !kIsWeb
-                                ? DecorationImage(
-                                    image: FileImage(File(widget.settings.customIcon!)),
-                                    fit: BoxFit.cover,
+              ? _Card(
+                  children: [
+                    // Settings icon
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: Color.lerp(
+                                Colors.white,
+                                widget.accent,
+                                0.12,
+                              ),
+                              borderRadius: BorderRadius.circular(10),
+                              image:
+                                  widget.settings.customIcon != null && !kIsWeb
+                                  ? DecorationImage(
+                                      image: FileImage(
+                                        File(widget.settings.customIcon!),
+                                      ),
+                                      fit: BoxFit.cover,
+                                    )
+                                  : null,
+                            ),
+                            child: widget.settings.customIcon == null
+                                ? Icon(
+                                    Icons.settings_outlined,
+                                    size: 20,
+                                    color: widget.accent,
                                   )
                                 : null,
                           ),
-                          child: widget.settings.customIcon == null
-                              ? Icon(Icons.settings_outlined,
-                                  size: 20, color: widget.accent)
-                              : null,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            widget.settings.customIcon != null
-                                ? 'Settings icon — tap Change to update'
-                                : 'Settings icon — personalise your button',
-                            style: const TextStyle(
-                                fontSize: 14, color: Color(0xFF1A1A2E)),
-                          ),
-                        ),
-                        if (widget.settings.customIcon != null)
-                          GestureDetector(
-                            onTap: widget.onClearIcon,
-                            child: Icon(Icons.close_rounded,
-                                size: 18, color: Colors.grey.shade400),
-                          ),
-                        const SizedBox(width: 8),
-                        GestureDetector(
-                          onTap: widget.onPickIcon,
-                          child: Text(
-                            'Change',
-                            style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: widget.accent),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Profiles list (delete only)
-                  if (widget.profiles.isNotEmpty) ...[
-                    _divider(),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
-                      child: Text('Profiles',
-                          style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey.shade400,
-                              letterSpacing: 0.3)),
-                    ),
-                    ...widget.profiles.asMap().entries.map((entry) {
-                      final i = entry.key;
-                      final p = entry.value;
-                      final pTheme = ProfileTheme.forProfile(p);
-                      final hasAvatar = p.avatarImagePath != null &&
-                          p.avatarImagePath!.isNotEmpty &&
-                          !kIsWeb &&
-                          File(p.avatarImagePath!).existsSync();
-                      return Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 32,
-                                  height: 32,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: pTheme.soft,
-                                    image: hasAvatar
-                                        ? DecorationImage(
-                                            image: FileImage(File(p.avatarImagePath!)),
-                                            fit: BoxFit.cover)
-                                        : null,
-                                  ),
-                                  child: hasAvatar
-                                      ? null
-                                      : Center(
-                                          child: Text(pTheme.decalEmoji,
-                                              style: const TextStyle(fontSize: 14))),
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Text(p.nickname ?? p.name,
-                                      style: const TextStyle(
-                                          fontSize: 13, color: Color(0xFF1A1A2E))),
-                                ),
-                                GestureDetector(
-                                  onTap: () => widget.onDeleteProfile(p.name, i),
-                                  child: Icon(Icons.delete_outline_rounded,
-                                      size: 18, color: Colors.red.shade300),
-                                ),
-                              ],
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              widget.settings.customIcon != null
+                                  ? 'Settings icon — tap Change to update'
+                                  : 'Settings icon — personalise your button',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Color(0xFF1A1A2E),
+                              ),
                             ),
                           ),
-                          if (i < widget.profiles.length - 1) _divider(),
+                          if (widget.settings.customIcon != null)
+                            GestureDetector(
+                              onTap: widget.onClearIcon,
+                              child: Icon(
+                                Icons.close_rounded,
+                                size: 18,
+                                color: Colors.grey.shade400,
+                              ),
+                            ),
+                          const SizedBox(width: 8),
+                          GestureDetector(
+                            onTap: widget.onPickIcon,
+                            child: Text(
+                              'Change',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: widget.accent,
+                              ),
+                            ),
+                          ),
                         ],
-                      );
-                    }),
-                    const SizedBox(height: 6),
+                      ),
+                    ),
+
+                    // Profiles list (delete only)
+                    if (widget.profiles.isNotEmpty) ...[
+                      _divider(),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
+                        child: Text(
+                          'Profiles',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey.shade400,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                      ),
+                      ...widget.profiles.asMap().entries.map((entry) {
+                        final i = entry.key;
+                        final p = entry.value;
+                        final pTheme = ProfileTheme.forProfile(p);
+                        final hasAvatar =
+                            p.avatarImagePath != null &&
+                            p.avatarImagePath!.isNotEmpty &&
+                            !kIsWeb &&
+                            File(p.avatarImagePath!).existsSync();
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 32,
+                                    height: 32,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: pTheme.soft,
+                                      image: hasAvatar
+                                          ? DecorationImage(
+                                              image: FileImage(
+                                                File(p.avatarImagePath!),
+                                              ),
+                                              fit: BoxFit.cover,
+                                            )
+                                          : null,
+                                    ),
+                                    child: hasAvatar
+                                        ? null
+                                        : Center(
+                                            child: Text(
+                                              pTheme.decalEmoji,
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                          ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      p.nickname ?? p.name,
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        color: Color(0xFF1A1A2E),
+                                      ),
+                                    ),
+                                  ),
+                                  GestureDetector(
+                                    onTap: () =>
+                                        widget.onDeleteProfile(p.name, i),
+                                    child: Icon(
+                                      Icons.delete_outline_rounded,
+                                      size: 18,
+                                      color: Colors.red.shade300,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (i < widget.profiles.length - 1) _divider(),
+                          ],
+                        );
+                      }),
+                      const SizedBox(height: 6),
+                    ],
                   ],
-                ])
+                )
               : const SizedBox.shrink(),
         ),
       ],
@@ -2018,27 +2399,34 @@ class _DangerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _Card(children: [
-      GestureDetector(
-        onTap: onDeleteAccount,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          child: Row(
-            children: [
-              Icon(Icons.delete_forever_rounded, size: 18, color: Colors.red.shade400),
-              const SizedBox(width: 12),
-              Text(
-                'Delete account',
-                style: TextStyle(
+    return _Card(
+      children: [
+        GestureDetector(
+          onTap: onDeleteAccount,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.delete_forever_rounded,
+                  size: 18,
+                  color: Colors.red.shade400,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Delete account',
+                  style: TextStyle(
                     fontSize: 14,
                     color: Colors.red.shade400,
-                    fontWeight: FontWeight.w500),
-              ),
-            ],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
-    ]);
+      ],
+    );
   }
 }
 
@@ -2063,14 +2451,19 @@ class _About extends StatelessWidget {
             child: Icon(Icons.child_care_rounded, size: 22, color: accent),
           ),
           const SizedBox(height: 8),
-          const Text('Born Again Memories',
-              style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 14,
-                  color: Color(0xFF1A1A2E))),
+          const Text(
+            'Born Again Memories',
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 14,
+              color: Color(0xFF1A1A2E),
+            ),
+          ),
           const SizedBox(height: 2),
-          Text('Version 1.0.0',
-              style: TextStyle(fontSize: 11, color: Colors.grey.shade400)),
+          Text(
+            'Version 1.0.0',
+            style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
+          ),
           const SizedBox(height: 4),
           Text(
             'Cherish every precious moment.',
@@ -2109,7 +2502,8 @@ class _BackupPermissionTipsState extends State<_BackupPermissionTips> {
   @override
   Widget build(BuildContext context) {
     final s = _status;
-    if (s == null || (!s.needsAction && s.backgroundRefresh)) return const SizedBox.shrink();
+    if (s == null || (!s.needsAction && s.backgroundRefresh))
+      return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2163,7 +2557,8 @@ class _BackupPermissionsSheet extends StatefulWidget {
   const _BackupPermissionsSheet({required this.accent});
 
   @override
-  State<_BackupPermissionsSheet> createState() => _BackupPermissionsSheetState();
+  State<_BackupPermissionsSheet> createState() =>
+      _BackupPermissionsSheetState();
 }
 
 class _BackupPermissionsSheetState extends State<_BackupPermissionsSheet> {
@@ -2191,7 +2586,11 @@ class _BackupPermissionsSheetState extends State<_BackupPermissionsSheet> {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.fromLTRB(
-          24, 16, 24, MediaQuery.viewInsetsOf(context).bottom + 32),
+        24,
+        16,
+        24,
+        MediaQuery.viewInsetsOf(context).bottom + 32,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2222,7 +2621,11 @@ class _BackupPermissionsSheetState extends State<_BackupPermissionsSheet> {
           const SizedBox(height: 6),
           Text(
             'A few quick steps help ensure your files upload without interruption.',
-            style: TextStyle(fontSize: 13, color: Colors.grey.shade500, height: 1.4),
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.grey.shade500,
+              height: 1.4,
+            ),
           ),
           const SizedBox(height: 20),
           if (s == null)
@@ -2245,7 +2648,8 @@ class _BackupPermissionsSheetState extends State<_BackupPermissionsSheet> {
               _PermSheetRow(
                 icon: Icons.battery_saver_outlined,
                 title: 'Battery optimization',
-                subtitle: 'Prevent the system from pausing uploads in the background.',
+                subtitle:
+                    'Prevent the system from pausing uploads in the background.',
                 granted: s.batteryExempt,
                 actionLabel: 'Exempt',
                 accent: accent,
@@ -2308,7 +2712,11 @@ class _PermTipRow extends StatelessWidget {
         Expanded(
           child: Text(
             label,
-            style: TextStyle(fontSize: 11, color: Colors.amber.shade800, height: 1.3),
+            style: TextStyle(
+              fontSize: 11,
+              color: Colors.amber.shade800,
+              height: 1.3,
+            ),
           ),
         ),
         const SizedBox(width: 8),
@@ -2324,7 +2732,10 @@ class _PermTipRow extends StatelessWidget {
             child: Text(
               actionLabel,
               style: TextStyle(
-                  fontSize: 11, fontWeight: FontWeight.w600, color: accent),
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: accent,
+              ),
             ),
           ),
         ),
@@ -2376,15 +2787,22 @@ class _PermSheetRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title,
-                    style: const TextStyle(
-                        fontSize: 14, fontWeight: FontWeight.w600)),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 const SizedBox(height: 2),
-                Text(subtitle,
-                    style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade600,
-                        height: 1.3)),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey.shade600,
+                    height: 1.3,
+                  ),
+                ),
               ],
             ),
           ),
@@ -2394,15 +2812,20 @@ class _PermSheetRow extends StatelessWidget {
               onPressed: onAction,
               style: FilledButton.styleFrom(
                 backgroundColor: accent,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 8,
+                ),
                 minimumSize: Size.zero,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
-              child: Text(actionLabel,
-                  style: const TextStyle(fontSize: 12, color: Colors.white)),
+              child: Text(
+                actionLabel,
+                style: const TextStyle(fontSize: 12, color: Colors.white),
+              ),
             ),
           ],
         ],
@@ -2434,7 +2857,10 @@ class _DriveEmailChip extends StatelessWidget {
             child: Text(
               email,
               style: TextStyle(
-                  fontSize: 12, fontWeight: FontWeight.w600, color: color),
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
               overflow: TextOverflow.ellipsis,
             ),
           ),

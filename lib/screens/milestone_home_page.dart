@@ -6,7 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/kid_profile.dart';
 import '../models/milestone.dart';
+import '../models/feature_visibility.dart';
 import '../providers/app_settings_provider.dart';
+import '../providers/feature_visibility_provider.dart';
 import '../providers/backup_provider.dart';
 import '../providers/profiles_provider.dart';
 import '../utils/chime.dart';
@@ -126,12 +128,15 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
         content: Text('Delete "${milestone.title}"? This cannot be undone.'),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel')),
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
-              ref.read(profilesProvider.notifier).deleteMilestone(profileIndex, milestone.id);
+              ref
+                  .read(profilesProvider.notifier)
+                  .deleteMilestone(profileIndex, milestone.id);
             },
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
@@ -140,12 +145,17 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
     );
   }
 
-  void _showEditProfileSheet(BuildContext context, int profileIndex, KidProfile profile) {
+  void _showEditProfileSheet(
+    BuildContext context,
+    int profileIndex,
+    KidProfile profile,
+  ) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => EditProfileSheet(profileIndex: profileIndex, profile: profile),
+      builder: (_) =>
+          EditProfileSheet(profileIndex: profileIndex, profile: profile),
     );
   }
 
@@ -171,7 +181,8 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
 
     // Filter milestones
     final allMilestones = currentProfile.milestones;
-    final allTags = ({for (final m in allMilestones) ...m.tags}).toList()..sort();
+    final allTags = ({for (final m in allMilestones) ...m.tags}).toList()
+      ..sort();
 
     int ageAt(Milestone m) {
       final days = m.date.difference(currentProfile.dateOfBirth).inDays;
@@ -181,13 +192,18 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
     final availableAges = allMilestones.map(ageAt).toSet().toList()..sort();
 
     final filtered = allMilestones.where((m) {
-      final matchAge = _selectedAges.isEmpty || _selectedAges.contains(ageAt(m));
+      final matchAge =
+          _selectedAges.isEmpty || _selectedAges.contains(ageAt(m));
       final q = _searchQuery.toLowerCase();
-      final matchQuery = q.isEmpty ||
+      final matchQuery =
+          q.isEmpty ||
           m.title.toLowerCase().contains(q) ||
           m.description.toLowerCase().contains(q) ||
           m.tags.any((t) => t.contains(q));
-      final matchTags = _selectAllTags || _selectedTags.isEmpty || m.tags.any(_selectedTags.contains);
+      final matchTags =
+          _selectAllTags ||
+          _selectedTags.isEmpty ||
+          m.tags.any(_selectedTags.contains);
       final matchFavorite = !_showFavoritesOnly || m.isFavorite;
       return matchAge && matchQuery && matchTags && matchFavorite;
     }).toList();
@@ -256,7 +272,8 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
               ),
             ),
             onFuturePlans: () => FuturePlansScreen.push(context, safeIndex),
-            onEditProfile: () => _showEditProfileSheet(context, safeIndex, currentProfile),
+            onEditProfile: () =>
+                _showEditProfileSheet(context, safeIndex, currentProfile),
             onAddProfile: _showAddProfileSheet,
           ),
 
@@ -282,17 +299,27 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                       if (allMilestones.isNotEmpty) ...[
                         IconButton(
                           icon: Icon(
-                            _showFavoritesOnly ? Icons.star_rounded : Icons.star_outline_rounded,
-                            color: _showFavoritesOnly ? const Color(0xFFFBBF24) : Colors.grey.shade400,
+                            _showFavoritesOnly
+                                ? Icons.star_rounded
+                                : Icons.star_outline_rounded,
+                            color: _showFavoritesOnly
+                                ? const Color(0xFFFBBF24)
+                                : Colors.grey.shade400,
                             size: 22,
                           ),
-                          onPressed: () => setState(() => _showFavoritesOnly = !_showFavoritesOnly),
-                          tooltip: _showFavoritesOnly ? 'Show all memories' : 'Show favorites only',
+                          onPressed: () => setState(
+                            () => _showFavoritesOnly = !_showFavoritesOnly,
+                          ),
+                          tooltip: _showFavoritesOnly
+                              ? 'Show all memories'
+                              : 'Show favorites only',
                         ),
                         IconButton(
                           icon: Icon(
                             _showSearch ? Icons.search_off : Icons.search,
-                            color: _showSearch ? profileTheme.accent : Colors.grey.shade500,
+                            color: _showSearch
+                                ? profileTheme.accent
+                                : Colors.grey.shade500,
                             size: 22,
                           ),
                           onPressed: () {
@@ -311,18 +338,23 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                           tooltip: _showSearch ? 'Hide search' : 'Search',
                         ),
                         IconButton(
-                          icon: Icon(Icons.picture_as_pdf_outlined,
-                              color: Colors.grey.shade500, size: 22),
-                          onPressed: allMilestones.isEmpty ? null : () {
-                            showModalBottomSheet(
-                              context: context,
-                              isScrollControlled: true,
-                              useSafeArea: true,
-                              backgroundColor: Colors.transparent,
-                              builder: (_) => PdfExportSheet(
-                                  profileIndex: safeIndex),
-                            );
-                          },
+                          icon: Icon(
+                            Icons.picture_as_pdf_outlined,
+                            color: Colors.grey.shade500,
+                            size: 22,
+                          ),
+                          onPressed: allMilestones.isEmpty
+                              ? null
+                              : () {
+                                  showModalBottomSheet(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    useSafeArea: true,
+                                    backgroundColor: Colors.transparent,
+                                    builder: (_) =>
+                                        PdfExportSheet(profileIndex: safeIndex),
+                                  );
+                                },
                           tooltip: 'Export memory book',
                         ),
                       ],
@@ -346,14 +378,25 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                                 child: TextField(
                                   controller: _searchController,
                                   focusNode: _searchFocusNode,
-                                  onChanged: (v) => setState(() => _searchQuery = v),
+                                  onChanged: (v) =>
+                                      setState(() => _searchQuery = v),
                                   decoration: InputDecoration(
                                     hintText: 'Search memories…',
-                                    hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
-                                    prefixIcon: Icon(Icons.search, color: Colors.grey.shade400, size: 18),
+                                    hintStyle: TextStyle(
+                                      color: Colors.grey.shade400,
+                                      fontSize: 13,
+                                    ),
+                                    prefixIcon: Icon(
+                                      Icons.search,
+                                      color: Colors.grey.shade400,
+                                      size: 18,
+                                    ),
                                     suffixIcon: _searchQuery.isNotEmpty
                                         ? IconButton(
-                                            icon: const Icon(Icons.close, size: 16),
+                                            icon: const Icon(
+                                              Icons.close,
+                                              size: 16,
+                                            ),
                                             tooltip: 'Clear search',
                                             onPressed: () {
                                               _searchController.clear();
@@ -366,15 +409,22 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                                     contentPadding: EdgeInsets.zero,
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12),
-                                      borderSide: BorderSide(color: Colors.grey.shade200),
+                                      borderSide: BorderSide(
+                                        color: Colors.grey.shade200,
+                                      ),
                                     ),
                                     enabledBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12),
-                                      borderSide: BorderSide(color: Colors.grey.shade200),
+                                      borderSide: BorderSide(
+                                        color: Colors.grey.shade200,
+                                      ),
                                     ),
                                     focusedBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12),
-                                      borderSide: BorderSide(color: profileTheme.accent, width: 1.5),
+                                      borderSide: BorderSide(
+                                        color: profileTheme.accent,
+                                        width: 1.5,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -398,29 +448,44 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                                           _selectedTags = {};
                                         }),
                                       ),
-                                      ...allTags.map((tag) => Padding(
-                                            padding: const EdgeInsets.only(left: 6),
-                                            child: _FilterChip(
-                                              label: '#$tag',
-                                              selected: _selectedTags.contains(tag),
-                                              accent: profileTheme.accent,
-                                              soft: profileTheme.soft,
-                                              onTap: () => setState(() {
-                                                _selectAllTags = false;
-                                                if (_selectedTags.contains(tag)) {
-                                                  _selectedTags = {..._selectedTags}..remove(tag);
-                                                  if (_selectedTags.isEmpty) _selectAllTags = true;
-                                                } else {
-                                                  _selectedTags = {..._selectedTags, tag};
-                                                }
-                                              }),
+                                      ...allTags.map(
+                                        (tag) => Padding(
+                                          padding: const EdgeInsets.only(
+                                            left: 6,
+                                          ),
+                                          child: _FilterChip(
+                                            label: '#$tag',
+                                            selected: _selectedTags.contains(
+                                              tag,
                                             ),
-                                          )),
+                                            accent: profileTheme.accent,
+                                            soft: profileTheme.soft,
+                                            onTap: () => setState(() {
+                                              _selectAllTags = false;
+                                              if (_selectedTags.contains(tag)) {
+                                                _selectedTags = {
+                                                  ..._selectedTags,
+                                                }..remove(tag);
+                                                if (_selectedTags.isEmpty)
+                                                  _selectAllTags = true;
+                                              } else {
+                                                _selectedTags = {
+                                                  ..._selectedTags,
+                                                  tag,
+                                                };
+                                              }
+                                            }),
+                                          ),
+                                        ),
+                                      ),
                                     ],
                                     // Divider between tags and ages
-                                    if (allTags.isNotEmpty && availableAges.isNotEmpty)
+                                    if (allTags.isNotEmpty &&
+                                        availableAges.isNotEmpty)
                                       Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                        ),
                                         child: Center(
                                           child: Container(
                                             width: 1,
@@ -430,22 +495,33 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                                         ),
                                       ),
                                     // Age chips (multiselect)
-                                    ...availableAges.map((age) => Padding(
-                                          padding: EdgeInsets.only(
-                                              left: age == availableAges.first && allTags.isEmpty ? 0 : 6),
-                                          child: _AgeChip(
-                                            age: age,
-                                            selected: _selectedAges.contains(age),
-                                            accent: profileTheme.accent,
-                                            onTap: () => setState(() {
-                                              if (_selectedAges.contains(age)) {
-                                                _selectedAges = {..._selectedAges}..remove(age);
-                                              } else {
-                                                _selectedAges = {..._selectedAges, age};
-                                              }
-                                            }),
-                                          ),
-                                        )),
+                                    ...availableAges.map(
+                                      (age) => Padding(
+                                        padding: EdgeInsets.only(
+                                          left:
+                                              age == availableAges.first &&
+                                                  allTags.isEmpty
+                                              ? 0
+                                              : 6,
+                                        ),
+                                        child: _AgeChip(
+                                          age: age,
+                                          selected: _selectedAges.contains(age),
+                                          accent: profileTheme.accent,
+                                          onTap: () => setState(() {
+                                            if (_selectedAges.contains(age)) {
+                                              _selectedAges = {..._selectedAges}
+                                                ..remove(age);
+                                            } else {
+                                              _selectedAges = {
+                                                ..._selectedAges,
+                                                age,
+                                              };
+                                            }
+                                          }),
+                                        ),
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -458,107 +534,123 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                 // Milestone list or empty state
                 Expanded(
                   child: allMilestones.isEmpty
-                      ? EmptyState(theme: Theme.of(context), gender: currentProfile.gender)
+                      ? EmptyState(
+                          theme: Theme.of(context),
+                          gender: currentProfile.gender,
+                        )
                       : filtered.isEmpty
-                          ? Center(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.search_off, size: 48, color: Colors.grey.shade300),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    _showFavoritesOnly ? 'No favourite memories yet.' : 'No milestones match your filter.',
-                                    style: TextStyle(color: Colors.grey.shade500),
-                                  ),
-                                  TextButton(
-                                    onPressed: () => setState(() {
-                                      _searchQuery = '';
-                                      _selectedAges = {};
-                                      _selectedTags = {};
-                                      _showSearch = false;
-                                      _showFavoritesOnly = false;
-                                      _searchController.clear();
-                                    }),
-                                    child: const Text('Clear filters'),
-                                  ),
-                                ],
+                      ? Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.search_off,
+                                size: 48,
+                                color: Colors.grey.shade300,
                               ),
-                            )
-                          : ValueListenableBuilder<double>(
-                              valueListenable: _scrollOffset,
-                              builder: (context, offset, child) {
-                                final t = DevicePerformance.isLowEnd
-                                    ? 1.0
-                                    : (offset / 500).clamp(0.0, 1.0);
-                                return DecoratedBox(
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                      colors: [
-                                        Color.lerp(
-                                          profileTheme.soft.withAlpha(180),
-                                          const Color(0xFFF2F2F7),
-                                          t,
-                                        )!,
-                                        const Color(0xFFF2F2F7),
-                                        Color.lerp(
-                                          profileTheme.cardBg.withAlpha(160),
-                                          const Color(0xFFF2F2F7),
-                                          t,
-                                        )!,
-                                      ],
-                                    ),
-                                  ),
-                                  child: child,
-                                );
-                              },
-                              child: ListView.builder(
-                                controller: _listScrollController,
-                                cacheExtent: 800,
-                                padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-                                itemCount: filtered.length,
-                                itemBuilder: (context, index) {
-                                  final milestone = filtered[index];
-                                  return Padding(
-                                    padding: const EdgeInsets.only(bottom: 14),
-                                    child: MilestoneCard(
-                                      milestone: milestone,
-                                      profileTheme: profileTheme,
-                                      animIndex: index,
-                                      animationsEnabled: settings.animationsEnabled,
-                                      dateOfBirth: currentProfile.dateOfBirth,
-                                      onTap: () => Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => MilestoneDetailPage(
-                                            milestones: filtered,
-                                            initialIndex: index,
-                                            profile: currentProfile,
-                                            animationsEnabled: settings.animationsEnabled,
-                                          ),
-                                        ),
-                                      ),
-                                      onEdit: () =>
-                                          _showEditMilestoneSheet(milestone),
-                                      onDelete: () => _confirmDeleteMilestone(
-                                          safeIndex, milestone),
-                                      onFavorite: () {
-                                        ref.read(profilesProvider.notifier)
-                                            .toggleMilestoneFavorite(safeIndex, milestone.id);
-                                        triggerLightFeedback(ref);
-                                      },
-                                      onShare: () => MemorySharer.show(
-                                        context,
-                                        milestone,
-                                        currentProfile.name,
-                                        currentProfile.gender,
+                              const SizedBox(height: 12),
+                              Text(
+                                _showFavoritesOnly
+                                    ? 'No favourite memories yet.'
+                                    : 'No milestones match your filter.',
+                                style: TextStyle(color: Colors.grey.shade500),
+                              ),
+                              TextButton(
+                                onPressed: () => setState(() {
+                                  _searchQuery = '';
+                                  _selectedAges = {};
+                                  _selectedTags = {};
+                                  _showSearch = false;
+                                  _showFavoritesOnly = false;
+                                  _searchController.clear();
+                                }),
+                                child: const Text('Clear filters'),
+                              ),
+                            ],
+                          ),
+                        )
+                      : ValueListenableBuilder<double>(
+                          valueListenable: _scrollOffset,
+                          builder: (context, offset, child) {
+                            final t = DevicePerformance.isLowEnd
+                                ? 1.0
+                                : (offset / 500).clamp(0.0, 1.0);
+                            return DecoratedBox(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    Color.lerp(
+                                      profileTheme.soft.withAlpha(180),
+                                      const Color(0xFFF2F2F7),
+                                      t,
+                                    )!,
+                                    const Color(0xFFF2F2F7),
+                                    Color.lerp(
+                                      profileTheme.cardBg.withAlpha(160),
+                                      const Color(0xFFF2F2F7),
+                                      t,
+                                    )!,
+                                  ],
+                                ),
+                              ),
+                              child: child,
+                            );
+                          },
+                          child: ListView.builder(
+                            controller: _listScrollController,
+                            cacheExtent: 800,
+                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+                            itemCount: filtered.length,
+                            itemBuilder: (context, index) {
+                              final milestone = filtered[index];
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 14),
+                                child: MilestoneCard(
+                                  milestone: milestone,
+                                  profileTheme: profileTheme,
+                                  animIndex: index,
+                                  animationsEnabled: settings.animationsEnabled,
+                                  dateOfBirth: currentProfile.dateOfBirth,
+                                  onTap: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => MilestoneDetailPage(
+                                        milestones: filtered,
+                                        initialIndex: index,
+                                        profile: currentProfile,
+                                        animationsEnabled:
+                                            settings.animationsEnabled,
                                       ),
                                     ),
-                                  );
-                                },
-                              ),
-                            ),
+                                  ),
+                                  onEdit: () =>
+                                      _showEditMilestoneSheet(milestone),
+                                  onDelete: () => _confirmDeleteMilestone(
+                                    safeIndex,
+                                    milestone,
+                                  ),
+                                  onFavorite: () {
+                                    ref
+                                        .read(profilesProvider.notifier)
+                                        .toggleMilestoneFavorite(
+                                          safeIndex,
+                                          milestone.id,
+                                        );
+                                    triggerLightFeedback(ref);
+                                  },
+                                  onShare: () => MemorySharer.show(
+                                    context,
+                                    milestone,
+                                    currentProfile.name,
+                                    currentProfile.gender,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
                 ),
               ],
             ),
@@ -591,12 +683,15 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                 children: [
                   Icon(Icons.auto_awesome, color: Colors.white, size: 15),
                   SizedBox(width: 6),
-                  Text('New memory',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13,
-                          letterSpacing: 0.2)),
+                  Text(
+                    'New memory',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -633,16 +728,27 @@ class _AgeChip extends StatelessWidget {
           color: selected ? accent : Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-              color: selected ? accent : Colors.grey.shade300, width: 1),
+            color: selected ? accent : Colors.grey.shade300,
+            width: 1,
+          ),
           boxShadow: selected
-              ? [BoxShadow(color: accent.withAlpha(50), blurRadius: 6, offset: const Offset(0, 2))]
+              ? [
+                  BoxShadow(
+                    color: accent.withAlpha(50),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
               : [],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.cake_outlined, size: 11,
-                color: selected ? Colors.white : accent),
+            Icon(
+              Icons.cake_outlined,
+              size: 11,
+              color: selected ? Colors.white : accent,
+            ),
             const SizedBox(width: 4),
             Text(
               '${age}y',
@@ -685,9 +791,17 @@ class _FilterChip extends StatelessWidget {
           color: selected ? accent : Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-              color: selected ? accent : Colors.grey.shade300, width: 1),
+            color: selected ? accent : Colors.grey.shade300,
+            width: 1,
+          ),
           boxShadow: selected
-              ? [BoxShadow(color: accent.withAlpha(50), blurRadius: 6, offset: const Offset(0, 2))]
+              ? [
+                  BoxShadow(
+                    color: accent.withAlpha(50),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
               : [],
         ),
         child: Text(
@@ -727,33 +841,60 @@ class _EmptyProfilesScreen extends StatelessWidget {
                     color: const Color(0xFFFFEDD5),
                     shape: BoxShape.circle,
                     boxShadow: [
-                      BoxShadow(color: Colors.orange.withAlpha(60), blurRadius: 20, spreadRadius: 4)
+                      BoxShadow(
+                        color: Colors.orange.withAlpha(60),
+                        blurRadius: 20,
+                        spreadRadius: 4,
+                      ),
                     ],
                   ),
-                  child: const Icon(Icons.child_care, size: 52, color: Color(0xFFFFB347)),
+                  child: const Icon(
+                    Icons.child_care,
+                    size: 52,
+                    color: Color(0xFFFFB347),
+                  ),
                 ),
                 const SizedBox(height: 28),
-                const Text('Start your journey',
-                    style: TextStyle(
-                        fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF2D2D2D))),
+                const Text(
+                  'Start your journey',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2D2D2D),
+                  ),
+                ),
                 const SizedBox(height: 10),
                 Text(
                   'Add your first little one and begin capturing those priceless moments.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 15, color: Colors.grey.shade600, height: 1.5),
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Colors.grey.shade600,
+                    height: 1.5,
+                  ),
                 ),
                 const SizedBox(height: 32),
                 FilledButton.icon(
                   onPressed: onAdd,
                   style: FilledButton.styleFrom(
                     backgroundColor: const Color(0xFFFFB347),
-                    padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 28,
+                      vertical: 16,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
                   ),
                   icon: const Icon(Icons.person_add, color: Colors.white),
-                  label: const Text('Add first profile',
-                      style: TextStyle(
-                          color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600)),
+                  label: const Text(
+                    'Add first profile',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -810,11 +951,16 @@ class _ProfileHeader extends ConsumerWidget {
     final sync = ref.watch(backupSyncProvider);
     final sharedCount = ref.watch(sharedSendersCountProvider).valueOrNull ?? 0;
     final settings = ref.watch(appSettingsProvider);
-    final hasBackground = !kIsWeb &&
+    final visibility =
+        ref.watch(featureVisibilityProvider).valueOrNull ??
+        const FeatureVisibility.allVisible();
+    final hasBackground =
+        !kIsWeb &&
         profile.backgroundImagePath != null &&
         profile.backgroundImagePath!.isNotEmpty &&
         File(profile.backgroundImagePath!).existsSync();
-    final hasAvatar = profile.avatarImagePath != null &&
+    final hasAvatar =
+        profile.avatarImagePath != null &&
         profile.avatarImagePath!.isNotEmpty &&
         !kIsWeb &&
         File(profile.avatarImagePath!).existsSync();
@@ -859,17 +1005,17 @@ class _ProfileHeader extends ConsumerWidget {
               if (!DevicePerformance.isLowEnd) ...[
                 // Upper area
                 Positioned(right: -28, top: -18, child: _Bubble(110, 18)),
-                Positioned(left: -22, top: 30,   child: _Bubble(70, 12)),
-                Positioned(right: 24,  top: 48,  child: _Bubble(16, 30)),
+                Positioned(left: -22, top: 30, child: _Bubble(70, 12)),
+                Positioned(right: 24, top: 48, child: _Bubble(16, 30)),
                 // Mid area
-                Positioned(left: 120,  top: 80,  child: _Bubble(40, 12)),
-                Positioned(right: 90,  top: 100, child: _Bubble(24, 20)),
+                Positioned(left: 120, top: 80, child: _Bubble(40, 12)),
+                Positioned(right: 90, top: 100, child: _Bubble(24, 20)),
                 // Lower / pill row area
-                Positioned(left: -16,  bottom: 18, child: _Bubble(64, 14)),
+                Positioned(left: -16, bottom: 18, child: _Bubble(64, 14)),
                 Positioned(right: -20, bottom: 10, child: _Bubble(80, 12)),
-                Positioned(left: 100,  bottom: 28, child: _Bubble(32, 18)),
-                Positioned(right: 70,  bottom: 38, child: _Bubble(20, 24)),
-                Positioned(left: 220,  bottom: 14, child: _Bubble(44, 14)),
+                Positioned(left: 100, bottom: 28, child: _Bubble(32, 18)),
+                Positioned(right: 70, bottom: 38, child: _Bubble(20, 24)),
+                Positioned(left: 220, bottom: 14, child: _Bubble(44, 14)),
               ],
               // Content
               SafeArea(
@@ -895,10 +1041,15 @@ class _ProfileHeader extends ConsumerWidget {
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     color: Colors.white.withAlpha(30),
-                                    border: Border.all(color: Colors.white, width: 2),
+                                    border: Border.all(
+                                      color: Colors.white,
+                                      width: 2,
+                                    ),
                                     image: hasAvatar
                                         ? DecorationImage(
-                                            image: FileImage(File(profile.avatarImagePath!)),
+                                            image: FileImage(
+                                              File(profile.avatarImagePath!),
+                                            ),
                                             fit: BoxFit.cover,
                                           )
                                         : null,
@@ -915,7 +1066,9 @@ class _ProfileHeader extends ConsumerWidget {
                                       : Center(
                                           child: Text(
                                             profileTheme.decalEmoji,
-                                            style: const TextStyle(fontSize: 32),
+                                            style: const TextStyle(
+                                              fontSize: 32,
+                                            ),
                                           ),
                                         ),
                                 ),
@@ -960,7 +1113,12 @@ class _ProfileHeader extends ConsumerWidget {
                                     fontSize: 20,
                                     fontWeight: FontWeight.w800,
                                     letterSpacing: 0.2,
-                                    shadows: [Shadow(color: Colors.black38, blurRadius: 4)],
+                                    shadows: [
+                                      Shadow(
+                                        color: Colors.black38,
+                                        blurRadius: 4,
+                                      ),
+                                    ],
                                   ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -980,7 +1138,9 @@ class _ProfileHeader extends ConsumerWidget {
                                 const SizedBox(height: 4),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 3),
+                                    horizontal: 8,
+                                    vertical: 3,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: Colors.white.withAlpha(35),
                                     borderRadius: BorderRadius.circular(8),
@@ -1027,7 +1187,10 @@ class _ProfileHeader extends ConsumerWidget {
                             onTap: onAddProfile,
                             child: ClipOval(
                               child: BackdropFilter(
-                                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                filter: ImageFilter.blur(
+                                  sigmaX: 10,
+                                  sigmaY: 10,
+                                ),
                                 child: Container(
                                   width: 26,
                                   height: 26,
@@ -1035,9 +1198,15 @@ class _ProfileHeader extends ConsumerWidget {
                                     shape: BoxShape.circle,
                                     color: Colors.white.withAlpha(30),
                                     border: Border.all(
-                                        color: Colors.white.withAlpha(140), width: 1.5),
+                                      color: Colors.white.withAlpha(140),
+                                      width: 1.5,
+                                    ),
                                   ),
-                                  child: const Icon(Icons.add, color: Colors.white, size: 14),
+                                  child: const Icon(
+                                    Icons.add,
+                                    color: Colors.white,
+                                    size: 14,
+                                  ),
                                 ),
                               ),
                             ),
@@ -1072,29 +1241,110 @@ class _ProfileHeader extends ConsumerWidget {
                                 label: 'Moments',
                               ),
                               ...settings.menuOrder
-                                  .map<Widget?>((key) => switch (key) {
-                                        'growth' when settings.growthTrackingEnabled =>
-                                          _QuickPill(icon: Icons.show_chart_rounded, label: 'Growth', onTap: onGrowth),
-                                        'checklist' when settings.checklistEnabled =>
-                                          _QuickPill(icon: Icons.checklist_rounded, label: 'Checklist', onTap: onChecklist),
-                                        'sparks' when settings.sparksEnabled =>
-                                          _QuickPill(icon: Icons.bolt_rounded, label: 'Sparks', onTap: onSparks),
-                                        'stories' when settings.storiesEnabled =>
-                                          _QuickPill(icon: Icons.article_outlined, label: 'Stories', onTap: onStories),
-                                        'forum' when settings.forumEnabled =>
-                                          _QuickPill(icon: Icons.forum_outlined, label: 'Forum', onTap: onForum),
-                                        'documents' when settings.documentsEnabled =>
-                                          _QuickPill(icon: Icons.folder_outlined, label: 'Docs', onTap: onDocuments),
-                                        'links' when settings.linksEnabled =>
-                                          _QuickPill(icon: Icons.link_outlined, label: 'Links', onTap: onLinks),
-                                        'feed' =>
-                                          _QuickPill(icon: Icons.people_outline_rounded, label: 'Feed', onTap: onSharedFeed, showBadge: sharedCount > 0),
-                                        'reminders' when settings.remindersEnabled =>
-                                          _RemindersQuickPill(profile: profile, profileIndex: profileIndex),
-                                        'future_plans' when settings.futurePlansEnabled =>
-                                          _QuickPill(icon: Icons.savings_outlined, label: 'Future', onTap: onFuturePlans),
-                                        _ => null,
-                                      })
+                                  .map<Widget?>(
+                                    (key) => switch (key) {
+                                      'growth'
+                                          when settings.growthTrackingEnabled &&
+                                              visibility.isEnabled(
+                                                AppModule.growthTracking,
+                                              ) =>
+                                        _QuickPill(
+                                          icon: Icons.show_chart_rounded,
+                                          label: 'Growth',
+                                          onTap: onGrowth,
+                                        ),
+                                      'checklist'
+                                          when settings.checklistEnabled &&
+                                              visibility.isEnabled(
+                                                AppModule.developmentChecklist,
+                                              ) =>
+                                        _QuickPill(
+                                          icon: Icons.checklist_rounded,
+                                          label: 'Checklist',
+                                          onTap: onChecklist,
+                                        ),
+                                      'sparks'
+                                          when settings.sparksEnabled &&
+                                              visibility.isEnabled(
+                                                AppModule.memorySparks,
+                                              ) =>
+                                        _QuickPill(
+                                          icon: Icons.bolt_rounded,
+                                          label: 'Sparks',
+                                          onTap: onSparks,
+                                        ),
+                                      'stories'
+                                          when settings.storiesEnabled &&
+                                              visibility.isEnabled(
+                                                AppModule.stories,
+                                              ) =>
+                                        _QuickPill(
+                                          icon: Icons.article_outlined,
+                                          label: 'Stories',
+                                          onTap: onStories,
+                                        ),
+                                      'forum'
+                                          when settings.forumEnabled &&
+                                              visibility.isEnabled(
+                                                AppModule.parentingForum,
+                                              ) =>
+                                        _QuickPill(
+                                          icon: Icons.forum_outlined,
+                                          label: 'Forum',
+                                          onTap: onForum,
+                                        ),
+                                      'documents'
+                                          when settings.documentsEnabled &&
+                                              visibility.isEnabled(
+                                                AppModule.documentStorage,
+                                              ) =>
+                                        _QuickPill(
+                                          icon: Icons.folder_outlined,
+                                          label: 'Docs',
+                                          onTap: onDocuments,
+                                        ),
+                                      'links'
+                                          when settings.linksEnabled &&
+                                              visibility.isEnabled(
+                                                AppModule.savedLinks,
+                                              ) =>
+                                        _QuickPill(
+                                          icon: Icons.link_outlined,
+                                          label: 'Links',
+                                          onTap: onLinks,
+                                        ),
+                                      'feed'
+                                          when visibility.isEnabled(
+                                            AppModule.familySharing,
+                                          ) =>
+                                        _QuickPill(
+                                          icon: Icons.people_outline_rounded,
+                                          label: 'Feed',
+                                          onTap: onSharedFeed,
+                                          showBadge: sharedCount > 0,
+                                        ),
+                                      'reminders'
+                                          when settings.remindersEnabled &&
+                                              visibility.isEnabled(
+                                                AppModule.reminders,
+                                              ) =>
+                                        _RemindersQuickPill(
+                                          profile: profile,
+                                          profileIndex: profileIndex,
+                                        ),
+                                      'future_plans'
+                                          when settings.futurePlansEnabled &&
+                                              visibility.isEnabled(
+                                                AppModule.futurePlans,
+                                              ) =>
+                                        _QuickPill(
+                                          icon: Icons.savings_outlined,
+                                          label: 'Future',
+                                          onTap: onFuturePlans,
+                                        ),
+                                      _ => null,
+                                    },
+                                  )
                                   .whereType<Widget>(),
                             ],
                           ),
@@ -1131,9 +1381,15 @@ class _BubbleState extends State<_Bubble> with SingleTickerProviderStateMixin {
     super.initState();
     // Larger bubbles drift more slowly for depth effect
     final ms = (18000 + widget.size * 80).toInt();
-    _ctrl = AnimationController(vsync: this, duration: Duration(milliseconds: ms))
-      ..value = (widget.size * 37 % 100) / 100 // unique phase per bubble
-      ..repeat();
+    _ctrl =
+        AnimationController(
+            vsync: this,
+            duration: Duration(milliseconds: ms),
+          )
+          ..value =
+              (widget.size * 37 % 100) /
+              100 // unique phase per bubble
+          ..repeat();
   }
 
   @override
@@ -1185,7 +1441,8 @@ class _SettingsBtn extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final customIcon = ref.watch(appSettingsProvider).customIcon;
-    final hasCustom = !kIsWeb &&
+    final hasCustom =
+        !kIsWeb &&
         customIcon != null &&
         customIcon.isNotEmpty &&
         File(customIcon).existsSync();
@@ -1203,7 +1460,10 @@ class _SettingsBtn extends ConsumerWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: Colors.white.withAlpha(45),
-                  border: Border.all(color: Colors.white.withAlpha(70), width: 0.8),
+                  border: Border.all(
+                    color: Colors.white.withAlpha(70),
+                    width: 0.8,
+                  ),
                   image: hasCustom
                       ? DecorationImage(
                           image: FileImage(File(customIcon)),
@@ -1213,7 +1473,11 @@ class _SettingsBtn extends ConsumerWidget {
                 ),
                 child: hasCustom
                     ? null
-                    : const Icon(Icons.settings_outlined, color: Colors.white, size: 20),
+                    : const Icon(
+                        Icons.settings_outlined,
+                        color: Colors.white,
+                        size: 20,
+                      ),
               ),
               if (hasCustom)
                 Positioned(
@@ -1226,7 +1490,11 @@ class _SettingsBtn extends ConsumerWidget {
                       shape: BoxShape.circle,
                       color: Colors.black.withAlpha(120),
                     ),
-                    child: const Icon(Icons.settings_outlined, color: Colors.white, size: 9),
+                    child: const Icon(
+                      Icons.settings_outlined,
+                      color: Colors.white,
+                      size: 9,
+                    ),
                   ),
                 ),
             ],
@@ -1277,7 +1545,9 @@ class _BackupHeaderIndicator extends StatelessWidget {
               const SizedBox(width: 5),
               Text(
                 sync.isSyncing
-                    ? (sync.currentUploadName != null ? 'Backing up…' : 'Syncing…')
+                    ? (sync.currentUploadName != null
+                          ? 'Backing up…'
+                          : 'Syncing…')
                     : 'Backed up',
                 style: TextStyle(
                   color: Colors.white.withAlpha(220),
@@ -1315,59 +1585,65 @@ class _QuickPill extends StatelessWidget {
       child: SizedBox(
         width: 68,
         child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              ClipOval(
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-                  child: Container(
-                    width: 46,
-                    height: 46,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white.withAlpha(onTap != null ? 55 : 28),
-                      border: Border.all(
-                        color: Colors.white.withAlpha(onTap != null ? 110 : 50),
-                        width: 1.0,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                ClipOval(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+                    child: Container(
+                      width: 46,
+                      height: 46,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withAlpha(onTap != null ? 55 : 28),
+                        border: Border.all(
+                          color: Colors.white.withAlpha(
+                            onTap != null ? 110 : 50,
+                          ),
+                          width: 1.0,
+                        ),
+                      ),
+                      child: Icon(
+                        icon,
+                        color: Colors.white.withAlpha(
+                          onTap != null ? 230 : 140,
+                        ),
+                        size: 20,
                       ),
                     ),
-                    child: Icon(icon,
-                        color: Colors.white.withAlpha(onTap != null ? 230 : 140),
-                        size: 20),
                   ),
                 ),
-              ),
-              if (showBadge)
-                Positioned(
-                  top: -1,
-                  right: -1,
-                  child: Container(
-                    width: 11,
-                    height: 11,
-                    decoration: BoxDecoration(
-                      color: Colors.redAccent,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 1.5),
+                if (showBadge)
+                  Positioned(
+                    top: -1,
+                    right: -1,
+                    child: Container(
+                      width: 11,
+                      height: 11,
+                      decoration: BoxDecoration(
+                        color: Colors.redAccent,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 1.5),
+                      ),
                     ),
                   ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.white.withAlpha(onTap != null ? 230 : 140),
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.1,
+              ],
             ),
-          ),
-        ],
+            const SizedBox(height: 6),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white.withAlpha(onTap != null ? 230 : 140),
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.1,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -1383,7 +1659,8 @@ class _MiniProfileAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasAvatar = profile.avatarImagePath != null &&
+    final hasAvatar =
+        profile.avatarImagePath != null &&
         profile.avatarImagePath!.isNotEmpty &&
         !kIsWeb &&
         File(profile.avatarImagePath!).existsSync();
@@ -1400,7 +1677,10 @@ class _MiniProfileAvatar extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: Colors.white.withAlpha(35),
-              border: Border.all(color: Colors.white.withAlpha(160), width: 1.5),
+              border: Border.all(
+                color: Colors.white.withAlpha(160),
+                width: 1.5,
+              ),
               image: hasAvatar
                   ? DecorationImage(
                       image: FileImage(File(profile.avatarImagePath!)),
@@ -1429,8 +1709,10 @@ class _RemindersQuickPill extends StatelessWidget {
   final KidProfile profile;
   final int profileIndex;
 
-  const _RemindersQuickPill(
-      {required this.profile, required this.profileIndex});
+  const _RemindersQuickPill({
+    required this.profile,
+    required this.profileIndex,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1448,80 +1730,84 @@ class _RemindersQuickPill extends StatelessWidget {
       child: SizedBox(
         width: 68,
         child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              ClipOval(
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                  child: Container(
-                    width: 46,
-                    height: 46,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: overdue > 0
-                          ? Colors.orange.withAlpha(70)
-                          : Colors.white.withAlpha(55),
-                      border: Border.all(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                ClipOval(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                    child: Container(
+                      width: 46,
+                      height: 46,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
                         color: overdue > 0
-                            ? Colors.orange.shade300.withAlpha(200)
-                            : Colors.white.withAlpha(110),
-                        width: 1.0,
+                            ? Colors.orange.withAlpha(70)
+                            : Colors.white.withAlpha(55),
+                        border: Border.all(
+                          color: overdue > 0
+                              ? Colors.orange.shade300.withAlpha(200)
+                              : Colors.white.withAlpha(110),
+                          width: 1.0,
+                        ),
                       ),
-                    ),
-                    child: Icon(
-                      overdue > 0
-                          ? Icons.alarm_outlined
-                          : Icons.notifications_outlined,
-                      color: overdue > 0 ? Colors.orange.shade200 : Colors.white,
-                      size: 20,
+                      child: Icon(
+                        overdue > 0
+                            ? Icons.alarm_outlined
+                            : Icons.notifications_outlined,
+                        color: overdue > 0
+                            ? Colors.orange.shade200
+                            : Colors.white,
+                        size: 20,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              if (badgeCount > 0)
-                Positioned(
-                  top: -3,
-                  right: -3,
-                  child: Container(
-                    width: 16,
-                    height: 16,
-                    decoration: BoxDecoration(
-                      color: overdue > 0 ? Colors.orange : Colors.white,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                          color: Colors.white.withAlpha(120), width: 1),
-                    ),
-                    child: Center(
-                      child: Text(
-                        '$badgeCount',
-                        style: TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w700,
-                          color: overdue > 0 ? Colors.white : Colors.black87,
+                if (badgeCount > 0)
+                  Positioned(
+                    top: -3,
+                    right: -3,
+                    child: Container(
+                      width: 16,
+                      height: 16,
+                      decoration: BoxDecoration(
+                        color: overdue > 0 ? Colors.orange : Colors.white,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white.withAlpha(120),
+                          width: 1,
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          '$badgeCount',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                            color: overdue > 0 ? Colors.white : Colors.black87,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'Remind',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: overdue > 0
-                  ? Colors.orange.shade100
-                  : Colors.white.withAlpha(230),
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.1,
+              ],
             ),
-          ),
-        ],
+            const SizedBox(height: 6),
+            Text(
+              'Remind',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: overdue > 0
+                    ? Colors.orange.shade100
+                    : Colors.white.withAlpha(230),
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.1,
+              ),
+            ),
+          ],
         ),
       ),
     );

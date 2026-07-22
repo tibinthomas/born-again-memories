@@ -1,0 +1,17 @@
+{
+  "memories": true,
+  "childProfiles": true,
+  "growthTracking": true,
+  "developmentChecklist": true,
+  "memorySparks": true,
+  "stories": true,
+  "parentingForum": true,
+  "reminders": false,
+  "documentStorage": false,
+  "savedLinks": false,
+  "futurePlans": true,
+  "familySharing": false,
+  "backupAndSync": true,
+  "accountsAndPrivacy": true,
+  "personalizationAndAccessibility": true
+}
