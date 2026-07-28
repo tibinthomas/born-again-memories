@@ -23,6 +23,7 @@ import '../services/local_storage_service.dart';
 import '../utils/chime.dart';
 import '../utils/profile_theme.dart';
 import 'login_screen.dart';
+import 'privacy_policy_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -2468,6 +2469,15 @@ class _About extends StatelessWidget {
           Text(
             'Cherish every precious moment.',
             style: TextStyle(fontSize: 12, color: Colors.grey.shade400),
+          ),
+          const SizedBox(height: 8),
+          TextButton.icon(
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen()),
+            ),
+            icon: const Icon(Icons.privacy_tip_outlined, size: 16),
+            label: const Text('Privacy Policy'),
           ),
         ],
       ),
