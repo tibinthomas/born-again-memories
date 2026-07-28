@@ -22,7 +22,6 @@ import '../services/icloud_service.dart';
 import '../services/local_storage_service.dart';
 import '../utils/chime.dart';
 import '../utils/profile_theme.dart';
-import 'login_screen.dart';
 import 'privacy_policy_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -904,12 +903,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             onPressed: () async {
               Navigator.pop(ctx);
               await ref.read(authServiceProvider).signOut();
-              if (mounted) {
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (_) => const LoginScreen()),
-                  (_) => false,
-                );
-              }
             },
             child: const Text('Sign out', style: TextStyle(color: Colors.red)),
           ),
@@ -1069,12 +1062,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       await ref
           .read(authServiceProvider)
           .softDeleteAccount(deleteDriveBackup: deleteDriveBackup);
-      if (mounted) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const LoginScreen()),
-          (_) => false,
-        );
-      }
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
       final msg = switch (e.code) {

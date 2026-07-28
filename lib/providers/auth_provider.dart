@@ -30,7 +30,9 @@ class AuthService {
     clientId: _clientId,
     // serverClientId is required on Android to get a valid idToken for Firebase,
     // but is unsupported on web (clientId already covers it there).
-    serverClientId: kIsWeb ? null : '535814593524-qnfs2h0978fkikcvueunqf8g6f7k3bot.apps.googleusercontent.com',
+    serverClientId: kIsWeb
+        ? null
+        : '535814593524-qnfs2h0978fkikcvueunqf8g6f7k3bot.apps.googleusercontent.com',
     scopes: ['email', DriveApi.driveFileScope],
   );
 
@@ -52,7 +54,9 @@ class AuthService {
   bool get isAppleUser =>
       !kIsWeb &&
       (Platform.isIOS || Platform.isMacOS) &&
-      (_auth.currentUser?.providerData.any((p) => p.providerId == 'apple.com') ??
+      (_auth.currentUser?.providerData.any(
+            (p) => p.providerId == 'apple.com',
+          ) ??
           false);
 
   Future<UserCredential?> signInWithGoogle() async {
@@ -104,7 +108,9 @@ class AuthService {
       throw UnsupportedError('Apple Sign In is not supported on web.');
     }
     if (!Platform.isIOS && !Platform.isMacOS) {
-      throw UnsupportedError('Apple Sign In is only available on Apple platforms.');
+      throw UnsupportedError(
+        'Apple Sign In is only available on Apple platforms.',
+      );
     }
 
     final rawNonce = _generateNonce();
@@ -157,9 +163,13 @@ class AuthService {
   }
 
   static String _generateNonce([int length = 32]) {
-    const charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+    const charset =
+        '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
     final random = Random.secure();
-    return List.generate(length, (_) => charset[random.nextInt(charset.length)]).join();
+    return List.generate(
+      length,
+      (_) => charset[random.nextInt(charset.length)],
+    ).join();
   }
 
   static String _sha256ofString(String input) {
@@ -169,8 +179,9 @@ class AuthService {
   }
 
   Future<void> signOut() async {
+    final signedInWithApple = isAppleUser;
     await _auth.signOut();
-    if (!isAppleUser) await googleSignIn.signOut();
+    if (!signedInWithApple) await googleSignIn.signOut();
   }
 
   Future<void> reauthenticateAndDelete() async {
@@ -206,7 +217,8 @@ class AuthService {
 
   // Called after the 28-day window expires — permanently removes the Firebase Auth account.
   Future<void> permanentlyDelete() async {
-    await _auth.currentUser?.delete(); // propagates FirebaseAuthException to callers
+    await _auth.currentUser
+        ?.delete(); // propagates FirebaseAuthException to callers
     try {
       await googleSignIn.signOut();
     } catch (_) {}

@@ -36,8 +36,13 @@ class BabyMilestonesApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(appSettingsProvider);
     final authState = ref.watch(authStateProvider);
+    final authIdentity = authState.valueOrNull?.uid ?? 'signed-out';
 
     return MaterialApp(
+      // Recreate the root Navigator when the signed-in identity changes. This
+      // prevents authenticated or login routes from a previous session from
+      // remaining above the new auth-controlled home screen.
+      key: ValueKey('app-$authIdentity'),
       debugShowCheckedModeBanner: false,
       title: 'M 4 Memories',
       localizationsDelegates: const [
@@ -51,9 +56,9 @@ class BabyMilestonesApp extends ConsumerWidget {
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(seedColor: settings.themeColor),
         textTheme: ThemeData.light().textTheme.apply(
-              bodyColor: Colors.grey.shade900,
-              displayColor: Colors.grey.shade900,
-            ),
+          bodyColor: Colors.grey.shade900,
+          displayColor: Colors.grey.shade900,
+        ),
         filledButtonTheme: FilledButtonThemeData(
           style: FilledButton.styleFrom(
             minimumSize: const Size(64, 40),
@@ -75,7 +80,8 @@ class BabyMilestonesApp extends ConsumerWidget {
         dialogTheme: const DialogThemeData(
           insetPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 24),
           shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(20))),
+            borderRadius: BorderRadius.all(Radius.circular(20)),
+          ),
         ),
       ),
       home: authState.when(
@@ -130,7 +136,9 @@ class _AuthedRootState extends ConsumerState<_AuthedRoot> {
         );
       }
       await FirestoreService.markNotificationsRead(
-          uid, unread.map((d) => d.id).toList());
+        uid,
+        unread.map((d) => d.id).toList(),
+      );
     });
   }
 
@@ -167,8 +175,9 @@ class _AuthedRootState extends ConsumerState<_AuthedRoot> {
       return;
     }
 
-    final deletedAt =
-        DateTime.fromMillisecondsSinceEpoch((deletedAtMs as num).toInt());
+    final deletedAt = DateTime.fromMillisecondsSinceEpoch(
+      (deletedAtMs as num).toInt(),
+    );
     if (DateTime.now().difference(deletedAt).inDays >= 28) {
       try {
         await ref.read(authServiceProvider).permanentlyDelete();
@@ -219,14 +228,14 @@ class _AppLoadingScreenState extends State<_AppLoadingScreen>
 
   // Bubble specs: (size, startX-fraction, startY-fraction, color)
   static const _bubbles = [
-    (110.0, -0.08, 0.04, Color(0xFFFFD6A5)),  // top-left peach
-    (70.0,   0.02, 0.38, Color(0xFFFFB3C6)),  // mid-left pink
-    (90.0,   0.82, 0.10, Color(0xFFB5D8FF)),  // top-right blue
-    (55.0,   0.72, 0.55, Color(0xFFFFD6E8)),  // mid-right blush
-    (80.0,   0.30, 0.80, Color(0xFFD6EEFF)),  // bottom-center blue
-    (40.0,   0.55, 0.20, Color(0xFFFFF0A0)),  // upper-mid yellow
-    (60.0,   0.15, 0.65, Color(0xFFFFE4C8)),  // lower-left peach
-    (35.0,   0.88, 0.78, Color(0xFFCBF0D9)),  // bottom-right mint
+    (110.0, -0.08, 0.04, Color(0xFFFFD6A5)), // top-left peach
+    (70.0, 0.02, 0.38, Color(0xFFFFB3C6)), // mid-left pink
+    (90.0, 0.82, 0.10, Color(0xFFB5D8FF)), // top-right blue
+    (55.0, 0.72, 0.55, Color(0xFFFFD6E8)), // mid-right blush
+    (80.0, 0.30, 0.80, Color(0xFFD6EEFF)), // bottom-center blue
+    (40.0, 0.55, 0.20, Color(0xFFFFF0A0)), // upper-mid yellow
+    (60.0, 0.15, 0.65, Color(0xFFFFE4C8)), // lower-left peach
+    (35.0, 0.88, 0.78, Color(0xFFCBF0D9)), // bottom-right mint
   ];
 
   @override
@@ -256,11 +265,7 @@ class _AppLoadingScreenState extends State<_AppLoadingScreen>
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Color(0xFFFFF8F0),
-              Color(0xFFFFF0F5),
-              Color(0xFFEEF6FF),
-            ],
+            colors: [Color(0xFFFFF8F0), Color(0xFFFFF0F5), Color(0xFFEEF6FF)],
           ),
         ),
         child: Stack(

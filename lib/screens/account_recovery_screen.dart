@@ -2,7 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_provider.dart';
-import 'login_screen.dart';
 import 'milestone_home_page.dart';
 
 class AccountRecoveryScreen extends ConsumerStatefulWidget {
@@ -54,8 +53,9 @@ class _AccountRecoveryScreenState extends ConsumerState<AccountRecoveryScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('Delete now?'),
         content: const Text(
-            'This will permanently delete your account immediately. '
-            'This cannot be undone.'),
+          'This will permanently delete your account immediately. '
+          'This cannot be undone.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -63,8 +63,7 @@ class _AccountRecoveryScreenState extends ConsumerState<AccountRecoveryScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child:
-                const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -74,12 +73,6 @@ class _AccountRecoveryScreenState extends ConsumerState<AccountRecoveryScreen> {
     setState(() => _deleting = true);
     try {
       await ref.read(authServiceProvider).permanentlyDelete();
-      if (mounted) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const LoginScreen()),
-          (_) => false,
-        );
-      }
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
       setState(() => _deleting = false);
@@ -127,7 +120,9 @@ class _AccountRecoveryScreenState extends ConsumerState<AccountRecoveryScreen> {
                       shape: BoxShape.circle,
                       color: Colors.orange.shade50,
                       border: Border.all(
-                          color: Colors.orange.shade200, width: 2),
+                        color: Colors.orange.shade200,
+                        width: 2,
+                      ),
                     ),
                     child: const Center(
                       child: Text('⏳', style: TextStyle(fontSize: 48)),
@@ -151,7 +146,9 @@ class _AccountRecoveryScreenState extends ConsumerState<AccountRecoveryScreen> {
                 Center(
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 10),
+                      horizontal: 20,
+                      vertical: 10,
+                    ),
                     decoration: BoxDecoration(
                       color: _daysRemaining <= 3
                           ? Colors.red.shade50
@@ -182,15 +179,15 @@ class _AccountRecoveryScreenState extends ConsumerState<AccountRecoveryScreen> {
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.75),
                     borderRadius: BorderRadius.circular(16),
-                    border:
-                        Border.all(color: Colors.grey.shade200),
+                    border: Border.all(color: Colors.grey.shade200),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _InfoRow(
                         icon: '💾',
-                        text: 'Your memories and milestones are safe until $deletion.',
+                        text:
+                            'Your memories and milestones are safe until $deletion.',
                       ),
                       const SizedBox(height: 10),
                       _InfoRow(
@@ -211,25 +208,29 @@ class _AccountRecoveryScreenState extends ConsumerState<AccountRecoveryScreen> {
                 const Spacer(),
                 // Recover button
                 FilledButton(
-                  onPressed:
-                      (_recovering || _deleting) ? null : _recover,
+                  onPressed: (_recovering || _deleting) ? null : _recover,
                   style: FilledButton.styleFrom(
                     backgroundColor: scheme.primary,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14)),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                   ),
                   child: _recovering
                       ? const SizedBox(
                           height: 20,
                           width: 20,
                           child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white),
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
                         )
                       : const Text(
                           'Recover account',
                           style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.w600),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                 ),
                 const SizedBox(height: 12),
@@ -264,16 +265,13 @@ class _InfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(icon, style: const TextStyle(fontSize: 18)),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(fontSize: 13, height: 1.4),
-            ),
-          ),
-        ],
-      );
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(icon, style: const TextStyle(fontSize: 18)),
+      const SizedBox(width: 10),
+      Expanded(
+        child: Text(text, style: const TextStyle(fontSize: 13, height: 1.4)),
+      ),
+    ],
+  );
 }
