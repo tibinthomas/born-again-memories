@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../models/kid_profile.dart';
 import '../../../providers/profiles_provider.dart';
+import '../../../services/local_storage_service.dart';
 import '../../../utils/app_date_picker.dart';
 import '../../../utils/chime.dart';
 import '../../../utils/date_formatter.dart';
@@ -47,10 +48,47 @@ class _AddProfileSheetState extends ConsumerState<AddProfileSheet> {
     }
   }
 
+  Future<void> _pickAvatar() async {
+    String? pickedPath;
+    if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
+      final file = await _picker.pickImage(source: ImageSource.gallery);
+      pickedPath = file?.path;
+    } else if (!kIsWeb) {
+      final result = await FilePicker.pickFiles(type: FileType.image);
+      pickedPath = result?.files.first.path;
+    }
+    if (pickedPath == null) return;
+
+    final form = ref.read(addProfileFormProvider);
+    final accent = ProfileTheme.forGender(form.gender).accent;
+    final croppedPath = await cropImage(
+      pickedPath,
+      isAvatar: true,
+      accent: accent,
+    );
+    if (croppedPath == null) return;
+
+    final permanentPath = await LocalStorageService.copyAvatarToStorage(
+      croppedPath,
+      'avatar_new_${DateTime.now().millisecondsSinceEpoch}',
+    );
+    final previous = ref.read(addProfileFormProvider).avatarImagePath;
+    if (previous != null && previous != permanentPath) {
+      await LocalStorageService.delete(previous);
+    }
+    ref
+        .read(addProfileFormProvider.notifier)
+        .setAvatarImagePath(permanentPath);
+  }
+
   @override
   Widget build(BuildContext context) {
     final form = ref.watch(addProfileFormProvider);
     final pTheme = ProfileTheme.forGender(form.gender);
+    final hasAvatar = !kIsWeb &&
+        form.avatarImagePath != null &&
+        form.avatarImagePath!.isNotEmpty &&
+        File(form.avatarImagePath!).existsSync();
     final hasBackground = !kIsWeb &&
         form.backgroundImagePath != null &&
         form.backgroundImagePath!.isNotEmpty;
@@ -85,6 +123,89 @@ class _AddProfileSheetState extends ConsumerState<AddProfileSheet> {
             Text('Tell us about your baby.',
                 style: TextStyle(fontSize: 14, color: Colors.grey.shade500)),
             const SizedBox(height: 20),
+
+            if (!kIsWeb) ...[
+              Center(
+                child: GestureDetector(
+                  onTap: _pickAvatar,
+                  child: Stack(
+                    children: [
+                      Container(
+                        width: 88,
+                        height: 88,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: pTheme.soft,
+                          border: Border.all(
+                            color: pTheme.accent.withAlpha(90),
+                            width: 1.5,
+                          ),
+                          image: hasAvatar
+                              ? DecorationImage(
+                                  image: FileImage(
+                                    File(form.avatarImagePath!),
+                                  ),
+                                  fit: BoxFit.cover,
+                                )
+                              : null,
+                        ),
+                        child: hasAvatar
+                            ? null
+                            : Center(
+                                child: Text(
+                                  pTheme.decalEmoji,
+                                  style: const TextStyle(fontSize: 38),
+                                ),
+                              ),
+                      ),
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: pTheme.accent,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.camera_alt,
+                            color: Colors.white,
+                            size: 16,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Center(
+                child: hasAvatar
+                    ? TextButton(
+                        onPressed: () async {
+                          final path = form.avatarImagePath;
+                          ref
+                              .read(addProfileFormProvider.notifier)
+                              .setAvatarImagePath(null);
+                          if (path != null) {
+                            await LocalStorageService.delete(path);
+                          }
+                        },
+                        child: const Text(
+                          'Remove profile photo',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      )
+                    : TextButton(
+                        onPressed: _pickAvatar,
+                        child: Text(
+                          'Add profile photo',
+                          style: TextStyle(color: pTheme.accent),
+                        ),
+                      ),
+              ),
+              const SizedBox(height: 8),
+            ],
 
             const Text('Gender',
                 style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
@@ -250,6 +371,7 @@ class _AddProfileSheetState extends ConsumerState<AddProfileSheet> {
                       form.dob,
                       form.color,
                       gender: form.gender,
+                      avatarImagePath: form.avatarImagePath,
                       backgroundImagePath: form.backgroundImagePath,
                     );
                 ref.read(selectedProfileIndexProvider.notifier).state =

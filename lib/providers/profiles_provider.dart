@@ -77,6 +77,7 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>?>
     DateTime dob,
     Color color, {
     Gender gender = Gender.neutral,
+    String? avatarImagePath,
     String? backgroundImagePath,
   }) async {
     final profile = KidProfile(
@@ -85,6 +86,7 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>?>
       dateOfBirth: dob,
       color: color,
       gender: gender,
+      avatarImagePath: avatarImagePath,
       backgroundImagePath: backgroundImagePath,
     );
     state = <KidProfile>[...(state ?? []), profile];
@@ -128,12 +130,14 @@ class AddProfileFormState {
   final DateTime dob;
   final Color color;
   final Gender gender;
+  final String? avatarImagePath;
   final String? backgroundImagePath;
 
   const AddProfileFormState({
     required this.dob,
     required this.color,
     this.gender = Gender.neutral,
+    this.avatarImagePath,
     this.backgroundImagePath,
   });
 
@@ -141,6 +145,8 @@ class AddProfileFormState {
     DateTime? dob,
     Color? color,
     Gender? gender,
+    String? avatarImagePath,
+    bool clearAvatar = false,
     String? backgroundImagePath,
     bool clearBackground = false,
   }) =>
@@ -148,6 +154,8 @@ class AddProfileFormState {
         dob: dob ?? this.dob,
         color: color ?? this.color,
         gender: gender ?? this.gender,
+        avatarImagePath:
+            clearAvatar ? null : (avatarImagePath ?? this.avatarImagePath),
         backgroundImagePath: clearBackground ? null : (backgroundImagePath ?? this.backgroundImagePath),
       );
 }
@@ -162,6 +170,9 @@ class AddProfileFormNotifier extends StateNotifier<AddProfileFormState> {
         gender: gender,
         color: ProfileTheme.forGender(gender).accent,
       );
+  void setAvatarImagePath(String? path) => state = path == null
+      ? state.copyWith(clearAvatar: true)
+      : state.copyWith(avatarImagePath: path);
   void setBackgroundImagePath(String? path) => state = path == null
       ? state.copyWith(clearBackground: true)
       : state.copyWith(backgroundImagePath: path);
