@@ -37,8 +37,9 @@ class EditProfileSheet extends ConsumerStatefulWidget {
 
 class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
   late final _nameController = TextEditingController(text: widget.profile.name);
-  late final _nicknameController =
-      TextEditingController(text: widget.profile.nickname ?? '');
+  late final _nicknameController = TextEditingController(
+    text: widget.profile.nickname ?? '',
+  );
 
   KidProfile get _profile => widget.profile;
   EditProfileFormNotifier get _form =>
@@ -53,19 +54,25 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
 
   Future<void> _pickAvatar(Color accent) async {
     if (kIsWeb) {
-      final result = await FilePicker.pickFiles(type: FileType.image, withData: true);
+      final result = await FilePicker.pickFiles(
+        type: FileType.image,
+        withData: true,
+      );
       final fileBytes = result?.files.firstOrNull?.bytes;
       final fileName = result?.files.firstOrNull?.name;
       if (fileBytes == null || fileName == null) return;
       _form.setUploadingAvatar(true);
       try {
-        final ext = fileName.contains('.') ? fileName.split('.').last.toLowerCase() : 'jpg';
+        final ext = fileName.contains('.')
+            ? fileName.split('.').last.toLowerCase()
+            : 'jpg';
         final mime = 'image/${ext == 'jpg' ? 'jpeg' : ext}';
         final authService = ref.read(authServiceProvider);
         final url = await DriveService.uploadProfileImageBytes(
           googleSignIn: authService.googleSignIn,
           bytes: fileBytes,
-          filename: 'avatar_${_profile.id}_${DateTime.now().millisecondsSinceEpoch}.$ext',
+          filename:
+              'avatar_${_profile.id}_${DateTime.now().millisecondsSinceEpoch}.$ext',
           mimeType: mime,
         );
         _form
@@ -74,15 +81,20 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
       } on DriveNotAuthorizedException {
         _form.setUploadingAvatar(false);
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('Google Drive access needed. Enable Drive Backup in Settings first.'),
-          ));
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Google Drive access needed. Enable Drive Backup in Settings first.',
+              ),
+            ),
+          );
         }
       } catch (e) {
         _form.setUploadingAvatar(false);
         if (mounted) {
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text('Upload failed: $e')));
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Upload failed: $e')));
         }
       }
       return;
@@ -93,17 +105,26 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
       final file = await picker.pickImage(source: ImageSource.gallery);
       pickedPath = file?.path;
     } else {
-      final result = await FilePicker.pickFiles(type: FileType.image, allowMultiple: false);
+      final result = await FilePicker.pickFiles(
+        type: FileType.image,
+        allowMultiple: false,
+      );
       pickedPath = result?.files.firstOrNull?.path;
     }
     if (pickedPath != null) {
-      final croppedPath = await cropImage(pickedPath, isAvatar: true, accent: accent);
+      final croppedPath = await cropImage(
+        pickedPath,
+        isAvatar: true,
+        accent: accent,
+      );
       if (croppedPath == null) return;
       final permanent = await LocalStorageService.copyAvatarToStorage(
         croppedPath,
         'avatar_${_profile.id}_${DateTime.now().millisecondsSinceEpoch}',
       );
-      final current = ref.read(editProfileFormProvider(_profile)).avatarImagePath;
+      final current = ref
+          .read(editProfileFormProvider(_profile))
+          .avatarImagePath;
       if (current != null && current != _profile.avatarImagePath) {
         LocalStorageService.delete(current);
       }
@@ -113,19 +134,25 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
 
   Future<void> _pickBackground(Color accent) async {
     if (kIsWeb) {
-      final result = await FilePicker.pickFiles(type: FileType.image, withData: true);
+      final result = await FilePicker.pickFiles(
+        type: FileType.image,
+        withData: true,
+      );
       final fileBytes = result?.files.firstOrNull?.bytes;
       final fileName = result?.files.firstOrNull?.name;
       if (fileBytes == null || fileName == null) return;
       _form.setUploadingBackground(true);
       try {
-        final ext = fileName.contains('.') ? fileName.split('.').last.toLowerCase() : 'jpg';
+        final ext = fileName.contains('.')
+            ? fileName.split('.').last.toLowerCase()
+            : 'jpg';
         final mime = 'image/${ext == 'jpg' ? 'jpeg' : ext}';
         final authService = ref.read(authServiceProvider);
         final url = await DriveService.uploadProfileImageBytes(
           googleSignIn: authService.googleSignIn,
           bytes: fileBytes,
-          filename: 'bg_${_profile.id}_${DateTime.now().millisecondsSinceEpoch}.$ext',
+          filename:
+              'bg_${_profile.id}_${DateTime.now().millisecondsSinceEpoch}.$ext',
           mimeType: mime,
         );
         _form
@@ -134,15 +161,20 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
       } on DriveNotAuthorizedException {
         _form.setUploadingBackground(false);
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('Google Drive access needed. Enable Drive Backup in Settings first.'),
-          ));
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Google Drive access needed. Enable Drive Backup in Settings first.',
+              ),
+            ),
+          );
         }
       } catch (e) {
         _form.setUploadingBackground(false);
         if (mounted) {
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text('Upload failed: $e')));
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Upload failed: $e')));
         }
       }
       return;
@@ -153,17 +185,26 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
       final file = await picker.pickImage(source: ImageSource.gallery);
       pickedPath = file?.path;
     } else {
-      final result = await FilePicker.pickFiles(type: FileType.image, allowMultiple: false);
+      final result = await FilePicker.pickFiles(
+        type: FileType.image,
+        allowMultiple: false,
+      );
       pickedPath = result?.files.firstOrNull?.path;
     }
     if (pickedPath != null) {
-      final croppedPath = await cropImage(pickedPath, isAvatar: false, accent: accent);
+      final croppedPath = await cropImage(
+        pickedPath,
+        isAvatar: false,
+        accent: accent,
+      );
       if (croppedPath == null) return;
       final permanent = await LocalStorageService.copyBackgroundToStorage(
         croppedPath,
         'bg_${_profile.id}_${DateTime.now().millisecondsSinceEpoch}',
       );
-      final current = ref.read(editProfileFormProvider(_profile)).backgroundImagePath;
+      final current = ref
+          .read(editProfileFormProvider(_profile))
+          .backgroundImagePath;
       if (current != null && current != _profile.backgroundImagePath) {
         LocalStorageService.delete(current);
       }
@@ -171,28 +212,42 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
     }
   }
 
-  void _save(BuildContext ctx) {
+  Future<void> _save(BuildContext ctx) async {
     final form = ref.read(editProfileFormProvider(_profile));
     final savePreset = ThemePreset.findById(form.themePresetId)!;
+    final removedLocalAvatar =
+        form.avatarImagePath == null &&
+        _profile.avatarImagePath != null &&
+        !_profile.avatarImagePath!.startsWith('http');
     final updated = _profile.copyWith(
       name: _nameController.text.trim(),
-      nickname: _nicknameController.text.trim().isEmpty ? null : _nicknameController.text.trim(),
+      nickname: _nicknameController.text.trim().isEmpty
+          ? null
+          : _nicknameController.text.trim(),
       clearNickname:
           _nicknameController.text.trim().isEmpty && _profile.nickname != null,
       dateOfBirth: form.dob,
       timeOfBirth: form.timeOfBirth,
-      clearTimeOfBirth: form.timeOfBirth == null && _profile.timeOfBirth != null,
+      clearTimeOfBirth:
+          form.timeOfBirth == null && _profile.timeOfBirth != null,
       color: savePreset.accent,
       themePresetId: form.themePresetId,
       gender: form.gender,
       avatarImagePath: form.avatarImagePath,
-      clearAvatar: form.avatarImagePath == null && _profile.avatarImagePath != null,
+      clearAvatar:
+          form.avatarImagePath == null && _profile.avatarImagePath != null,
       backgroundImagePath: form.backgroundImagePath,
       clearBackground:
-          form.backgroundImagePath == null && _profile.backgroundImagePath != null,
+          form.backgroundImagePath == null &&
+          _profile.backgroundImagePath != null,
     );
-    ref.read(profilesProvider.notifier).updateProfile(widget.profileIndex, updated);
-    Navigator.pop(ctx);
+    await ref
+        .read(profilesProvider.notifier)
+        .updateProfile(widget.profileIndex, updated);
+    if (removedLocalAvatar) {
+      await LocalStorageService.delete(_profile.avatarImagePath!);
+    }
+    if (ctx.mounted) Navigator.pop(ctx);
   }
 
   String _formatDate(DateTime date) => '${date.day}/${date.month}/${date.year}';
@@ -205,12 +260,16 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
     final pTheme = ProfileTheme.fromPreset(selectedPreset);
     final avatarPath = form.avatarImagePath;
     final backgroundPath = form.backgroundImagePath;
-    final hasAvatar = avatarPath != null &&
+    final hasAvatar =
+        avatarPath != null &&
         avatarPath.isNotEmpty &&
-        (avatarPath.startsWith('http') || (!kIsWeb && File(avatarPath).existsSync()));
-    final hasBackground = backgroundPath != null &&
+        (avatarPath.startsWith('http') ||
+            (!kIsWeb && File(avatarPath).existsSync()));
+    final hasBackground =
+        backgroundPath != null &&
         backgroundPath.isNotEmpty &&
-        (backgroundPath.startsWith('http') || (!kIsWeb && File(backgroundPath).existsSync()));
+        (backgroundPath.startsWith('http') ||
+            (!kIsWeb && File(backgroundPath).existsSync()));
 
     return Container(
       height: MediaQuery.sizeOf(context).height * 0.85,
@@ -236,9 +295,14 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
                 Text('Edit Profile', style: theme.textTheme.titleLarge),
                 const Spacer(),
                 TextButton(
-                  onPressed: () => _save(context),
-                  child: Text('Save',
-                      style: TextStyle(color: pTheme.accent, fontWeight: FontWeight.w600)),
+                  onPressed: () async => _save(context),
+                  child: Text(
+                    'Save',
+                    style: TextStyle(
+                      color: pTheme.accent,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -249,7 +313,9 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
               children: [
                 Center(
                   child: GestureDetector(
-                    onTap: form.isUploadingAvatar ? null : () => _pickAvatar(pTheme.accent),
+                    onTap: form.isUploadingAvatar
+                        ? null
+                        : () => _pickAvatar(pTheme.accent),
                     child: Stack(
                       children: [
                         Container(
@@ -261,7 +327,8 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
                             image: hasAvatar
                                 ? DecorationImage(
                                     image: avatarPath.startsWith('http')
-                                        ? NetworkImage(avatarPath) as ImageProvider
+                                        ? NetworkImage(avatarPath)
+                                              as ImageProvider
                                         : FileImage(File(avatarPath)),
                                     fit: BoxFit.cover,
                                   )
@@ -279,13 +346,15 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
                                   ),
                                 )
                               : hasAvatar
-                                  ? null
-                                  : Center(
-                                      child: Text(
-                                        ProfileTheme.forGender(form.gender).decalEmoji,
-                                        style: const TextStyle(fontSize: 36),
-                                      ),
-                                    ),
+                              ? null
+                              : Center(
+                                  child: Text(
+                                    ProfileTheme.forGender(
+                                      form.gender,
+                                    ).decalEmoji,
+                                    style: const TextStyle(fontSize: 36),
+                                  ),
+                                ),
                         ),
                         Positioned(
                           right: 0,
@@ -305,7 +374,11 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
                                       color: Colors.white,
                                     ),
                                   )
-                                : const Icon(Icons.camera_alt, color: Colors.white, size: 16),
+                                : const Icon(
+                                    Icons.camera_alt,
+                                    color: Colors.white,
+                                    size: 16,
+                                  ),
                           ),
                         ),
                       ],
@@ -316,37 +389,56 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
                   Center(
                     child: TextButton(
                       onPressed: () => _form.setAvatarPath(null),
-                      child: const Text('Remove photo', style: TextStyle(color: Colors.red)),
+                      child: const Text(
+                        'Remove photo',
+                        style: TextStyle(color: Colors.red),
+                      ),
                     ),
                   ),
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    Text('Background photo',
-                        style: TextStyle(
-                            fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey.shade700)),
+                    Text(
+                      'Background photo',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
                     const Spacer(),
                     if (hasBackground)
                       TextButton(
                         onPressed: () => _form.setBackgroundPath(null),
-                        child: Text('Remove',
-                            style: TextStyle(color: Colors.red.shade400, fontSize: 12)),
+                        child: Text(
+                          'Remove',
+                          style: TextStyle(
+                            color: Colors.red.shade400,
+                            fontSize: 12,
+                          ),
+                        ),
                       ),
                   ],
                 ),
                 const SizedBox(height: 8),
                 GestureDetector(
-                  onTap: form.isUploadingBackground ? null : () => _pickBackground(pTheme.accent),
+                  onTap: form.isUploadingBackground
+                      ? null
+                      : () => _pickBackground(pTheme.accent),
                   child: Container(
                     height: 90,
                     decoration: BoxDecoration(
                       color: pTheme.soft,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: pTheme.accent.withAlpha(80), width: 1.5),
+                      border: Border.all(
+                        color: pTheme.accent.withAlpha(80),
+                        width: 1.5,
+                      ),
                       image: hasBackground
                           ? DecorationImage(
                               image: backgroundPath.startsWith('http')
-                                  ? NetworkImage(backgroundPath) as ImageProvider
+                                  ? NetworkImage(backgroundPath)
+                                        as ImageProvider
                                   : FileImage(File(backgroundPath)),
                               fit: BoxFit.cover,
                               colorFilter: ColorFilter.mode(
@@ -373,7 +465,9 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
                                   hasBackground
                                       ? Icons.check_circle
                                       : Icons.add_photo_alternate_outlined,
-                                  color: hasBackground ? Colors.white : pTheme.accent,
+                                  color: hasBackground
+                                      ? Colors.white
+                                      : pTheme.accent,
                                   size: 28,
                                 ),
                                 const SizedBox(height: 4),
@@ -382,7 +476,9 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
                                       ? 'Photo selected — tap to change'
                                       : 'Tap to pick a photo',
                                   style: TextStyle(
-                                    color: hasBackground ? Colors.white : pTheme.accent,
+                                    color: hasBackground
+                                        ? Colors.white
+                                        : pTheme.accent,
                                     fontSize: 12,
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -393,9 +489,14 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                Text('Gender',
-                    style: TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey.shade700)),
+                Text(
+                  'Gender',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    color: Colors.grey.shade700,
+                  ),
+                ),
                 const SizedBox(height: 8),
                 Row(
                   children: Gender.values.map((g) {
@@ -411,7 +512,9 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
                         padding: const EdgeInsets.only(right: 8),
                         child: GestureDetector(
                           onTap: () => _form.setGenderAndPreset(
-                              g, ThemePreset.defaultIdForGender(g.name)),
+                            g,
+                            ThemePreset.defaultIdForGender(g.name),
+                          ),
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
                             padding: const EdgeInsets.symmetric(vertical: 12),
@@ -419,7 +522,9 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
                               color: isSelected ? gTheme.accent : gTheme.soft,
                               borderRadius: BorderRadius.circular(14),
                               border: Border.all(
-                                color: isSelected ? gTheme.accent : gTheme.accent.withAlpha(60),
+                                color: isSelected
+                                    ? gTheme.accent
+                                    : gTheme.accent.withAlpha(60),
                                 width: isSelected ? 2 : 1,
                               ),
                             ),
@@ -429,7 +534,9 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
                               style: TextStyle(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 13,
-                                color: isSelected ? Colors.white : gTheme.accent,
+                                color: isSelected
+                                    ? Colors.white
+                                    : gTheme.accent,
                               ),
                             ),
                           ),
@@ -444,8 +551,13 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
                   textCapitalization: TextCapitalization.words,
                   decoration: InputDecoration(
                     labelText: "Baby's name",
-                    prefixIcon: Icon(Icons.badge_outlined, color: pTheme.accent),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                    prefixIcon: Icon(
+                      Icons.badge_outlined,
+                      color: pTheme.accent,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
                       borderSide: BorderSide(color: pTheme.accent, width: 1.5),
@@ -458,8 +570,13 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
                   textCapitalization: TextCapitalization.words,
                   decoration: InputDecoration(
                     labelText: 'Nickname (optional)',
-                    prefixIcon: Icon(Icons.favorite_outline, color: pTheme.accent),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                    prefixIcon: Icon(
+                      Icons.favorite_outline,
+                      color: pTheme.accent,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
                       borderSide: BorderSide(color: pTheme.accent, width: 1.5),
@@ -472,17 +589,26 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
                     final picked = await showAppDatePicker(
                       context: context,
                       initialDate: form.dob,
-                      firstDate: DateTime.now().subtract(const Duration(days: 365 * 10)),
+                      firstDate: DateTime.now().subtract(
+                        const Duration(days: 365 * 10),
+                      ),
                       lastDate: DateTime.now(),
                     );
                     if (picked != null) _form.setDob(picked);
                   },
                   icon: Icon(Icons.cake_outlined, color: pTheme.accent),
-                  label: Text('Birthday: ${_formatDate(form.dob)}',
-                      style: TextStyle(color: pTheme.accent, fontWeight: FontWeight.w500)),
+                  label: Text(
+                    'Birthday: ${_formatDate(form.dob)}',
+                    style: TextStyle(
+                      color: pTheme.accent,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                     side: BorderSide(color: pTheme.accent.withAlpha(120)),
                   ),
                 ),
@@ -498,7 +624,14 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
                     if (picked != null) {
                       final now = DateTime.now();
                       _form.setTimeOfBirth(
-                          DateTime(now.year, now.month, now.day, picked.hour, picked.minute));
+                        DateTime(
+                          now.year,
+                          now.month,
+                          now.day,
+                          picked.hour,
+                          picked.minute,
+                        ),
+                      );
                     }
                   },
                   icon: Icon(Icons.access_time, color: pTheme.accent),
@@ -506,11 +639,16 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
                     form.timeOfBirth != null
                         ? 'Birth time: ${form.timeOfBirth!.hour.toString().padLeft(2, '0')}:${form.timeOfBirth!.minute.toString().padLeft(2, '0')}'
                         : 'Add birth time (optional)',
-                    style: TextStyle(color: pTheme.accent, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                      color: pTheme.accent,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                     side: BorderSide(color: pTheme.accent.withAlpha(120)),
                   ),
                 ),
@@ -519,14 +657,21 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
                     padding: const EdgeInsets.only(top: 4),
                     child: TextButton(
                       onPressed: () => _form.setTimeOfBirth(null),
-                      child: const Text('Remove time',
-                          style: TextStyle(color: Colors.red, fontSize: 12)),
+                      child: const Text(
+                        'Remove time',
+                        style: TextStyle(color: Colors.red, fontSize: 12),
+                      ),
                     ),
                   ),
                 const SizedBox(height: 16),
-                Text('Theme',
-                    style: TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey.shade700)),
+                Text(
+                  'Theme',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    color: Colors.grey.shade700,
+                  ),
+                ),
                 const SizedBox(height: 10),
                 ThemePresetPicker(
                   selectedId: form.themePresetId,
