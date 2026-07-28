@@ -309,7 +309,13 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
           ),
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: EdgeInsets.fromLTRB(
+                16,
+                0,
+                16,
+                MediaQuery.viewInsetsOf(context).bottom + 32,
+              ),
               children: [
                 Center(
                   child: GestureDetector(
@@ -568,6 +574,7 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
                 TextField(
                   controller: _nicknameController,
                   textCapitalization: TextCapitalization.words,
+                  scrollPadding: const EdgeInsets.only(bottom: 120),
                   decoration: InputDecoration(
                     labelText: 'Nickname (optional)',
                     prefixIcon: Icon(
