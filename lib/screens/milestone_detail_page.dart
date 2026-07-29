@@ -22,6 +22,7 @@ class MilestoneDetailPage extends StatefulWidget {
   final int initialIndex;
   final KidProfile profile;
   final bool animationsEnabled;
+  final Future<Milestone?> Function(Milestone milestone)? onEdit;
 
   const MilestoneDetailPage({
     super.key,
@@ -29,6 +30,7 @@ class MilestoneDetailPage extends StatefulWidget {
     required this.initialIndex,
     required this.profile,
     this.animationsEnabled = true,
+    this.onEdit,
   });
 
   @override
@@ -38,6 +40,8 @@ class MilestoneDetailPage extends StatefulWidget {
 class _MilestoneDetailPageState extends State<MilestoneDetailPage>
     with TickerProviderStateMixin {
   late int _currentIndex;
+  late final List<Milestone> _milestones;
+  bool _editing = false;
 
   // Slideshow
   bool _slideshowActive = false;
@@ -52,16 +56,21 @@ class _MilestoneDetailPageState extends State<MilestoneDetailPage>
   late final AnimationController _contentFadeCtrl;
   late final Animation<double> _contentFade;
 
-  Milestone get _current => widget.milestones[_currentIndex];
+  Milestone get _current => _milestones[_currentIndex];
 
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
+    _milestones = List<Milestone>.of(widget.milestones);
     _contentFadeCtrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 700));
-    _contentFade =
-        CurvedAnimation(parent: _contentFadeCtrl, curve: Curves.easeInOut);
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    );
+    _contentFade = CurvedAnimation(
+      parent: _contentFadeCtrl,
+      curve: Curves.easeInOut,
+    );
   }
 
   @override
@@ -77,9 +86,21 @@ class _MilestoneDetailPageState extends State<MilestoneDetailPage>
   }
 
   void _nextMilestone() {
-    if (_currentIndex < widget.milestones.length - 1) {
+    if (_currentIndex < _milestones.length - 1) {
       setState(() => _currentIndex++);
     }
+  }
+
+  Future<void> _editCurrent() async {
+    final edit = widget.onEdit;
+    if (edit == null || _editing) return;
+    setState(() => _editing = true);
+    final updated = await edit(_current);
+    if (!mounted) return;
+    setState(() {
+      _editing = false;
+      if (updated != null) _milestones[_currentIndex] = updated;
+    });
   }
 
   // ── Slideshow control ──────────────────────────────────────────────────────
@@ -108,7 +129,7 @@ class _MilestoneDetailPageState extends State<MilestoneDetailPage>
     _slideshowTimer = Timer(const Duration(seconds: 5), () {
       if (!mounted || !_slideshowActive) return;
       setState(() {
-        _currentIndex = (_currentIndex + 1) % widget.milestones.length;
+        _currentIndex = (_currentIndex + 1) % _milestones.length;
         _slideshowKey++;
       });
       _contentFadeCtrl.forward(from: 0);
@@ -141,7 +162,6 @@ class _MilestoneDetailPageState extends State<MilestoneDetailPage>
     } catch (_) {}
   }
 
-
   // ── Build ──────────────────────────────────────────────────────────────────
 
   @override
@@ -169,7 +189,7 @@ class _MilestoneDetailPageState extends State<MilestoneDetailPage>
               child: KeyedSubtree(
                 key: ValueKey(_currentIndex),
                 child: _MilestoneView(
-                  milestone: widget.milestones[_currentIndex],
+                  milestone: _milestones[_currentIndex],
                   profile: widget.profile,
                   isSlideshow: _slideshowActive,
                   contentFade: _contentFade,
@@ -191,15 +211,21 @@ class _MilestoneDetailPageState extends State<MilestoneDetailPage>
                         onTap: () => Navigator.pop(context),
                       ),
                       const Spacer(),
-                      if (widget.milestones.length > 1)
+                      if (widget.onEdit != null) ...[
+                        _GlassButton(
+                          icon: Icons.edit_outlined,
+                          label: _editing ? 'Editing…' : 'Edit',
+                          onTap: _editing ? null : _editCurrent,
+                        ),
+                        const SizedBox(width: 8),
+                      ],
+                      if (_milestones.length > 1)
                         _GlassButton(
                           icon: Icons.photo_library_outlined,
-                          label:
-                              '${_currentIndex + 1} / ${widget.milestones.length}',
+                          label: '${_currentIndex + 1} / ${_milestones.length}',
                           onTap: null,
                         ),
-                      if (widget.milestones.length > 1)
-                        const SizedBox(width: 8),
+                      if (_milestones.length > 1) const SizedBox(width: 8),
                       _GlassButton(
                         icon: Icons.play_circle_outline_rounded,
                         label: 'Slideshow',
@@ -211,7 +237,7 @@ class _MilestoneDetailPageState extends State<MilestoneDetailPage>
               ),
 
               // ── Left / right navigation arrows ────────────────────────────
-              if (widget.milestones.length > 1) ...[
+              if (_milestones.length > 1) ...[
                 if (_currentIndex > 0)
                   Positioned(
                     left: 8,
@@ -224,7 +250,7 @@ class _MilestoneDetailPageState extends State<MilestoneDetailPage>
                       ),
                     ),
                   ),
-                if (_currentIndex < widget.milestones.length - 1)
+                if (_currentIndex < _milestones.length - 1)
                   Positioned(
                     right: 8,
                     top: MediaQuery.paddingOf(context).top + 60,
@@ -243,7 +269,7 @@ class _MilestoneDetailPageState extends State<MilestoneDetailPage>
                   bottom: MediaQuery.sizeOf(context).height * 0.47 + 8,
                   child: Center(
                     child: _PageDots(
-                      count: widget.milestones.length,
+                      count: _milestones.length,
                       currentIndex: _currentIndex,
                       accent: pTheme.accent,
                     ),
@@ -256,7 +282,7 @@ class _MilestoneDetailPageState extends State<MilestoneDetailPage>
             if (_slideshowActive)
               _SlideshowChrome(
                 milestone: _current,
-                totalCount: widget.milestones.length,
+                totalCount: _milestones.length,
                 currentIndex: _currentIndex,
                 slideshowKey: _slideshowKey,
                 musicEnabled: _musicEnabled,
@@ -428,8 +454,10 @@ class _FloatingTitle extends StatelessWidget {
               ],
             ),
             child: Center(
-              child: Text(pTheme.decalEmoji,
-                  style: const TextStyle(fontSize: 40)),
+              child: Text(
+                pTheme.decalEmoji,
+                style: const TextStyle(fontSize: 40),
+              ),
             ),
           ),
           const SizedBox(height: 14),
@@ -444,8 +472,11 @@ class _FloatingTitle extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.calendar_today_outlined,
-                    size: 12, color: Colors.white70),
+                const Icon(
+                  Icons.calendar_today_outlined,
+                  size: 12,
+                  color: Colors.white70,
+                ),
                 const SizedBox(width: 6),
                 Text(
                   formatDate(milestone.date),
@@ -457,8 +488,11 @@ class _FloatingTitle extends StatelessWidget {
                 ),
                 if (milestone.isFavorite) ...[
                   const SizedBox(width: 8),
-                  const Icon(Icons.star_rounded,
-                      size: 13, color: Color(0xFFFBBF24)),
+                  const Icon(
+                    Icons.star_rounded,
+                    size: 13,
+                    color: Color(0xFFFBBF24),
+                  ),
                 ],
               ],
             ),
@@ -488,24 +522,27 @@ class _FloatingTitle extends StatelessWidget {
               runSpacing: 5,
               alignment: WrapAlignment.center,
               children: milestone.tags
-                  .map((tag) => Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withAlpha(22),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                              color: Colors.white.withAlpha(55)),
+                  .map(
+                    (tag) => Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withAlpha(22),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white.withAlpha(55)),
+                      ),
+                      child: Text(
+                        '#$tag',
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
                         ),
-                        child: Text(
-                          '#$tag',
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ))
+                      ),
+                    ),
+                  )
                   .toList(),
             ),
           ],
@@ -538,15 +575,18 @@ class _ContentSheet extends StatelessWidget {
       builder: (context, scrollController) => Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius:
-              const BorderRadius.vertical(top: Radius.circular(32)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
           boxShadow: [
             BoxShadow(
-                color: accent.withAlpha(50),
-                blurRadius: 30,
-                spreadRadius: 2),
+              color: accent.withAlpha(50),
+              blurRadius: 30,
+              spreadRadius: 2,
+            ),
             const BoxShadow(
-                color: Colors.black26, blurRadius: 20, spreadRadius: 2),
+              color: Colors.black26,
+              blurRadius: 20,
+              spreadRadius: 2,
+            ),
           ],
         ),
         child: CustomScrollView(
@@ -559,7 +599,8 @@ class _ContentSheet extends StatelessWidget {
                   // Themed gradient header with animated bubbles
                   ClipRRect(
                     borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(32)),
+                      top: Radius.circular(32),
+                    ),
                     child: Stack(
                       children: [
                         // Gradient background
@@ -580,7 +621,10 @@ class _ContentSheet extends StatelessWidget {
                         // Floating bubbles
                         Positioned.fill(
                           child: _TitleBubbleLayer(
-                              accent: accent, secondary: secondary, seed: milestone.id),
+                            accent: accent,
+                            secondary: secondary,
+                            seed: milestone.id,
+                          ),
                         ),
                         // Content on top
                         Column(
@@ -588,7 +632,9 @@ class _ContentSheet extends StatelessWidget {
                             // Drag handle
                             Center(
                               child: Container(
-                                margin: const EdgeInsets.symmetric(vertical: 12),
+                                margin: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
                                 width: 44,
                                 height: 4,
                                 decoration: BoxDecoration(
@@ -599,8 +645,7 @@ class _ContentSheet extends StatelessWidget {
                             ),
                             // Title row
                             Padding(
-                              padding:
-                                  const EdgeInsets.fromLTRB(20, 0, 16, 16),
+                              padding: const EdgeInsets.fromLTRB(20, 0, 16, 16),
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -620,13 +665,17 @@ class _ContentSheet extends StatelessWidget {
                                       ),
                                       boxShadow: [
                                         BoxShadow(
-                                            color: accent.withAlpha(80),
-                                            blurRadius: 12,
-                                            offset: const Offset(0, 4)),
+                                          color: accent.withAlpha(80),
+                                          blurRadius: 12,
+                                          offset: const Offset(0, 4),
+                                        ),
                                       ],
                                     ),
-                                    child: const Icon(Icons.auto_awesome,
-                                        color: Colors.white, size: 20),
+                                    child: const Icon(
+                                      Icons.auto_awesome,
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(
@@ -647,9 +696,10 @@ class _ContentSheet extends StatelessWidget {
                                         Row(
                                           children: [
                                             Icon(
-                                                Icons.calendar_today_outlined,
-                                                size: 12,
-                                                color: accent),
+                                              Icons.calendar_today_outlined,
+                                              size: 12,
+                                              color: accent,
+                                            ),
                                             const SizedBox(width: 4),
                                             Text(
                                               formatDate(milestone.date),
@@ -661,9 +711,11 @@ class _ContentSheet extends StatelessWidget {
                                             ),
                                             if (milestone.isFavorite) ...[
                                               const SizedBox(width: 8),
-                                              const Icon(Icons.star_rounded,
-                                                  size: 14,
-                                                  color: Color(0xFFFBBF24)),
+                                              const Icon(
+                                                Icons.star_rounded,
+                                                size: 14,
+                                                color: Color(0xFFFBBF24),
+                                              ),
                                             ],
                                           ],
                                         ),
@@ -675,10 +727,9 @@ class _ContentSheet extends StatelessWidget {
                             ),
                           ],
                         ),
-                      ],   // closes Stack children
-                    ),     // closes Stack
-                  ),       // closes ClipRRect
-
+                      ], // closes Stack children
+                    ), // closes Stack
+                  ), // closes ClipRRect
                   // Body content
                   Padding(
                     padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
@@ -691,11 +742,9 @@ class _ContentSheet extends StatelessWidget {
                             width: double.infinity,
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: Color.lerp(
-                                  Colors.white, accent, 0.05),
+                              color: Color.lerp(Colors.white, accent, 0.05),
                               borderRadius: BorderRadius.circular(18),
-                              border: Border.all(
-                                  color: accent.withAlpha(30)),
+                              border: Border.all(color: accent.withAlpha(30)),
                             ),
                             child: Text(
                               milestone.description,
@@ -714,25 +763,29 @@ class _ContentSheet extends StatelessWidget {
                             spacing: 6,
                             runSpacing: 6,
                             children: milestone.tags
-                                .map((tag) => Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 12, vertical: 5),
-                                      decoration: BoxDecoration(
-                                        color: accent.withAlpha(18),
-                                        borderRadius:
-                                            BorderRadius.circular(20),
-                                        border: Border.all(
-                                            color: accent.withAlpha(60)),
+                                .map(
+                                  (tag) => Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 5,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: accent.withAlpha(18),
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: accent.withAlpha(60),
                                       ),
-                                      child: Text(
-                                        '#$tag',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: accent,
-                                          fontWeight: FontWeight.w600,
-                                        ),
+                                    ),
+                                    child: Text(
+                                      '#$tag',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: accent,
+                                        fontWeight: FontWeight.w600,
                                       ),
-                                    ))
+                                    ),
+                                  ),
+                                )
                                 .toList(),
                           ),
                         ],
@@ -803,20 +856,24 @@ class _MediaSection extends StatelessWidget {
         if (videos.isNotEmpty) ...[
           const SizedBox(height: 24),
           _sectionLabel('Videos', pTheme.accent),
-          ...videos.map((v) => Padding(
-                padding: const EdgeInsets.fromLTRB(24, 10, 24, 0),
-                child: _VideoTile(attachment: v, accent: pTheme.accent),
-              )),
+          ...videos.map(
+            (v) => Padding(
+              padding: const EdgeInsets.fromLTRB(24, 10, 24, 0),
+              child: _VideoTile(attachment: v, accent: pTheme.accent),
+            ),
+          ),
         ],
 
         // Audio
         if (audios.isNotEmpty) ...[
           const SizedBox(height: 24),
           _sectionLabel('Voice Memos', pTheme.accent),
-          ...audios.map((a) => Padding(
-                padding: const EdgeInsets.fromLTRB(24, 10, 24, 0),
-                child: AudioTile(attachment: a, accent: pTheme.accent),
-              )),
+          ...audios.map(
+            (a) => Padding(
+              padding: const EdgeInsets.fromLTRB(24, 10, 24, 0),
+              child: AudioTile(attachment: a, accent: pTheme.accent),
+            ),
+          ),
         ],
       ],
     );
@@ -824,26 +881,30 @@ class _MediaSection extends StatelessWidget {
 }
 
 Widget _sectionLabel(String text, Color accent) => Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Row(
-        children: [
-          Container(
-              width: 3,
-              height: 14,
-              decoration: BoxDecoration(
-                  color: accent, borderRadius: BorderRadius.circular(2))),
-          const SizedBox(width: 8),
-          Text(
-            text,
-            style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: accent,
-                letterSpacing: 0.8),
-          ),
-        ],
+  padding: const EdgeInsets.symmetric(horizontal: 24),
+  child: Row(
+    children: [
+      Container(
+        width: 3,
+        height: 14,
+        decoration: BoxDecoration(
+          color: accent,
+          borderRadius: BorderRadius.circular(2),
+        ),
       ),
-    );
+      const SizedBox(width: 8),
+      Text(
+        text,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          color: accent,
+          letterSpacing: 0.8,
+        ),
+      ),
+    ],
+  ),
+);
 
 // ── Photo thumbnail ────────────────────────────────────────────────────────────
 
@@ -875,8 +936,11 @@ class _PhotoThumbnail extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.image_not_supported_outlined,
-                size: 32, color: Colors.grey.shade400),
+            Icon(
+              Icons.image_not_supported_outlined,
+              size: 32,
+              color: Colors.grey.shade400,
+            ),
             const SizedBox(height: 8),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -896,10 +960,8 @@ class _PhotoThumbnail extends StatelessWidget {
       onTap: () => showDialog(
         context: context,
         barrierColor: Colors.black87,
-        builder: (_) => _PhotoDialog(
-          photos: allPhotos,
-          initialIndex: initialIndex,
-        ),
+        builder: (_) =>
+            _PhotoDialog(photos: allPhotos, initialIndex: initialIndex),
       ),
       child: Hero(
         tag: 'photo_${attachment.id}',
@@ -915,7 +977,10 @@ class _PhotoThumbnail extends StatelessWidget {
                   left: 0,
                   right: 0,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 6,
+                    ),
                     decoration: const BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.bottomCenter,
@@ -926,9 +991,10 @@ class _PhotoThumbnail extends StatelessWidget {
                     child: Text(
                       attachment.label!,
                       style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500),
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -945,8 +1011,11 @@ class _PhotoThumbnail extends StatelessWidget {
                     color: Colors.black.withAlpha(100),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.open_in_full,
-                      size: 14, color: Colors.white),
+                  child: const Icon(
+                    Icons.open_in_full,
+                    size: 14,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ],
@@ -1008,7 +1077,8 @@ class _PhotoDialogState extends State<_PhotoDialog> {
                     a.driveFileId == null &&
                     a.iCloudFileId == null) {
                   return const Center(
-                      child: Icon(Icons.broken_image, color: Colors.white54));
+                    child: Icon(Icons.broken_image, color: Colors.white54),
+                  );
                 }
                 return InteractiveViewer(
                   minScale: 0.5,
@@ -1031,8 +1101,9 @@ class _PhotoDialogState extends State<_PhotoDialog> {
               child: Row(
                 children: [
                   _GlassButton(
-                      icon: Icons.close,
-                      onTap: () => Navigator.pop(context)),
+                    icon: Icons.close,
+                    onTap: () => Navigator.pop(context),
+                  ),
                   const Spacer(),
                   if (widget.photos.length > 1)
                     _GlassButton(
@@ -1053,12 +1124,14 @@ class _PhotoDialogState extends State<_PhotoDialog> {
                   bottom: 0,
                   child: Center(
                     child: _NavArrow(
-                        icon: Icons.chevron_left_rounded,
-                        onTap: () {
-                          _ctrl.previousPage(
-                              duration: const Duration(milliseconds: 250),
-                              curve: Curves.easeOut);
-                        }),
+                      icon: Icons.chevron_left_rounded,
+                      onTap: () {
+                        _ctrl.previousPage(
+                          duration: const Duration(milliseconds: 250),
+                          curve: Curves.easeOut,
+                        );
+                      },
+                    ),
                   ),
                 ),
               if (_index < widget.photos.length - 1)
@@ -1068,12 +1141,14 @@ class _PhotoDialogState extends State<_PhotoDialog> {
                   bottom: 0,
                   child: Center(
                     child: _NavArrow(
-                        icon: Icons.chevron_right_rounded,
-                        onTap: () {
-                          _ctrl.nextPage(
-                              duration: const Duration(milliseconds: 250),
-                              curve: Curves.easeOut);
-                        }),
+                      icon: Icons.chevron_right_rounded,
+                      onTap: () {
+                        _ctrl.nextPage(
+                          duration: const Duration(milliseconds: 250),
+                          curve: Curves.easeOut,
+                        );
+                      },
+                    ),
                   ),
                 ),
             ],
@@ -1131,10 +1206,10 @@ class _VideoTile extends StatelessWidget {
     return GestureDetector(
       onTap: exists
           ? () => showDialog(
-                context: context,
-                barrierColor: Colors.black87,
-                builder: (_) => _VideoDialog(attachment: attachment),
-              )
+              context: context,
+              barrierColor: Colors.black87,
+              builder: (_) => _VideoDialog(attachment: attachment),
+            )
           : null,
       child: Container(
         padding: const EdgeInsets.all(14),
@@ -1152,8 +1227,11 @@ class _VideoTile extends StatelessWidget {
                 color: accent.withAlpha(30),
                 shape: BoxShape.circle,
               ),
-              child: Icon(exists ? Icons.play_arrow_rounded : Icons.videocam_off,
-                  size: 28, color: accent),
+              child: Icon(
+                exists ? Icons.play_arrow_rounded : Icons.videocam_off,
+                size: 28,
+                color: accent,
+              ),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -1165,9 +1243,10 @@ class _VideoTile extends StatelessWidget {
                         ? attachment.label!
                         : attachment.name,
                     style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                        color: Color(0xFF1A1A1A)),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                      color: Color(0xFF1A1A1A),
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -1175,14 +1254,21 @@ class _VideoTile extends StatelessWidget {
                   Text(
                     exists ? 'Tap to play' : 'File not available',
                     style: TextStyle(
-                        fontSize: 12,
-                        color: exists ? Colors.grey.shade500 : Colors.red.shade400),
+                      fontSize: 12,
+                      color: exists
+                          ? Colors.grey.shade500
+                          : Colors.red.shade400,
+                    ),
                   ),
                 ],
               ),
             ),
             if (exists)
-              Icon(Icons.fullscreen_rounded, color: accent.withAlpha(150), size: 22),
+              Icon(
+                Icons.fullscreen_rounded,
+                color: accent.withAlpha(150),
+                size: 22,
+              ),
           ],
         ),
       ),
@@ -1214,11 +1300,19 @@ class _VideoDialogState extends State<_VideoDialog> {
 
   Future<void> _initVideo() async {
     try {
-      final ctrl = VideoPlayerController.file(File(widget.attachment.localPath));
+      final ctrl = VideoPlayerController.file(
+        File(widget.attachment.localPath),
+      );
       await ctrl.initialize();
-      ctrl.addListener(() { if (mounted) setState(() {}); });
+      ctrl.addListener(() {
+        if (mounted) setState(() {});
+      });
       await ctrl.play();
-      if (mounted) setState(() { _ctrl = ctrl; _initialized = true; });
+      if (mounted)
+        setState(() {
+          _ctrl = ctrl;
+          _initialized = true;
+        });
     } catch (_) {}
   }
 
@@ -1233,8 +1327,9 @@ class _VideoDialogState extends State<_VideoDialog> {
     setState(() => _showControls = !_showControls);
     if (_showControls) {
       _hideTimer?.cancel();
-      _hideTimer = Timer(const Duration(seconds: 3),
-          () { if (mounted) setState(() => _showControls = false); });
+      _hideTimer = Timer(const Duration(seconds: 3), () {
+        if (mounted) setState(() => _showControls = false);
+      });
     }
   }
 
@@ -1266,7 +1361,9 @@ class _VideoDialogState extends State<_VideoDialog> {
                   ),
                 )
               else
-                const Center(child: CircularProgressIndicator(color: Colors.white)),
+                const Center(
+                  child: CircularProgressIndicator(color: Colors.white),
+                ),
 
               AnimatedOpacity(
                 opacity: _showControls ? 1.0 : 0.0,
@@ -1280,7 +1377,11 @@ class _VideoDialogState extends State<_VideoDialog> {
                           gradient: LinearGradient(
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
-                            colors: [Colors.black54, Colors.transparent, Colors.black54],
+                            colors: [
+                              Colors.black54,
+                              Colors.transparent,
+                              Colors.black54,
+                            ],
                             stops: [0.0, 0.45, 1.0],
                           ),
                         ),
@@ -1292,8 +1393,9 @@ class _VideoDialogState extends State<_VideoDialog> {
                       top: MediaQuery.paddingOf(context).top + 8,
                       left: 12,
                       child: _GlassButton(
-                          icon: Icons.close,
-                          onTap: () => Navigator.pop(context)),
+                        icon: Icons.close,
+                        onTap: () => Navigator.pop(context),
+                      ),
                     ),
 
                     // Play/pause
@@ -1310,7 +1412,9 @@ class _VideoDialogState extends State<_VideoDialog> {
                               color: Colors.white.withAlpha(40),
                               shape: BoxShape.circle,
                               border: Border.all(
-                                  color: Colors.white.withAlpha(100), width: 1.5),
+                                color: Colors.white.withAlpha(100),
+                                width: 1.5,
+                              ),
                             ),
                             child: Icon(
                               _ctrl!.value.isPlaying
@@ -1345,10 +1449,20 @@ class _VideoDialogState extends State<_VideoDialog> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(_fmt(_ctrl!.value.position),
-                                    style: const TextStyle(color: Colors.white70, fontSize: 12)),
-                                Text(_fmt(_ctrl!.value.duration),
-                                    style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                                Text(
+                                  _fmt(_ctrl!.value.position),
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                Text(
+                                  _fmt(_ctrl!.value.duration),
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 12,
+                                  ),
+                                ),
                               ],
                             ),
                           ],
@@ -1376,8 +1490,11 @@ class _SlideshowContent extends StatelessWidget {
   final ProfileTheme pTheme;
   final Animation<double> fade;
 
-  const _SlideshowContent(
-      {required this.milestone, required this.pTheme, required this.fade});
+  const _SlideshowContent({
+    required this.milestone,
+    required this.pTheme,
+    required this.fade,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1396,23 +1513,32 @@ class _SlideshowContent extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: Colors.white.withAlpha(25),
-                  border: Border.all(color: Colors.white.withAlpha(60), width: 1.5),
+                  border: Border.all(
+                    color: Colors.white.withAlpha(60),
+                    width: 1.5,
+                  ),
                   boxShadow: [
                     BoxShadow(
-                        color: pTheme.accent.withAlpha(120),
-                        blurRadius: 30,
-                        spreadRadius: 8)
+                      color: pTheme.accent.withAlpha(120),
+                      blurRadius: 30,
+                      spreadRadius: 8,
+                    ),
                   ],
                 ),
                 child: Center(
-                  child: Text(pTheme.decalEmoji,
-                      style: const TextStyle(fontSize: 38)),
+                  child: Text(
+                    pTheme.decalEmoji,
+                    style: const TextStyle(fontSize: 38),
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
               // Date
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white.withAlpha(25),
                   borderRadius: BorderRadius.circular(20),
@@ -1421,7 +1547,10 @@ class _SlideshowContent extends StatelessWidget {
                 child: Text(
                   formatDate(milestone.date),
                   style: const TextStyle(
-                      color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500),
+                    color: Colors.white70,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
@@ -1534,23 +1663,34 @@ class _SlideshowChrome extends StatelessWidget {
                     onTap: onStop,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 12),
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white.withAlpha(30),
                         borderRadius: BorderRadius.circular(28),
                         border: Border.all(
-                            color: Colors.white.withAlpha(80), width: 1.5),
+                          color: Colors.white.withAlpha(80),
+                          width: 1.5,
+                        ),
                       ),
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.stop_rounded, color: Colors.white, size: 20),
+                          Icon(
+                            Icons.stop_rounded,
+                            color: Colors.white,
+                            size: 20,
+                          ),
                           SizedBox(width: 8),
-                          Text('Stop slideshow',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 14)),
+                          Text(
+                            'Stop slideshow',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -1580,8 +1720,11 @@ class _TitleBubbleLayer extends StatefulWidget {
   final Color accent;
   final Color secondary;
   final String seed;
-  const _TitleBubbleLayer(
-      {required this.accent, required this.secondary, required this.seed});
+  const _TitleBubbleLayer({
+    required this.accent,
+    required this.secondary,
+    required this.seed,
+  });
 
   @override
   State<_TitleBubbleLayer> createState() => _TitleBubbleLayerState();
@@ -1686,8 +1829,8 @@ class _BubbleLayerState extends State<_BubbleLayer>
     super.initState();
     final rng = math.Random(widget.seed.hashCode);
     _phases = List.generate(6, (_) => rng.nextDouble() * 2 * math.pi);
-    _amps   = List.generate(6, (_) => 0.7 + rng.nextDouble() * 0.6);
-    _signs  = List.generate(6, (_) => rng.nextBool() ? 1.0 : -1.0);
+    _amps = List.generate(6, (_) => 0.7 + rng.nextDouble() * 0.6);
+    _signs = List.generate(6, (_) => rng.nextBool() ? 1.0 : -1.0);
     _ctrl = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 22),
@@ -1725,7 +1868,9 @@ class _BubbleLayerState extends State<_BubbleLayer>
                 ),
                 // Large secondary — opposite sweep near bottom
                 Positioned(
-                  left: (c(_signs[1] * t + _phases[1]) * 0.5 + 0.5) * (w + 100) - 50,
+                  left:
+                      (c(_signs[1] * t + _phases[1]) * 0.5 + 0.5) * (w + 100) -
+                      50,
                   top: h * 0.68 + s(t * 3 + _phases[1]) * h * 0.05 * _amps[1],
                   child: _DetailBubble(100, secondary, 28),
                 ),
@@ -1737,13 +1882,17 @@ class _BubbleLayerState extends State<_BubbleLayer>
                 ),
                 // Medium accent — wide circular orbit
                 Positioned(
-                  left: w * 0.5 + c(_signs[3] * t + _phases[3]) * w * 0.44 * _amps[3],
+                  left:
+                      w * 0.5 +
+                      c(_signs[3] * t + _phases[3]) * w * 0.44 * _amps[3],
                   top: h * 0.38 + s(t + _phases[3]) * h * 0.32 * _amps[3],
                   child: _DetailBubble(75, accent, 22),
                 ),
                 // Small accent — fast small orbit
                 Positioned(
-                  left: w * 0.3 + c(_signs[4] * t * 3 + _phases[4]) * w * 0.22 * _amps[4],
+                  left:
+                      w * 0.3 +
+                      c(_signs[4] * t * 3 + _phases[4]) * w * 0.22 * _amps[4],
                   top: h * 0.22 + s(t * 3 + _phases[4]) * h * 0.16 * _amps[4],
                   child: _DetailBubble(32, accent, 20),
                 ),
@@ -1788,8 +1937,11 @@ class _PageDots extends StatelessWidget {
   final int currentIndex;
   final Color accent;
 
-  const _PageDots(
-      {required this.count, required this.currentIndex, required this.accent});
+  const _PageDots({
+    required this.count,
+    required this.currentIndex,
+    required this.accent,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1861,14 +2013,19 @@ class _GlassButton extends StatelessWidget {
       onTap: onTap,
       child: Container(
         padding: EdgeInsets.symmetric(
-            horizontal: label != null ? 12 : 10, vertical: 8),
+          horizontal: label != null ? 12 : 10,
+          vertical: 8,
+        ),
         decoration: BoxDecoration(
           color: Colors.black.withAlpha(60),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: Colors.white.withAlpha(50)),
           boxShadow: [
             BoxShadow(
-                color: Colors.black.withAlpha(40), blurRadius: 8, spreadRadius: 1)
+              color: Colors.black.withAlpha(40),
+              blurRadius: 8,
+              spreadRadius: 1,
+            ),
           ],
         ),
         child: Row(
@@ -1877,11 +2034,14 @@ class _GlassButton extends StatelessWidget {
             Icon(icon, color: Colors.white, size: 18),
             if (label != null) ...[
               const SizedBox(width: 6),
-              Text(label!,
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600)),
+              Text(
+                label!,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           ],
         ),

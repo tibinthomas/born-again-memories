@@ -250,6 +250,67 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
     if (ctx.mounted) Navigator.pop(ctx);
   }
 
+  Future<void> _confirmDelete() async {
+    var matches = false;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Delete child profile?'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'This permanently deletes ${_profile.name} and all memories, '
+                'measurements, reminders, documents, links and plans saved '
+                'under this profile.',
+              ),
+              const SizedBox(height: 16),
+              Text('Type "${_profile.name}" to confirm:'),
+              const SizedBox(height: 8),
+              TextField(
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: _profile.name,
+                  border: const OutlineInputBorder(),
+                ),
+                onChanged: (value) => setDialogState(
+                  () => matches = value.trim() == _profile.name,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: matches
+                  ? () => Navigator.pop(dialogContext, true)
+                  : null,
+              style: FilledButton.styleFrom(backgroundColor: Colors.red),
+              child: const Text('Delete permanently'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+    final profilesNotifier = ref.read(profilesProvider.notifier);
+    final profileIndex = widget.profileIndex;
+    final sheetRoute = ModalRoute.of(context);
+
+    // Close the edit sheet before changing the profile list. Removing the
+    // selected profile while this sheet and its inherited dependencies are
+    // still mounted can trigger Flutter's `_dependents.isEmpty` assertion.
+    Navigator.pop(context);
+    if (sheetRoute != null) await sheetRoute.completed;
+    await profilesNotifier.deleteProfile(profileIndex);
+  }
+
   String _formatDate(DateTime date) => '${date.day}/${date.month}/${date.year}';
 
   @override
@@ -683,6 +744,17 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
                 ThemePresetPicker(
                   selectedId: form.themePresetId,
                   onSelect: (id) => _form.setThemePreset(id),
+                ),
+                const SizedBox(height: 28),
+                OutlinedButton.icon(
+                  onPressed: _confirmDelete,
+                  icon: const Icon(Icons.delete_outline_rounded),
+                  label: const Text('Delete child profile'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    side: BorderSide(color: Colors.red.shade200),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
                 ),
               ],
             ),

@@ -150,28 +150,34 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
   Future<void> _addXFiles(List<XFile> files) async {
     for (int i = 0; i < files.length; i++) {
       final f = files[i];
-      final ext = f.name.contains('.') ? f.name.split('.').last.toLowerCase() : '';
+      final ext = f.name.contains('.')
+          ? f.name.split('.').last.toLowerCase()
+          : '';
       final bytes = kIsWeb ? await f.readAsBytes() : null;
-      _addAttachment(Attachment(
-        id: '${DateTime.now().microsecondsSinceEpoch}_$i',
-        name: f.name,
-        localPath: kIsWeb ? '' : f.path,
-        type: getAttachmentTypeFromExtension(ext),
-        sizeBytes: kIsWeb ? bytes!.length : 0,
-        webBytes: bytes,
-      ));
+      _addAttachment(
+        Attachment(
+          id: '${DateTime.now().microsecondsSinceEpoch}_$i',
+          name: f.name,
+          localPath: kIsWeb ? '' : f.path,
+          type: getAttachmentTypeFromExtension(ext),
+          sizeBytes: kIsWeb ? bytes!.length : 0,
+          webBytes: bytes,
+        ),
+      );
     }
   }
 
   static String _extOf(PlatformFile f) {
-    if (f.extension != null && f.extension!.isNotEmpty) return f.extension!.toLowerCase();
+    if (f.extension != null && f.extension!.isNotEmpty)
+      return f.extension!.toLowerCase();
     final dot = f.name.lastIndexOf('.');
     return dot != -1 ? f.name.substring(dot + 1).toLowerCase() : '';
   }
 
   Future<void> _startLiveRecording() async {
     final tempDir = await getTemporaryDirectory();
-    final path = '${tempDir.path}/rec_${DateTime.now().microsecondsSinceEpoch}.m4a';
+    final path =
+        '${tempDir.path}/rec_${DateTime.now().microsecondsSinceEpoch}.m4a';
     final now = TimeOfDay.now();
     if (!mounted) return;
     final filePath = await showDialog<String>(
@@ -182,14 +188,19 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
     if (filePath == null || !mounted) return;
     final id = DateTime.now().microsecondsSinceEpoch.toString();
     final label = now.format(context);
-    final stablePath = await LocalStorageService.copyToAppStorage(filePath, 'audio_$id.m4a');
-    _addAttachment(Attachment(
-      id: id,
-      name: 'Voice memo $label',
-      localPath: stablePath,
-      type: AttachmentType.audio,
-      sizeBytes: 0,
-    ));
+    final stablePath = await LocalStorageService.copyToAppStorage(
+      filePath,
+      'audio_$id.m4a',
+    );
+    _addAttachment(
+      Attachment(
+        id: id,
+        name: 'Voice memo $label',
+        localPath: stablePath,
+        type: AttachmentType.audio,
+        sizeBytes: 0,
+      ),
+    );
     setState(() {});
   }
 
@@ -206,13 +217,15 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
     if (path != null && mounted) {
       final file = File(path);
       final ext = path.split('.').last.toLowerCase();
-      _addAttachment(Attachment(
-        id: DateTime.now().microsecondsSinceEpoch.toString(),
-        name: 'video_${DateTime.now().millisecondsSinceEpoch}.$ext',
-        localPath: path,
-        type: AttachmentType.video,
-        sizeBytes: await file.length(),
-      ));
+      _addAttachment(
+        Attachment(
+          id: DateTime.now().microsecondsSinceEpoch.toString(),
+          name: 'video_${DateTime.now().millisecondsSinceEpoch}.$ext',
+          localPath: path,
+          type: AttachmentType.video,
+          sizeBytes: await file.length(),
+        ),
+      );
     }
   }
 
@@ -229,17 +242,22 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
       final files = await _picker.pickMultipleMedia();
       if (files.isNotEmpty && mounted) await _addXFiles(files);
     } else {
-      final result = await FilePicker.pickFiles(allowMultiple: true, type: FileType.media);
+      final result = await FilePicker.pickFiles(
+        allowMultiple: true,
+        type: FileType.media,
+      );
       if (result != null && mounted) {
         for (final f in result.files.where((f) => f.path != null)) {
           final ext = _extOf(f);
-          _addAttachment(Attachment(
-            id: DateTime.now().microsecondsSinceEpoch.toString(),
-            name: f.name,
-            localPath: f.path!,
-            type: getAttachmentTypeFromExtension(ext),
-            sizeBytes: f.size,
-          ));
+          _addAttachment(
+            Attachment(
+              id: DateTime.now().microsecondsSinceEpoch.toString(),
+              name: f.name,
+              localPath: f.path!,
+              type: getAttachmentTypeFromExtension(ext),
+              sizeBytes: f.size,
+            ),
+          );
         }
       }
     }
@@ -254,14 +272,16 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
     );
     if (result != null) {
       for (final f in result.files) {
-        _addAttachment(Attachment(
-          id: DateTime.now().microsecondsSinceEpoch.toString(),
-          name: f.name,
-          localPath: f.path ?? '',
-          type: AttachmentType.audio,
-          sizeBytes: f.size,
-          webBytes: f.bytes,
-        ));
+        _addAttachment(
+          Attachment(
+            id: DateTime.now().microsecondsSinceEpoch.toString(),
+            name: f.name,
+            localPath: f.path ?? '',
+            type: AttachmentType.audio,
+            sizeBytes: f.size,
+            webBytes: f.bytes,
+          ),
+        );
       }
     }
     if (mounted) setState(() {});
@@ -291,9 +311,8 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
 
     final profiles = ref.read(profilesProvider) ?? [];
     if (profiles.isEmpty) return false;
-    final requestedProfileIndex = widget.profileIndex ??
-        ref.read(selectedProfileIndexProvider) ??
-        0;
+    final requestedProfileIndex =
+        widget.profileIndex ?? ref.read(selectedProfileIndexProvider) ?? 0;
     final profileIndex = requestedProfileIndex.clamp(0, profiles.length - 1);
     final profile = profiles[profileIndex];
     final date = ref.read(addMilestoneFormProvider).date;
@@ -318,17 +337,21 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
           final dot = src.lastIndexOf('.');
           final ext = dot != -1 ? src.substring(dot) : '';
           final filename = '${a.id}$ext';
-          final permanentPath =
-              await LocalStorageService.copyToAppStorage(src, filename);
-          saved.add(Attachment(
-            id: a.id,
-            name: a.name,
-            label: label,
-            type: a.type,
-            sizeBytes: a.sizeBytes,
-            localPath: permanentPath,
-            backupStatus: BackupStatus.queued,
-          ));
+          final permanentPath = await LocalStorageService.copyToAppStorage(
+            src,
+            filename,
+          );
+          saved.add(
+            Attachment(
+              id: a.id,
+              name: a.name,
+              label: label,
+              type: a.type,
+              sizeBytes: a.sizeBytes,
+              localPath: permanentPath,
+              backupStatus: BackupStatus.queued,
+            ),
+          );
         } catch (e) {
           debugPrint('[AddMilestone] copy failed for "${a.name}": $e');
           saved.add(a.copyWith(label: label));
@@ -338,7 +361,9 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
 
     if (_isEditing) {
       final original = widget.initialMilestone!;
-      await ref.read(profilesProvider.notifier).updateMilestone(
+      await ref
+          .read(profilesProvider.notifier)
+          .updateMilestone(
             profileIndex,
             Milestone(
               id: original.id,
@@ -348,20 +373,25 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
               color: original.color,
               attachments: saved,
               tags: List.unmodifiable(_tags),
+              isFavorite: original.isFavorite,
               sparkId: original.sparkId,
               sparkTitle: original.sparkTitle,
             ),
           );
     } else {
       final existingCount = profile.milestones.length;
-      await ref.read(profilesProvider.notifier).prependMilestone(
+      await ref
+          .read(profilesProvider.notifier)
+          .prependMilestone(
             profileIndex,
             Milestone(
               id: DateTime.now().microsecondsSinceEpoch.toString(),
               title: title,
               description: desc,
               date: date,
-              color: Colors.primaries[existingCount % Colors.primaries.length].shade300,
+              color: Colors
+                  .primaries[existingCount % Colors.primaries.length]
+                  .shade300,
               attachments: saved,
               tags: List.unmodifiable(_tags),
               sparkId: widget.sparkId,
@@ -385,7 +415,7 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
     if (profiles != null && profiles.isNotEmpty) {
       final all = {
         for (final p in profiles)
-          for (final m in p.milestones) ...m.tags
+          for (final m in p.milestones) ...m.tags,
       };
       tagSuggestions = (all.difference(_tags.toSet()).toList())..sort();
     } else {
@@ -402,7 +432,11 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
             if (!_isEditing)
               GestureDetector(
                 onTap: () => setState(() => _showingTemplates = true),
-                child: Icon(Icons.arrow_back_ios, size: 18, color: pTheme.accent),
+                child: Icon(
+                  Icons.arrow_back_ios,
+                  size: 18,
+                  color: pTheme.accent,
+                ),
               ),
             if (!_isEditing) const SizedBox(width: 6),
             Expanded(
@@ -410,9 +444,12 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
                 _isEditing
                     ? 'Edit memory'
                     : _selectedTemplate != null
-                        ? '${_selectedTemplate!.emoji}  ${_selectedTemplate!.title}'
-                        : 'Custom milestone',
-                style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
+                    ? '${_selectedTemplate!.emoji}  ${_selectedTemplate!.title}'
+                    : 'Custom milestone',
+                style: const TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.bold,
+                ),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -421,7 +458,9 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
                 final picked = await showAppDatePicker(
                   context: context,
                   initialDate: form.date,
-                  firstDate: DateTime.now().subtract(const Duration(days: 365 * 10)),
+                  firstDate: DateTime.now().subtract(
+                    const Duration(days: 365 * 10),
+                  ),
                   lastDate: DateTime.now(),
                 );
                 if (picked != null) {
@@ -429,7 +468,10 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
                 }
               },
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: theme.colorScheme.primary.withAlpha(25),
                   borderRadius: BorderRadius.circular(20),
@@ -437,8 +479,11 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.calendar_today,
-                        size: 13, color: theme.colorScheme.primary),
+                    Icon(
+                      Icons.calendar_today,
+                      size: 13,
+                      color: theme.colorScheme.primary,
+                    ),
                     const SizedBox(width: 5),
                     Text(
                       formatDate(form.date),
@@ -514,19 +559,15 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
           ),
         ],
         const SizedBox(height: 24),
-        _SaveBtn(
-          onSave: _save,
-          onDismiss: () => Navigator.of(context).pop(),
-        ),
+        _SaveBtn(onSave: _save, onDismiss: () => Navigator.of(context).pop()),
       ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final profileIndex = widget.profileIndex ??
-        ref.read(selectedProfileIndexProvider) ??
-        0;
+    final profileIndex =
+        widget.profileIndex ?? ref.read(selectedProfileIndexProvider) ?? 0;
     final profiles = ref.read(profilesProvider) ?? [];
     final profile = profiles.isNotEmpty
         ? profiles[profileIndex.clamp(0, profiles.length - 1)]
@@ -583,18 +624,24 @@ class _TemplatePicker extends StatelessWidget {
   Widget build(BuildContext context) {
     final categories = milestoneCategories;
     final activeCat = selectedCategory ?? categories.first;
-    final templates = babyMilestones.where((t) => t.category == activeCat).toList();
+    final templates = babyMilestones
+        .where((t) => t.category == activeCat)
+        .toList();
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const _DragHandle(),
-        const Text('Choose a milestone',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        const Text(
+          'Choose a milestone',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
         const SizedBox(height: 4),
-        Text('Pick a common one or write your own.',
-            style: TextStyle(fontSize: 13, color: Colors.grey.shade500)),
+        Text(
+          'Pick a common one or write your own.',
+          style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
+        ),
         const SizedBox(height: 16),
         SizedBox(
           height: 36,
@@ -608,15 +655,18 @@ class _TemplatePicker extends StatelessWidget {
                   onTap: () => onCategoryChanged(cat),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 160),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: isActive ? pTheme.accent : pTheme.soft,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                          color: isActive
-                              ? pTheme.accent
-                              : pTheme.accent.withAlpha(60)),
+                        color: isActive
+                            ? pTheme.accent
+                            : pTheme.accent.withAlpha(60),
+                      ),
                     ),
                     child: Text(
                       cat,
@@ -644,7 +694,10 @@ class _TemplatePicker extends StatelessWidget {
             return GestureDetector(
               onTap: () => onTemplateSelected(t),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: pTheme.soft,
                   borderRadius: BorderRadius.circular(14),
@@ -676,13 +729,15 @@ class _TemplatePicker extends StatelessWidget {
         OutlinedButton.icon(
           onPressed: onWriteCustom,
           icon: Icon(Icons.edit_outlined, color: pTheme.accent, size: 18),
-          label: Text('Write a custom milestone',
-              style:
-                  TextStyle(color: pTheme.accent, fontWeight: FontWeight.w600)),
+          label: Text(
+            'Write a custom milestone',
+            style: TextStyle(color: pTheme.accent, fontWeight: FontWeight.w600),
+          ),
           style: OutlinedButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 14),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
             side: BorderSide(color: pTheme.accent.withAlpha(120)),
           ),
         ),
@@ -723,16 +778,20 @@ class _TagsSection extends StatelessWidget {
           runSpacing: 8,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            ...tags.map((tag) => Chip(
-                  label: Text('#$tag',
-                      style: TextStyle(fontSize: 12, color: pTheme.accent)),
-                  backgroundColor: pTheme.soft,
-                  side: BorderSide(color: pTheme.accent.withAlpha(80)),
-                  deleteIconColor: pTheme.accent.withAlpha(160),
-                  onDeleted: () => onRemove(tag),
-                  padding: const EdgeInsets.symmetric(horizontal: 2),
-                  visualDensity: VisualDensity.compact,
-                )),
+            ...tags.map(
+              (tag) => Chip(
+                label: Text(
+                  '#$tag',
+                  style: TextStyle(fontSize: 12, color: pTheme.accent),
+                ),
+                backgroundColor: pTheme.soft,
+                side: BorderSide(color: pTheme.accent.withAlpha(80)),
+                deleteIconColor: pTheme.accent.withAlpha(160),
+                onDeleted: () => onRemove(tag),
+                padding: const EdgeInsets.symmetric(horizontal: 2),
+                visualDensity: VisualDensity.compact,
+              ),
+            ),
             if (tags.length < 20)
               SizedBox(
                 width: 130,
@@ -743,8 +802,10 @@ class _TagsSection extends StatelessWidget {
                   style: const TextStyle(fontSize: 13),
                   decoration: inputDeco.copyWith(
                     hintText: 'Add tag…',
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
+                    ),
                     suffixIcon: IconButton(
                       icon: Icon(Icons.add, size: 16, color: pTheme.accent),
                       tooltip: 'Add tag',
@@ -762,26 +823,32 @@ class _TagsSection extends StatelessWidget {
             spacing: 6,
             runSpacing: 6,
             children: suggestions
-                .map((tag) => GestureDetector(
-                      onTap: () => onAdd(tag),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.transparent,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                              color: pTheme.accent.withAlpha(70), width: 1),
-                        ),
-                        child: Text(
-                          '#$tag',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: pTheme.accent.withAlpha(180),
-                          ),
+                .map(
+                  (tag) => GestureDetector(
+                    onTap: () => onAdd(tag),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: pTheme.accent.withAlpha(70),
+                          width: 1,
                         ),
                       ),
-                    ))
+                      child: Text(
+                        '#$tag',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: pTheme.accent.withAlpha(180),
+                        ),
+                      ),
+                    ),
+                  ),
+                )
                 .toList(),
           ),
         ],
@@ -887,7 +954,8 @@ class _AttachmentList extends StatelessWidget {
         separatorBuilder: (_, _) => const SizedBox(width: 10),
         itemBuilder: (_, i) {
           final a = attachments[i];
-          final labelCtrl = labelControllers[a.id] ??
+          final labelCtrl =
+              labelControllers[a.id] ??
               (labelControllers[a.id] = TextEditingController());
           return _AttachmentItem(
             attachment: a,
@@ -924,7 +992,8 @@ class _AttachmentItem extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(10),
-                child: a.webBytes != null ||
+                child:
+                    a.webBytes != null ||
                         (a.type == AttachmentType.image && a.localExists)
                     ? attachmentImageWidget(a, width: 90, height: 90)
                     : Container(
@@ -941,15 +1010,16 @@ class _AttachmentItem extends StatelessWidget {
                               a.type == AttachmentType.video
                                   ? Icons.videocam
                                   : a.type == AttachmentType.image
-                                      ? Icons.image_not_supported_outlined
-                                      : Icons.mic,
+                                  ? Icons.image_not_supported_outlined
+                                  : Icons.mic,
                               size: 28,
                               color: Colors.grey.shade500,
                             ),
                             const SizedBox(height: 4),
                             Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                              ),
                               child: Text(
                                 a.name,
                                 maxLines: 2,
@@ -974,7 +1044,11 @@ class _AttachmentItem extends StatelessWidget {
                       color: Colors.black54,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.close, size: 12, color: Colors.white),
+                    child: const Icon(
+                      Icons.close,
+                      size: 12,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
@@ -990,8 +1064,10 @@ class _AttachmentItem extends StatelessWidget {
               hintStyle: TextStyle(fontSize: 11, color: Colors.grey.shade400),
               isDense: true,
               counterText: '',
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 6,
+                vertical: 4,
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(6),
                 borderSide: BorderSide(color: Colors.grey.shade300),
@@ -1077,7 +1153,10 @@ class _RecordingDialogState extends State<_RecordingDialog> {
           Text(
             '$mins:$secs',
             style: const TextStyle(
-                fontSize: 36, fontWeight: FontWeight.bold, letterSpacing: 2),
+              fontSize: 36,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 2,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
@@ -1112,16 +1191,16 @@ class _DragHandle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Center(
-        child: Container(
-          margin: const EdgeInsets.only(bottom: 14),
-          height: 4,
-          width: 40,
-          decoration: BoxDecoration(
-            color: Colors.grey.shade300,
-            borderRadius: BorderRadius.circular(16),
-          ),
-        ),
-      );
+    child: Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      height: 4,
+      width: 40,
+      decoration: BoxDecoration(
+        color: Colors.grey.shade300,
+        borderRadius: BorderRadius.circular(16),
+      ),
+    ),
+  );
 }
 
 InputDecoration _formInputDeco(BuildContext context) {
@@ -1153,14 +1232,14 @@ InputDecoration _formInputDeco(BuildContext context) {
 }
 
 Widget _sectionLabel(String text) => Text(
-      text.toUpperCase(),
-      style: TextStyle(
-        fontSize: 11,
-        fontWeight: FontWeight.w700,
-        color: Colors.grey.shade500,
-        letterSpacing: 0.9,
-      ),
-    );
+  text.toUpperCase(),
+  style: TextStyle(
+    fontSize: 11,
+    fontWeight: FontWeight.w700,
+    color: Colors.grey.shade500,
+    letterSpacing: 0.9,
+  ),
+);
 
 class _MediaBtn extends StatelessWidget {
   final IconData icon;
@@ -1196,7 +1275,10 @@ class _MediaBtn extends StatelessWidget {
               Text(
                 label,
                 style: TextStyle(
-                    fontSize: 10, fontWeight: FontWeight.w500, color: color),
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                  color: color,
+                ),
               ),
             ],
           ),
@@ -1236,21 +1318,27 @@ class _SaveBtnState extends ConsumerState<_SaveBtn> {
           ? const SizedBox(
               width: 20,
               height: 20,
-              child:
-                  CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
             )
           : Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(_saved ? Icons.check : Icons.save_outlined,
-                    size: 18, color: Colors.white),
+                Icon(
+                  _saved ? Icons.check : Icons.save_outlined,
+                  size: 18,
+                  color: Colors.white,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   _saved ? 'Saved!' : 'Save milestone',
                   style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
                 ),
               ],
             ),

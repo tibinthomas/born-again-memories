@@ -24,17 +24,16 @@ class FirestoreService {
   /// Persists display name + email so other users can identify this account in
   /// their shared feed. Called once per login session.
   static Future<void> saveUserMeta(
-      String uid, String email, String? displayName) =>
-      _db.doc('users/$uid').set(
-        {
-          // Lowercased so sharedWithEmails / isEmailRegistered lookups
-          // (which compare lowercase) always match.
-          'email': email.toLowerCase(),
-          if (displayName != null && displayName.isNotEmpty)
-            'displayName': displayName,
-        },
-        SetOptions(merge: true),
-      );
+    String uid,
+    String email,
+    String? displayName,
+  ) => _db.doc('users/$uid').set({
+    // Lowercased so sharedWithEmails / isEmailRegistered lookups
+    // (which compare lowercase) always match.
+    'email': email.toLowerCase(),
+    if (displayName != null && displayName.isNotEmpty)
+      'displayName': displayName,
+  }, SetOptions(merge: true));
 
   static Future<Map<String, dynamic>?> getUserDoc(String uid) async {
     final doc = await _db.doc('users/$uid').get();
@@ -47,9 +46,9 @@ class FirestoreService {
   // The token lives in the owner-only data subcollection, not on the user doc,
   // because the user doc is readable by any signed-in user.
   static Future<void> saveFcmToken(String uid, String token) async {
-    await _db
-        .doc('users/$uid/data/fcm')
-        .set({'token': token}, SetOptions(merge: true));
+    await _db.doc('users/$uid/data/fcm').set({
+      'token': token,
+    }, SetOptions(merge: true));
     // Scrub the legacy copy from the world-readable user doc.
     try {
       await _db.doc('users/$uid').update({'fcmToken': FieldValue.delete()});
@@ -73,7 +72,9 @@ class FirestoreService {
     final uids = <String>[];
     for (var i = 0; i < recipientEmails.length; i += 10) {
       final batch = recipientEmails.sublist(
-          i, (i + 10).clamp(0, recipientEmails.length));
+        i,
+        (i + 10).clamp(0, recipientEmails.length),
+      );
       final snap = await _db
           .collection('users')
           .where('email', whereIn: batch)
@@ -94,16 +95,18 @@ class FirestoreService {
 
   /// Stream of unread notifications for [uid], ordered newest-first.
   static Stream<QuerySnapshot<Map<String, dynamic>>> streamNotifications(
-          String uid) =>
-      _db
-          .collection('users/$uid/notifications')
-          .where('read', isEqualTo: false)
-          .orderBy('timestamp', descending: true)
-          .snapshots();
+    String uid,
+  ) => _db
+      .collection('users/$uid/notifications')
+      .where('read', isEqualTo: false)
+      .orderBy('timestamp', descending: true)
+      .snapshots();
 
   /// Marks a list of notification documents as read.
   static Future<void> markNotificationsRead(
-      String uid, List<String> ids) async {
+    String uid,
+    List<String> ids,
+  ) async {
     final batch = _db.batch();
     for (final id in ids) {
       batch.update(_db.doc('users/$uid/notifications/$id'), {'read': true});
@@ -114,11 +117,10 @@ class FirestoreService {
   static Future<void> markAccountForDeletion({
     required String uid,
     required bool deleteDriveBackup,
-  }) =>
-      updateUserDoc(uid, {
-        'deletedAt': DateTime.now().millisecondsSinceEpoch,
-        'deleteDriveBackup': deleteDriveBackup,
-      });
+  }) => updateUserDoc(uid, {
+    'deletedAt': DateTime.now().millisecondsSinceEpoch,
+    'deleteDriveBackup': deleteDriveBackup,
+  });
 
   static Future<void> recoverAccount(String uid) =>
       _db.doc('users/$uid').update({
@@ -141,29 +143,40 @@ class FirestoreService {
 
   static Future<List<KidProfile>> loadProfiles(String uid) async {
     final snap = await _db.collection('users/$uid/profiles').get();
-    return Future.wait(snap.docs.map((doc) async {
-      final profile = KidProfile.fromJson(doc.data());
-      final (milestones, reminders, documents, links, growthEntries, futurePlans) = await (
-        _loadMilestones(uid, profile.id),
-        _loadReminders(uid, profile.id),
-        _loadDocuments(uid, profile.id),
-        _loadLinks(uid, profile.id),
-        _loadGrowthEntries(uid, profile.id),
-        _loadFuturePlans(uid, profile.id),
-      ).wait;
-      return profile.copyWith(
-        milestones: milestones,
-        reminders: reminders,
-        documents: documents,
-        links: links,
-        growthEntries: growthEntries,
-        futurePlans: futurePlans,
-      );
-    }));
+    return Future.wait(
+      snap.docs.map((doc) async {
+        final profile = KidProfile.fromJson(doc.data());
+        final (
+          milestones,
+          reminders,
+          documents,
+          links,
+          growthEntries,
+          futurePlans,
+        ) = await (
+          _loadMilestones(uid, profile.id),
+          _loadReminders(uid, profile.id),
+          _loadDocuments(uid, profile.id),
+          _loadLinks(uid, profile.id),
+          _loadGrowthEntries(uid, profile.id),
+          _loadFuturePlans(uid, profile.id),
+        ).wait;
+        return profile.copyWith(
+          milestones: milestones,
+          reminders: reminders,
+          documents: documents,
+          links: links,
+          growthEntries: growthEntries,
+          futurePlans: futurePlans,
+        );
+      }),
+    );
   }
 
   static Future<List<Milestone>> _loadMilestones(
-      String uid, String profileId) async {
+    String uid,
+    String profileId,
+  ) async {
     final snap = await _db
         .collection('users/$uid/profiles/$profileId/milestones')
         .orderBy('date', descending: true)
@@ -172,7 +185,9 @@ class FirestoreService {
   }
 
   static Future<List<Reminder>> _loadReminders(
-      String uid, String profileId) async {
+    String uid,
+    String profileId,
+  ) async {
     final snap = await _db
         .collection('users/$uid/profiles/$profileId/reminders')
         .orderBy('dateTime')
@@ -184,14 +199,30 @@ class FirestoreService {
       _db.doc('users/$uid/profiles/${profile.id}').set(profile.toJson());
 
   static Future<void> deleteProfile(String uid, String profileId) async {
-    final (msSnap, docSnap, linkSnap, growthSnap) = await (
+    final (
+      msSnap,
+      reminderSnap,
+      docSnap,
+      linkSnap,
+      growthSnap,
+      futurePlanSnap,
+    ) = await (
       _db.collection('users/$uid/profiles/$profileId/milestones').get(),
+      _db.collection('users/$uid/profiles/$profileId/reminders').get(),
       _db.collection('users/$uid/profiles/$profileId/documents').get(),
       _db.collection('users/$uid/profiles/$profileId/links').get(),
       _db.collection('users/$uid/profiles/$profileId/growthEntries').get(),
+      _db.collection('users/$uid/profiles/$profileId/futurePlans').get(),
     ).wait;
     final batch = _db.batch();
-    for (final doc in [...msSnap.docs, ...docSnap.docs, ...linkSnap.docs, ...growthSnap.docs]) {
+    for (final doc in [
+      ...msSnap.docs,
+      ...reminderSnap.docs,
+      ...docSnap.docs,
+      ...linkSnap.docs,
+      ...growthSnap.docs,
+      ...futurePlanSnap.docs,
+    ]) {
       batch.delete(doc.reference);
     }
     batch.delete(_db.doc('users/$uid/profiles/$profileId'));
@@ -199,7 +230,9 @@ class FirestoreService {
   }
 
   static Future<List<GrowthEntry>> _loadGrowthEntries(
-      String uid, String profileId) async {
+    String uid,
+    String profileId,
+  ) async {
     final snap = await _db
         .collection('users/$uid/profiles/$profileId/growthEntries')
         .orderBy('date', descending: true)
@@ -208,33 +241,42 @@ class FirestoreService {
   }
 
   static Future<void> saveGrowthEntry(
-          String uid, String profileId, GrowthEntry entry) =>
-      _db
-          .doc('users/$uid/profiles/$profileId/growthEntries/${entry.id}')
-          .set(entry.toJson());
+    String uid,
+    String profileId,
+    GrowthEntry entry,
+  ) => _db
+      .doc('users/$uid/profiles/$profileId/growthEntries/${entry.id}')
+      .set(entry.toJson());
 
   static Future<void> deleteGrowthEntry(
-          String uid, String profileId, String entryId) =>
-      _db
-          .doc('users/$uid/profiles/$profileId/growthEntries/$entryId')
-          .delete();
+    String uid,
+    String profileId,
+    String entryId,
+  ) =>
+      _db.doc('users/$uid/profiles/$profileId/growthEntries/$entryId').delete();
 
   static Future<void> saveMilestone(
-          String uid, String profileId, Milestone milestone) =>
-      _db
-          .doc('users/$uid/profiles/$profileId/milestones/${milestone.id}')
-          .set(milestone.toJson());
+    String uid,
+    String profileId,
+    Milestone milestone,
+  ) => _db
+      .doc('users/$uid/profiles/$profileId/milestones/${milestone.id}')
+      .set(milestone.toJson());
 
   static Future<void> deleteMilestone(
-          String uid, String profileId, String milestoneId) =>
-      _db
-          .doc('users/$uid/profiles/$profileId/milestones/$milestoneId')
-          .delete();
+    String uid,
+    String profileId,
+    String milestoneId,
+  ) => _db
+      .doc('users/$uid/profiles/$profileId/milestones/$milestoneId')
+      .delete();
 
   // ── Documents ─────────────────────────────────────────────────────────────
 
   static Future<List<BabyDocument>> _loadDocuments(
-      String uid, String profileId) async {
+    String uid,
+    String profileId,
+  ) async {
     final snap = await _db
         .collection('users/$uid/profiles/$profileId/documents')
         .orderBy('dateAdded', descending: true)
@@ -243,7 +285,9 @@ class FirestoreService {
   }
 
   static Future<List<SavedLink>> _loadLinks(
-      String uid, String profileId) async {
+    String uid,
+    String profileId,
+  ) async {
     final snap = await _db
         .collection('users/$uid/profiles/$profileId/links')
         .orderBy('dateAdded', descending: true)
@@ -252,47 +296,49 @@ class FirestoreService {
   }
 
   static Future<void> saveDocument(
-          String uid, String profileId, BabyDocument doc) =>
-      _db
-          .doc('users/$uid/profiles/$profileId/documents/${doc.id}')
-          .set(doc.toJson());
+    String uid,
+    String profileId,
+    BabyDocument doc,
+  ) => _db
+      .doc('users/$uid/profiles/$profileId/documents/${doc.id}')
+      .set(doc.toJson());
 
-  static Future<void> saveLink(
-          String uid, String profileId, SavedLink link) =>
+  static Future<void> saveLink(String uid, String profileId, SavedLink link) =>
       _db
           .doc('users/$uid/profiles/$profileId/links/${link.id}')
           .set(link.toJson());
 
-  static Future<void> deleteLink(
-          String uid, String profileId, String linkId) =>
-      _db
-          .doc('users/$uid/profiles/$profileId/links/$linkId')
-          .delete();
+  static Future<void> deleteLink(String uid, String profileId, String linkId) =>
+      _db.doc('users/$uid/profiles/$profileId/links/$linkId').delete();
 
   static Future<void> deleteDocument(
-          String uid, String profileId, String docId) =>
-      _db
-          .doc('users/$uid/profiles/$profileId/documents/$docId')
-          .delete();
+    String uid,
+    String profileId,
+    String docId,
+  ) => _db.doc('users/$uid/profiles/$profileId/documents/$docId').delete();
 
   // ── Reminders ──────────────────────────────────────────────────────────────
 
   static Future<void> saveReminder(
-          String uid, String profileId, Reminder reminder) =>
-      _db
-          .doc('users/$uid/profiles/$profileId/reminders/${reminder.id}')
-          .set(reminder.toJson());
+    String uid,
+    String profileId,
+    Reminder reminder,
+  ) => _db
+      .doc('users/$uid/profiles/$profileId/reminders/${reminder.id}')
+      .set(reminder.toJson());
 
   static Future<void> deleteReminder(
-          String uid, String profileId, String reminderId) =>
-      _db
-          .doc('users/$uid/profiles/$profileId/reminders/$reminderId')
-          .delete();
+    String uid,
+    String profileId,
+    String reminderId,
+  ) => _db.doc('users/$uid/profiles/$profileId/reminders/$reminderId').delete();
 
   // ── Future plans ───────────────────────────────────────────────────────────
 
   static Future<List<FuturePlan>> _loadFuturePlans(
-      String uid, String profileId) async {
+    String uid,
+    String profileId,
+  ) async {
     final snap = await _db
         .collection('users/$uid/profiles/$profileId/futurePlans')
         .orderBy('createdAt', descending: true)
@@ -301,25 +347,28 @@ class FirestoreService {
   }
 
   static Future<void> saveFuturePlan(
-          String uid, String profileId, FuturePlan plan) =>
-      _db
-          .doc('users/$uid/profiles/$profileId/futurePlans/${plan.id}')
-          .set(plan.toJson());
+    String uid,
+    String profileId,
+    FuturePlan plan,
+  ) => _db
+      .doc('users/$uid/profiles/$profileId/futurePlans/${plan.id}')
+      .set(plan.toJson());
 
   static Future<void> deleteFuturePlan(
-          String uid, String profileId, String planId) =>
-      _db
-          .doc('users/$uid/profiles/$profileId/futurePlans/$planId')
-          .delete();
+    String uid,
+    String profileId,
+    String planId,
+  ) => _db.doc('users/$uid/profiles/$profileId/futurePlans/$planId').delete();
 
   // ── Share invite metadata ──────────────────────────────────────────────────
 
   /// Records when an invite was sent (or re-sent) for [email].
   static Future<void> setInviteSentAt(String uid, String email) =>
-      _db.doc('users/$uid').set(
-        {'inviteMeta': {email: {'sentAt': Timestamp.now()}}},
-        SetOptions(merge: true),
-      );
+      _db.doc('users/$uid').set({
+        'inviteMeta': {
+          email: {'sentAt': Timestamp.now()},
+        },
+      }, SetOptions(merge: true));
 
   static Future<void> removeInviteMeta(String uid, String email) =>
       _db.doc('users/$uid').update({'inviteMeta.$email': FieldValue.delete()});
@@ -362,32 +411,37 @@ class FirestoreService {
           data['displayName'] as String? ?? data['email'] as String? ?? uid;
       final email = data['email'] as String? ?? '';
 
-      final profilesSnap =
-          await _db.collection('users/$uid/profiles').get();
+      final profilesSnap = await _db.collection('users/$uid/profiles').get();
       final entries = <SharedMilestoneEntry>[];
 
-      await Future.wait(profilesSnap.docs.map((pDoc) async {
-        final profile = KidProfile.fromJson(pDoc.data());
-        final msSnap = await _db
-            .collection('users/$uid/profiles/${profile.id}/milestones')
-            .orderBy('date', descending: true)
-            .get();
-        for (final msDoc in msSnap.docs) {
-          entries.add(SharedMilestoneEntry(
-            milestone: Milestone.fromJson(msDoc.data()),
-            babyName: profile.name,
-            babyGender: profile.gender,
-          ));
-        }
-      }));
+      await Future.wait(
+        profilesSnap.docs.map((pDoc) async {
+          final profile = KidProfile.fromJson(pDoc.data());
+          final msSnap = await _db
+              .collection('users/$uid/profiles/${profile.id}/milestones')
+              .orderBy('date', descending: true)
+              .get();
+          for (final msDoc in msSnap.docs) {
+            entries.add(
+              SharedMilestoneEntry(
+                milestone: Milestone.fromJson(msDoc.data()),
+                babyName: profile.name,
+                babyGender: profile.gender,
+              ),
+            );
+          }
+        }),
+      );
 
       entries.sort((a, b) => b.milestone.date.compareTo(a.milestone.date));
-      groups.add(SharedSenderGroup(
-        uid: uid,
-        displayName: displayName,
-        email: email,
-        milestones: entries,
-      ));
+      groups.add(
+        SharedSenderGroup(
+          uid: uid,
+          displayName: displayName,
+          email: email,
+          milestones: entries,
+        ),
+      );
     }
     return groups;
   }
@@ -403,9 +457,7 @@ class FirestoreService {
     String? iCloudFileId,
     required BackupStatus status,
   }) =>
-      _db
-          .doc('users/$uid/profiles/$profileId/milestones/$milestoneId')
-          .update({
+      _db.doc('users/$uid/profiles/$profileId/milestones/$milestoneId').update({
         'attachments.$attachmentId.driveFileId': driveFileId,
         'attachments.$attachmentId.iCloudFileId': iCloudFileId,
         'attachments.$attachmentId.backupStatus': status.name,
@@ -414,24 +466,21 @@ class FirestoreService {
   // ── Community blogs ───────────────────────────────────────────────────────
 
   static Stream<List<BlogPost>> streamBlogs({int limit = 50}) =>
-      _db
-          .collection('blogs')
-          .snapshots()
-          .map((s) {
-            final posts = s.docs
-                .map((d) {
-                  try {
-                    return BlogPost.fromJson({...d.data(), 'id': d.id});
-                  } catch (e) {
-                    debugPrint('BlogPost parse error for ${d.id}: $e');
-                    return null;
-                  }
-                })
-                .whereType<BlogPost>()
-                .toList();
-            posts.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-            return posts.take(limit).toList();
-          });
+      _db.collection('blogs').snapshots().map((s) {
+        final posts = s.docs
+            .map((d) {
+              try {
+                return BlogPost.fromJson({...d.data(), 'id': d.id});
+              } catch (e) {
+                debugPrint('BlogPost parse error for ${d.id}: $e');
+                return null;
+              }
+            })
+            .whereType<BlogPost>()
+            .toList();
+        posts.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        return posts.take(limit).toList();
+      });
 
   static Future<void> createBlog(BlogPost blog) =>
       _db.doc('blogs/${blog.id}').set(blog.toJson());
@@ -463,34 +512,31 @@ class FirestoreService {
 
   static Stream<List<ForumQuestion>> streamForumQuestions() =>
       _db.collection('forum').snapshots().map((s) {
-        final list = s.docs
-            .map((d) {
-              try {
-                return ForumQuestion.fromJson({...d.data(), 'id': d.id});
-              } catch (e) {
-                debugPrint('ForumQuestion parse error ${d.id}: $e');
-                return null;
-              }
-            })
-            .whereType<ForumQuestion>()
-            .toList()
-          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        final list =
+            s.docs
+                .map((d) {
+                  try {
+                    return ForumQuestion.fromJson({...d.data(), 'id': d.id});
+                  } catch (e) {
+                    debugPrint('ForumQuestion parse error ${d.id}: $e');
+                    return null;
+                  }
+                })
+                .whereType<ForumQuestion>()
+                .toList()
+              ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
         return list;
       });
 
   static Future<void> createForumQuestion(ForumQuestion q) =>
       _db.doc('forum/${q.id}').set(q.toJson());
 
-  static Future<void> updateForumQuestion(ForumQuestion q) =>
-      _db.doc('forum/${q.id}').update({
-        'content': q.content,
-        'tags': q.tags,
-        'edited': true,
-      });
+  static Future<void> updateForumQuestion(ForumQuestion q) => _db
+      .doc('forum/${q.id}')
+      .update({'content': q.content, 'tags': q.tags, 'edited': true});
 
   static Future<void> deleteForumQuestion(String questionId) async {
-    final answers =
-        await _db.collection('forum/$questionId/answers').get();
+    final answers = await _db.collection('forum/$questionId/answers').get();
     final batch = _db.batch();
     for (final doc in answers.docs) {
       batch.delete(doc.reference);
@@ -501,49 +547,55 @@ class FirestoreService {
 
   static Stream<List<ForumAnswer>> streamForumAnswers(String questionId) =>
       _db.collection('forum/$questionId/answers').snapshots().map((s) {
-        final list = s.docs
-            .map((d) {
-              try {
-                return ForumAnswer.fromJson({...d.data(), 'id': d.id});
-              } catch (e) {
-                debugPrint('ForumAnswer parse error ${d.id}: $e');
-                return null;
-              }
-            })
-            .whereType<ForumAnswer>()
-            .toList()
-          ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+        final list =
+            s.docs
+                .map((d) {
+                  try {
+                    return ForumAnswer.fromJson({...d.data(), 'id': d.id});
+                  } catch (e) {
+                    debugPrint('ForumAnswer parse error ${d.id}: $e');
+                    return null;
+                  }
+                })
+                .whereType<ForumAnswer>()
+                .toList()
+              ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
         return list;
       });
 
   static Future<void> createForumAnswer(
-      String questionId, ForumAnswer answer) async {
+    String questionId,
+    ForumAnswer answer,
+  ) async {
     await _db
         .doc('forum/$questionId/answers/${answer.id}')
         .set(answer.toJson());
     try {
-      await _db
-          .doc('forum/$questionId')
-          .update({'answerCount': FieldValue.increment(1)});
+      await _db.doc('forum/$questionId').update({
+        'answerCount': FieldValue.increment(1),
+      });
     } catch (_) {
       // answerCount is denormalized convenience — failure is non-fatal
     }
   }
 
   static Future<void> updateForumAnswer(
-          String questionId, ForumAnswer answer) =>
-      _db.doc('forum/$questionId/answers/${answer.id}').update({
-        'content': answer.content,
-        'edited': true,
-      });
+    String questionId,
+    ForumAnswer answer,
+  ) => _db.doc('forum/$questionId/answers/${answer.id}').update({
+    'content': answer.content,
+    'edited': true,
+  });
 
   static Future<void> deleteForumAnswer(
-      String questionId, String answerId) async {
+    String questionId,
+    String answerId,
+  ) async {
     await _db.doc('forum/$questionId/answers/$answerId').delete();
     try {
-      await _db
-          .doc('forum/$questionId')
-          .update({'answerCount': FieldValue.increment(-1)});
+      await _db.doc('forum/$questionId').update({
+        'answerCount': FieldValue.increment(-1),
+      });
     } catch (_) {
       // non-fatal
     }

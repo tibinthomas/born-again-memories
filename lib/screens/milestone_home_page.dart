@@ -107,8 +107,8 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
     );
   }
 
-  void _showEditMilestoneSheet(Milestone milestone) {
-    showModalBottomSheet(
+  Future<void> _showEditMilestoneSheet(Milestone milestone) async {
+    await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -117,6 +117,20 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
       ),
       builder: (_) => AddMilestoneSheet(initialMilestone: milestone),
     );
+  }
+
+  Future<Milestone?> _editMilestoneFromDetail(
+    int profileIndex,
+    Milestone milestone,
+  ) async {
+    await _showEditMilestoneSheet(milestone);
+    if (!mounted) return null;
+    final profiles = ref.read(profilesProvider);
+    if (profiles == null || profileIndex >= profiles.length) return null;
+    for (final updated in profiles[profileIndex].milestones) {
+      if (updated.id == milestone.id) return updated;
+    }
+    return null;
   }
 
   void _confirmDeleteMilestone(int profileIndex, Milestone milestone) {
@@ -622,6 +636,11 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                                         profile: currentProfile,
                                         animationsEnabled:
                                             settings.animationsEnabled,
+                                        onEdit: (selected) =>
+                                            _editMilestoneFromDetail(
+                                              safeIndex,
+                                              selected,
+                                            ),
                                       ),
                                     ),
                                   ),
