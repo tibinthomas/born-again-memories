@@ -10,6 +10,8 @@ class Milestone {
   final List<Attachment> attachments;
   final List<String> tags;
   final bool isFavorite;
+  // Template choice used to create this memory. Custom memories leave it null.
+  final String? templateKey;
   // Spark that inspired this memory (null if not created from a spark).
   final String? sparkId;
   final String? sparkTitle;
@@ -23,6 +25,7 @@ class Milestone {
     this.attachments = const [],
     this.tags = const [],
     this.isFavorite = false,
+    this.templateKey,
     this.sparkId,
     this.sparkTitle,
   }) : id = id ?? DateTime.now().microsecondsSinceEpoch.toString();
@@ -36,35 +39,37 @@ class Milestone {
     List<Attachment>? attachments,
     List<String>? tags,
     bool? isFavorite,
+    String? templateKey,
     String? sparkId,
     String? sparkTitle,
     bool clearSpark = false,
-  }) =>
-      Milestone(
-        id: id ?? this.id,
-        title: title ?? this.title,
-        description: description ?? this.description,
-        date: date ?? this.date,
-        color: color ?? this.color,
-        attachments: attachments ?? this.attachments,
-        tags: tags ?? this.tags,
-        isFavorite: isFavorite ?? this.isFavorite,
-        sparkId: clearSpark ? null : sparkId ?? this.sparkId,
-        sparkTitle: clearSpark ? null : sparkTitle ?? this.sparkTitle,
-      );
+  }) => Milestone(
+    id: id ?? this.id,
+    title: title ?? this.title,
+    description: description ?? this.description,
+    date: date ?? this.date,
+    color: color ?? this.color,
+    attachments: attachments ?? this.attachments,
+    tags: tags ?? this.tags,
+    isFavorite: isFavorite ?? this.isFavorite,
+    templateKey: templateKey ?? this.templateKey,
+    sparkId: clearSpark ? null : sparkId ?? this.sparkId,
+    sparkTitle: clearSpark ? null : sparkTitle ?? this.sparkTitle,
+  );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'title': title,
-        'description': description,
-        'date': date.toIso8601String(),
-        'color': color.toARGB32(),
-        'attachments': {for (final a in attachments) a.id: a.toJson()},
-        if (tags.isNotEmpty) 'tags': tags,
-        if (isFavorite) 'isFavorite': isFavorite,
-        if (sparkId != null) 'sparkId': sparkId,
-        if (sparkTitle != null) 'sparkTitle': sparkTitle,
-      };
+    'id': id,
+    'title': title,
+    'description': description,
+    'date': date.toIso8601String(),
+    'color': color.toARGB32(),
+    'attachments': {for (final a in attachments) a.id: a.toJson()},
+    if (tags.isNotEmpty) 'tags': tags,
+    if (isFavorite) 'isFavorite': isFavorite,
+    if (templateKey != null) 'templateKey': templateKey,
+    if (sparkId != null) 'sparkId': sparkId,
+    if (sparkTitle != null) 'sparkTitle': sparkTitle,
+  };
 
   factory Milestone.fromJson(Map<String, dynamic> j) {
     List<Attachment> parseAttachments() {
@@ -86,6 +91,7 @@ class Milestone {
       attachments: parseAttachments(),
       tags: (j['tags'] as List<dynamic>?)?.cast<String>() ?? [],
       isFavorite: (j['isFavorite'] as bool?) ?? false,
+      templateKey: j['templateKey'] as String?,
       sparkId: j['sparkId'] as String?,
       sparkTitle: j['sparkTitle'] as String?,
     );

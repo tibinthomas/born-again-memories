@@ -15,6 +15,8 @@ import '../utils/date_formatter.dart';
 import '../utils/profile_theme.dart';
 import '../widgets/audio_tile.dart';
 
+const _slideshowDuration = Duration(seconds: 4);
+
 // ── Entry point ────────────────────────────────────────────────────────────────
 
 class MilestoneDetailPage extends StatefulWidget {
@@ -57,6 +59,12 @@ class _MilestoneDetailPageState extends State<MilestoneDetailPage>
   late final Animation<double> _contentFade;
 
   Milestone get _current => _milestones[_currentIndex];
+  List<Attachment> get _currentImages => _current.attachments
+      .where((attachment) => attachment.type == AttachmentType.image)
+      .toList();
+
+  Attachment? get _currentSlideshowImage =>
+      _currentImages.isEmpty ? null : _currentImages.first;
 
   @override
   void initState() {
@@ -126,7 +134,7 @@ class _MilestoneDetailPageState extends State<MilestoneDetailPage>
 
   void _scheduleNext() {
     _slideshowTimer?.cancel();
-    _slideshowTimer = Timer(const Duration(seconds: 5), () {
+    _slideshowTimer = Timer(_slideshowDuration, () {
       if (!mounted || !_slideshowActive) return;
       setState(() {
         _currentIndex = (_currentIndex + 1) % _milestones.length;
@@ -135,6 +143,23 @@ class _MilestoneDetailPageState extends State<MilestoneDetailPage>
       _contentFadeCtrl.forward(from: 0);
       _scheduleNext();
     });
+  }
+
+  void _changeSlideshowMemory(int direction) {
+    if (!_slideshowActive || _milestones.length < 2) return;
+    setState(() {
+      _currentIndex =
+          (_currentIndex + direction + _milestones.length) % _milestones.length;
+      _slideshowKey++;
+    });
+    _contentFadeCtrl.forward(from: 0);
+    _scheduleNext();
+  }
+
+  void _handleSlideshowSwipe(DragEndDetails details) {
+    final velocity = details.primaryVelocity ?? 0;
+    if (velocity.abs() < 200) return;
+    _changeSlideshowMemory(velocity < 0 ? 1 : -1);
   }
 
   Future<void> _fadeInMusic() async {
@@ -187,11 +212,12 @@ class _MilestoneDetailPageState extends State<MilestoneDetailPage>
                 ),
               ),
               child: KeyedSubtree(
-                key: ValueKey(_currentIndex),
+                key: ValueKey(_slideshowActive ? _slideshowKey : _currentIndex),
                 child: _MilestoneView(
                   milestone: _milestones[_currentIndex],
                   profile: widget.profile,
                   isSlideshow: _slideshowActive,
+                  slideshowImage: _currentSlideshowImage,
                   contentFade: _contentFade,
                   animationsEnabled: widget.animationsEnabled,
                 ),
@@ -278,6 +304,14 @@ class _MilestoneDetailPageState extends State<MilestoneDetailPage>
               ],
             ],
 
+            if (_slideshowActive)
+              Positioned.fill(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onHorizontalDragEnd: _handleSlideshowSwipe,
+                ),
+              ),
+
             // ── Slideshow chrome ───────────────────────────────────────────
             if (_slideshowActive)
               _SlideshowChrome(
@@ -310,6 +344,7 @@ class _MilestoneView extends StatelessWidget {
   final Milestone milestone;
   final KidProfile profile;
   final bool isSlideshow;
+  final Attachment? slideshowImage;
   final Animation<double> contentFade;
   final bool animationsEnabled;
 
@@ -317,6 +352,7 @@ class _MilestoneView extends StatelessWidget {
     required this.milestone,
     required this.profile,
     required this.isSlideshow,
+    this.slideshowImage,
     required this.contentFade,
     this.animationsEnabled = true,
   });
@@ -332,11 +368,16 @@ class _MilestoneView extends StatelessWidget {
       fit: StackFit.expand,
       children: [
         // Background
-        _Background(
-          bgAttachment: firstPhoto,
-          gradient: pTheme.headerGradient,
-          showSharpImage: isSlideshow,
-        ),
+        if (isSlideshow)
+          _SlideshowBackground(
+            image: slideshowImage,
+            gradient: pTheme.headerGradient,
+          )
+        else
+          _Background(
+            bgAttachment: firstPhoto,
+            gradient: pTheme.headerGradient,
+          ),
 
         // Animated bubble layer (sits above bg, below content)
         if (animationsEnabled && !isSlideshow)
@@ -359,18 +400,44 @@ class _MilestoneView extends StatelessWidget {
   }
 }
 
+class _SlideshowBackground extends StatelessWidget {
+  final Attachment? image;
+  final LinearGradient gradient;
+
+  const _SlideshowBackground({required this.image, required this.gradient});
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        ColoredBox(
+          color: Colors.black,
+          child: image == null
+              ? DecoratedBox(decoration: BoxDecoration(gradient: gradient))
+              : attachmentImageWidget(image!, fit: BoxFit.contain),
+        ),
+        DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Colors.black.withAlpha(25), Colors.black.withAlpha(130)],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 // ── Background (blurred photo or gradient) ─────────────────────────────────────
 
 class _Background extends StatelessWidget {
   final Attachment? bgAttachment;
   final LinearGradient gradient;
-  final bool showSharpImage;
 
-  const _Background({
-    this.bgAttachment,
-    required this.gradient,
-    this.showSharpImage = false,
-  });
+  const _Background({this.bgAttachment, required this.gradient});
 
   @override
   Widget build(BuildContext context) {
@@ -378,16 +445,13 @@ class _Background extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        if (hasImage && showSharpImage) ...[
-          const ColoredBox(color: Colors.black),
-          attachmentImageWidget(bgAttachment!, fit: BoxFit.contain),
-        ] else if (hasImage)
+        if (hasImage)
           attachmentImageWidget(bgAttachment!, fit: BoxFit.cover)
         else
           DecoratedBox(decoration: BoxDecoration(gradient: gradient)),
 
         // Blur + dark overlay
-        if (hasImage && !showSharpImage)
+        if (hasImage)
           BackdropFilter(
             filter: ui.ImageFilter.blur(sigmaX: 22, sigmaY: 22),
             child: const ColoredBox(color: Colors.transparent),
@@ -400,12 +464,8 @@ class _Background extends StatelessWidget {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Colors.black.withAlpha(
-                  hasImage ? (showSharpImage ? 25 : 80) : 40,
-                ),
-                Colors.black.withAlpha(
-                  hasImage ? (showSharpImage ? 115 : 180) : 120,
-                ),
+                Colors.black.withAlpha(hasImage ? 80 : 40),
+                Colors.black.withAlpha(hasImage ? 180 : 120),
               ],
               stops: const [0.0, 1.0],
             ),
@@ -1308,11 +1368,12 @@ class _VideoDialogState extends State<_VideoDialog> {
         if (mounted) setState(() {});
       });
       await ctrl.play();
-      if (mounted)
+      if (mounted) {
         setState(() {
           _ctrl = ctrl;
           _initialized = true;
         });
+      }
     } catch (_) {}
   }
 
@@ -1628,7 +1689,7 @@ class _SlideshowChrome extends StatelessWidget {
           child: TweenAnimationBuilder<double>(
             key: ValueKey(slideshowKey),
             tween: Tween(begin: 0.0, end: 1.0),
-            duration: const Duration(seconds: 5),
+            duration: _slideshowDuration,
             builder: (_, v, child) => LinearProgressIndicator(
               value: v,
               minHeight: 3,

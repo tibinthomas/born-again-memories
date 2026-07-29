@@ -3,6 +3,7 @@ import 'dart:math' show pi, sin;
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/kid_profile.dart';
 import '../models/milestone.dart';
@@ -21,6 +22,7 @@ import '../utils/profile_theme.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/milestone_card.dart';
 import '../utils/memory_sharer.dart';
+import '../utils/milestone_sort.dart';
 import 'documents_screen.dart';
 import 'home/widgets/add_milestone_sheet.dart';
 import 'home/widgets/add_profile_sheet.dart';
@@ -194,7 +196,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
     final profileTheme = ProfileTheme.forProfile(currentProfile);
 
     // Filter milestones
-    final allMilestones = currentProfile.milestones;
+    final allMilestones = milestonesNewestFirst(currentProfile.milestones);
     final allTags = ({for (final m in allMilestones) ...m.tags}).toList()
       ..sort();
 
@@ -480,8 +482,9 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                                                 _selectedTags = {
                                                   ..._selectedTags,
                                                 }..remove(tag);
-                                                if (_selectedTags.isEmpty)
+                                                if (_selectedTags.isEmpty) {
                                                   _selectAllTags = true;
+                                                }
                                               } else {
                                                 _selectedTags = {
                                                   ..._selectedTags,
@@ -614,7 +617,9 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                           },
                           child: ListView.builder(
                             controller: _listScrollController,
-                            cacheExtent: 800,
+                            scrollCacheExtent: const ScrollCacheExtent.pixels(
+                              800,
+                            ),
                             padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
                             itemCount: filtered.length,
                             itemBuilder: (context, index) {

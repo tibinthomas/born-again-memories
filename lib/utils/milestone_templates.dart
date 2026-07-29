@@ -10,7 +10,14 @@ class MilestoneTemplate {
     required this.emoji,
     required this.category,
   });
+
+  /// Stable identifier persisted on memories created from this choice.
+  String get key =>
+      '${normalizeMilestoneTitle(category)}:${normalizeMilestoneTitle(title)}';
 }
+
+String normalizeMilestoneTitle(String value) =>
+    value.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
 
 const List<MilestoneTemplate> babyMilestones = [
   // ── Birth & Hospital ──────────────────────────────────────────────────────
@@ -18,7 +25,8 @@ const List<MilestoneTemplate> babyMilestones = [
     emoji: '🏠',
     category: 'Birth & Hospital',
     title: 'Came Home from Hospital',
-    description: 'The first day our little one came home. A whole new chapter begins!',
+    description:
+        'The first day our little one came home. A whole new chapter begins!',
   ),
   MilestoneTemplate(
     emoji: '🛁',
@@ -44,13 +52,15 @@ const List<MilestoneTemplate> babyMilestones = [
     emoji: '😊',
     category: 'First Weeks',
     title: 'First Smile',
-    description: 'That heart-melting first real smile — the whole world lit up.',
+    description:
+        'That heart-melting first real smile — the whole world lit up.',
   ),
   MilestoneTemplate(
     emoji: '🤣',
     category: 'First Weeks',
     title: 'First Laugh',
-    description: 'The best sound in the world — our baby laughed for the first time!',
+    description:
+        'The best sound in the world — our baby laughed for the first time!',
   ),
   MilestoneTemplate(
     emoji: '😴',
@@ -88,7 +98,8 @@ const List<MilestoneTemplate> babyMilestones = [
     emoji: '🦷',
     category: 'Development',
     title: 'First Tooth',
-    description: 'That tiny first tooth popped through! Everything is now chewable.',
+    description:
+        'That tiny first tooth popped through! Everything is now chewable.',
   ),
   MilestoneTemplate(
     emoji: '✊',
@@ -108,7 +119,8 @@ const List<MilestoneTemplate> babyMilestones = [
     emoji: '🥄',
     category: 'Feeding',
     title: 'First Solid Food',
-    description: 'The first spoonful of solid food — a big moment for the whole family!',
+    description:
+        'The first spoonful of solid food — a big moment for the whole family!',
   ),
   MilestoneTemplate(
     emoji: '🥦',
@@ -140,7 +152,8 @@ const List<MilestoneTemplate> babyMilestones = [
     emoji: '👣',
     category: 'Movement',
     title: 'First Steps',
-    description: 'Those very first wobbly steps — one giant leap for our little one!',
+    description:
+        'Those very first wobbly steps — one giant leap for our little one!',
   ),
   MilestoneTemplate(
     emoji: '🏃',
@@ -178,7 +191,8 @@ const List<MilestoneTemplate> babyMilestones = [
     emoji: '🗣️',
     category: 'Communication',
     title: 'First Sentence',
-    description: 'Stringing words together into a proper sentence for the first time.',
+    description:
+        'Stringing words together into a proper sentence for the first time.',
   ),
   MilestoneTemplate(
     emoji: '👋',
@@ -196,7 +210,8 @@ const List<MilestoneTemplate> babyMilestones = [
     emoji: '🫶',
     category: 'Communication',
     title: 'First "I Love You"',
-    description: 'Said "I love you" for the very first time. Heart officially melted.',
+    description:
+        'Said "I love you" for the very first time. Heart officially melted.',
   ),
 
   // ── Big Moments ────────────────────────────────────────────────────────────
@@ -204,7 +219,8 @@ const List<MilestoneTemplate> babyMilestones = [
     emoji: '✂️',
     category: 'Big Moments',
     title: 'First Haircut',
-    description: 'Those first precious locks of hair — we\'re keeping a snippet forever.',
+    description:
+        'Those first precious locks of hair — we\'re keeping a snippet forever.',
   ),
   MilestoneTemplate(
     emoji: '🎂',
@@ -216,13 +232,15 @@ const List<MilestoneTemplate> babyMilestones = [
     emoji: '🎄',
     category: 'Big Moments',
     title: 'First Christmas',
-    description: 'Their very first Christmas — the magic through their eyes is everything.',
+    description:
+        'Their very first Christmas — the magic through their eyes is everything.',
   ),
   MilestoneTemplate(
     emoji: '🎆',
     category: 'Big Moments',
     title: 'First New Year',
-    description: 'Ringing in the new year with our little one for the first time.',
+    description:
+        'Ringing in the new year with our little one for the first time.',
   ),
   MilestoneTemplate(
     emoji: '✈️',
@@ -246,13 +264,15 @@ const List<MilestoneTemplate> babyMilestones = [
     emoji: '🚽',
     category: 'Big Moments',
     title: 'Potty Training Complete',
-    description: 'Fully potty trained — nappies are officially a thing of the past!',
+    description:
+        'Fully potty trained — nappies are officially a thing of the past!',
   ),
   MilestoneTemplate(
     emoji: '🤝',
     category: 'Big Moments',
     title: 'First Playdate',
-    description: 'The first real playdate with a friend — little friendships beginning.',
+    description:
+        'The first real playdate with a friend — little friendships beginning.',
   ),
   MilestoneTemplate(
     emoji: '🏊',

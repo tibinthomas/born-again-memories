@@ -55,6 +55,7 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
   final List<String> _tags = [];
   String? _titleError;
   String? _descError;
+  String? _dateError;
   Set<String> _existingAttachmentIds = {};
   bool _hasCameras = false;
 
@@ -307,8 +308,6 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
       setState(() => _descError = 'Description is too short');
       valid = false;
     }
-    if (!valid) return false;
-
     final profiles = ref.read(profilesProvider) ?? [];
     if (profiles.isEmpty) return false;
     final requestedProfileIndex =
@@ -316,6 +315,22 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
     final profileIndex = requestedProfileIndex.clamp(0, profiles.length - 1);
     final profile = profiles[profileIndex];
     final date = ref.read(addMilestoneFormProvider).date;
+    final selectedDate = DateUtils.dateOnly(date);
+    final birthDate = DateUtils.dateOnly(profile.dateOfBirth);
+    final today = DateUtils.dateOnly(DateTime.now());
+    if (selectedDate.isBefore(birthDate)) {
+      setState(
+        () => _dateError =
+            'Memory date cannot be before ${profile.name}’s birthday',
+      );
+      valid = false;
+    } else if (selectedDate.isAfter(today)) {
+      setState(() => _dateError = 'Memory date cannot be in the future');
+      valid = false;
+    } else if (_dateError != null) {
+      setState(() => _dateError = null);
+    }
+    if (!valid) return false;
 
     final docsDir = await getApplicationDocumentsDirectory();
     final saved = <Attachment>[];
@@ -374,6 +389,7 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
               attachments: saved,
               tags: List.unmodifiable(_tags),
               isFavorite: original.isFavorite,
+              templateKey: original.templateKey,
               sparkId: original.sparkId,
               sparkTitle: original.sparkTitle,
             ),
@@ -394,6 +410,7 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
                   .shade300,
               attachments: saved,
               tags: List.unmodifiable(_tags),
+              templateKey: _selectedTemplate?.key,
               sparkId: widget.sparkId,
               sparkTitle: widget.sparkTitle,
             ),
@@ -405,7 +422,11 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
 
   // ── Form ─────────────────────────────────────────────────────────────────────
 
-  Widget _buildForm(BuildContext context, ProfileTheme pTheme) {
+  Widget _buildForm(
+    BuildContext context,
+    ProfileTheme pTheme,
+    KidProfile? profile,
+  ) {
     final theme = Theme.of(context);
     final form = ref.watch(addMilestoneFormProvider);
     final inputDeco = _formInputDeco(context);
@@ -455,16 +476,27 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
             ),
             GestureDetector(
               onTap: () async {
+                final firstDate = DateUtils.dateOnly(
+                  profile?.dateOfBirth ??
+                      DateTime.now().subtract(const Duration(days: 365 * 10)),
+                );
+                final lastDate = DateUtils.dateOnly(DateTime.now());
+                final initialDate = form.date.isBefore(firstDate)
+                    ? firstDate
+                    : form.date.isAfter(lastDate)
+                    ? lastDate
+                    : form.date;
                 final picked = await showAppDatePicker(
                   context: context,
-                  initialDate: form.date,
-                  firstDate: DateTime.now().subtract(
-                    const Duration(days: 365 * 10),
-                  ),
-                  lastDate: DateTime.now(),
+                  initialDate: initialDate,
+                  firstDate: firstDate,
+                  lastDate: lastDate,
                 );
                 if (picked != null) {
                   ref.read(addMilestoneFormProvider.notifier).setDate(picked);
+                  if (_dateError != null) {
+                    setState(() => _dateError = null);
+                  }
                 }
               },
               child: Container(
@@ -499,6 +531,17 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
             ),
           ],
         ),
+        if (_dateError != null) ...[
+          const SizedBox(height: 6),
+          Text(
+            _dateError!,
+            textAlign: TextAlign.right,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.error,
+              fontSize: 12,
+            ),
+          ),
+        ],
         const SizedBox(height: 16),
         TextField(
           controller: _titleController,
@@ -589,6 +632,16 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
           child: _showingTemplates
               ? _TemplatePicker(
                   pTheme: pTheme,
+                  usedTemplateKeys: {
+                    for (final memory
+                        in profile?.milestones ?? const <Milestone>[])
+                      if (memory.templateKey != null) memory.templateKey!,
+                  },
+                  usedTitles: {
+                    for (final memory
+                        in profile?.milestones ?? const <Milestone>[])
+                      normalizeMilestoneTitle(memory.title),
+                  },
                   selectedCategory: _selectedCategory,
                   onCategoryChanged: (cat) =>
                       setState(() => _selectedCategory = cat),
@@ -596,7 +649,7 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
                   onWriteCustom: () =>
                       setState(() => _showingTemplates = false),
                 )
-              : _buildForm(context, pTheme),
+              : _buildForm(context, pTheme, profile),
         ),
       ),
     );
@@ -607,6 +660,8 @@ class _AddMilestoneSheetState extends ConsumerState<AddMilestoneSheet> {
 
 class _TemplatePicker extends StatelessWidget {
   final ProfileTheme pTheme;
+  final Set<String> usedTemplateKeys;
+  final Set<String> usedTitles;
   final String? selectedCategory;
   final void Function(String) onCategoryChanged;
   final void Function(MilestoneTemplate) onTemplateSelected;
@@ -614,6 +669,8 @@ class _TemplatePicker extends StatelessWidget {
 
   const _TemplatePicker({
     required this.pTheme,
+    required this.usedTemplateKeys,
+    required this.usedTitles,
     required this.selectedCategory,
     required this.onCategoryChanged,
     required this.onTemplateSelected,
@@ -639,7 +696,7 @@ class _TemplatePicker extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          'Pick a common one or write your own.',
+          'Pick a common one or write your own. Checked milestones are already used.',
           style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
         ),
         const SizedBox(height: 16),
@@ -691,35 +748,47 @@ class _TemplatePicker extends StatelessWidget {
           crossAxisSpacing: 10,
           childAspectRatio: 2.8,
           children: templates.map((t) {
+            final isUsed =
+                usedTemplateKeys.contains(t.key) ||
+                usedTitles.contains(normalizeMilestoneTitle(t.title));
             return GestureDetector(
-              onTap: () => onTemplateSelected(t),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: pTheme.soft,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: pTheme.accent.withAlpha(50)),
-                ),
-                child: Row(
-                  children: [
-                    Text(t.emoji, style: const TextStyle(fontSize: 20)),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        t.title,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF2D2D2D),
+              onTap: isUsed ? null : () => onTemplateSelected(t),
+              child: Opacity(
+                opacity: isUsed ? 0.45 : 1,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: pTheme.soft,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: pTheme.accent.withAlpha(50)),
+                  ),
+                  child: Row(
+                    children: [
+                      Text(t.emoji, style: const TextStyle(fontSize: 20)),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          t.title,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF2D2D2D),
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                  ],
+                      if (isUsed)
+                        Icon(
+                          Icons.check_circle_rounded,
+                          size: 16,
+                          color: pTheme.accent,
+                        ),
+                    ],
+                  ),
                 ),
               ),
             );
