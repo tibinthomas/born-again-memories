@@ -53,6 +53,7 @@ class _MilestoneDetailPageState extends State<MilestoneDetailPage>
 
   // Music
   final AudioPlayer _musicPlayer = AudioPlayer();
+  final ValueNotifier<double> _contentSheetExtent = ValueNotifier(0.46);
 
   // Slideshow content fade
   late final AnimationController _contentFadeCtrl;
@@ -85,17 +86,32 @@ class _MilestoneDetailPageState extends State<MilestoneDetailPage>
   void dispose() {
     _slideshowTimer?.cancel();
     _musicPlayer.dispose();
+    _contentSheetExtent.dispose();
     _contentFadeCtrl.dispose();
     super.dispose();
   }
 
   void _prevMilestone() {
-    if (_currentIndex > 0) setState(() => _currentIndex--);
+    if (_currentIndex > 0) {
+      _contentSheetExtent.value = 0.46;
+      setState(() => _currentIndex--);
+    }
   }
 
   void _nextMilestone() {
     if (_currentIndex < _milestones.length - 1) {
+      _contentSheetExtent.value = 0.46;
       setState(() => _currentIndex++);
+    }
+  }
+
+  void _handleDetailSwipe(DragEndDetails details) {
+    final velocity = details.primaryVelocity ?? 0;
+    if (velocity.abs() < 200) return;
+    if (velocity < 0) {
+      _nextMilestone();
+    } else {
+      _prevMilestone();
     }
   }
 
@@ -129,7 +145,10 @@ class _MilestoneDetailPageState extends State<MilestoneDetailPage>
     await _fadeOutMusic();
     _contentFadeCtrl.reverse();
     await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    if (mounted) setState(() => _slideshowActive = false);
+    if (mounted) {
+      _contentSheetExtent.value = 0.46;
+      setState(() => _slideshowActive = false);
+    }
   }
 
   void _scheduleNext() {
@@ -200,26 +219,40 @@ class _MilestoneDetailPageState extends State<MilestoneDetailPage>
         body: Stack(
           children: [
             // ── Current milestone view (animated swap on index change) ──────
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 320),
-              transitionBuilder: (child, anim) => FadeTransition(
-                opacity: anim,
-                child: ScaleTransition(
-                  scale: Tween(begin: 0.97, end: 1.0).animate(
-                    CurvedAnimation(parent: anim, curve: Curves.easeOut),
+            NotificationListener<DraggableScrollableNotification>(
+              onNotification: (notification) {
+                _contentSheetExtent.value = notification.extent;
+                return false;
+              },
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onHorizontalDragEnd: _slideshowActive
+                    ? null
+                    : _handleDetailSwipe,
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 320),
+                  transitionBuilder: (child, anim) => FadeTransition(
+                    opacity: anim,
+                    child: ScaleTransition(
+                      scale: Tween(begin: 0.97, end: 1.0).animate(
+                        CurvedAnimation(parent: anim, curve: Curves.easeOut),
+                      ),
+                      child: child,
+                    ),
                   ),
-                  child: child,
-                ),
-              ),
-              child: KeyedSubtree(
-                key: ValueKey(_slideshowActive ? _slideshowKey : _currentIndex),
-                child: _MilestoneView(
-                  milestone: _milestones[_currentIndex],
-                  profile: widget.profile,
-                  isSlideshow: _slideshowActive,
-                  slideshowImage: _currentSlideshowImage,
-                  contentFade: _contentFade,
-                  animationsEnabled: widget.animationsEnabled,
+                  child: KeyedSubtree(
+                    key: ValueKey(
+                      _slideshowActive ? _slideshowKey : _currentIndex,
+                    ),
+                    child: _MilestoneView(
+                      milestone: _milestones[_currentIndex],
+                      profile: widget.profile,
+                      isSlideshow: _slideshowActive,
+                      slideshowImage: _currentSlideshowImage,
+                      contentFade: _contentFade,
+                      animationsEnabled: widget.animationsEnabled,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -289,10 +322,14 @@ class _MilestoneDetailPageState extends State<MilestoneDetailPage>
                     ),
                   ),
                 // Dots below arrows
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: MediaQuery.sizeOf(context).height * 0.47 + 8,
+                ValueListenableBuilder<double>(
+                  valueListenable: _contentSheetExtent,
+                  builder: (context, extent, child) => Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: MediaQuery.sizeOf(context).height * extent + 8,
+                    child: child!,
+                  ),
                   child: Center(
                     child: _PageDots(
                       count: _milestones.length,

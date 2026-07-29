@@ -30,6 +30,7 @@ class _AudioTileState extends ConsumerState<AudioTile> {
   PlayerState _state = PlayerState.stopped;
   Duration _position = Duration.zero;
   Duration _duration = Duration.zero;
+  bool _hasCompleted = false;
 
   @override
   void initState() {
@@ -43,6 +44,14 @@ class _AudioTileState extends ConsumerState<AudioTile> {
       }),
       _player.onDurationChanged.listen((d) {
         if (mounted) setState(() => _duration = d);
+      }),
+      _player.onPlayerComplete.listen((_) {
+        if (!mounted) return;
+        setState(() {
+          _hasCompleted = true;
+          _state = PlayerState.completed;
+          _position = _duration;
+        });
       }),
     ]);
   }
@@ -64,7 +73,9 @@ class _AudioTileState extends ConsumerState<AudioTile> {
     final docsDir = await getApplicationDocumentsDirectory();
     if (path.startsWith(docsDir.path)) return path; // already safe
     final stable = await LocalStorageService.copyToAppStorage(
-        path, 'audio_${widget.attachment.id}.m4a');
+      path,
+      'audio_${widget.attachment.id}.m4a',
+    );
     ref
         .read(profilesProvider.notifier)
         .updateAttachmentLocalPath(widget.attachment.id, stable);
@@ -82,7 +93,9 @@ class _AudioTileState extends ConsumerState<AudioTile> {
     if (!File(path).existsSync()) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Audio file not available on this device.')),
+          const SnackBar(
+            content: Text('Audio file not available on this device.'),
+          ),
         );
       }
       return;
@@ -94,26 +107,37 @@ class _AudioTileState extends ConsumerState<AudioTile> {
       // reconfigured for playback on both iOS and Android.
       if (!kIsWeb) {
         if (Platform.isIOS || Platform.isMacOS) {
-          await _player.setAudioContext(AudioContext(
-            iOS: AudioContextIOS(
-              category: AVAudioSessionCategory.playback,
+          await _player.setAudioContext(
+            AudioContext(
+              iOS: AudioContextIOS(category: AVAudioSessionCategory.playback),
             ),
-          ));
+          );
         } else if (Platform.isAndroid) {
-          await _player.setAudioContext(AudioContext(
-            android: AudioContextAndroid(
-              isSpeakerphoneOn: false,
-              stayAwake: false,
-              contentType: AndroidContentType.music,
-              usageType: AndroidUsageType.media,
-              audioFocus: AndroidAudioFocus.gain,
+          await _player.setAudioContext(
+            AudioContext(
+              android: AudioContextAndroid(
+                isSpeakerphoneOn: false,
+                stayAwake: false,
+                contentType: AndroidContentType.music,
+                usageType: AndroidUsageType.media,
+                audioFocus: AndroidAudioFocus.gain,
+              ),
             ),
-          ));
+          );
         }
       }
 
-      if (_state == PlayerState.completed) {
-        await _player.seek(Duration.zero);
+      // Android can release the native source when playback completes. Seeking
+      // that released source may fail, so stop it and let play() reload the
+      // file before replaying the voice memo.
+      if (_hasCompleted || _state == PlayerState.completed) {
+        await _player.stop();
+        if (mounted) {
+          setState(() {
+            _hasCompleted = false;
+            _position = Duration.zero;
+          });
+        }
       }
 
       await _player.play(DeviceFileSource(path));
@@ -138,8 +162,9 @@ class _AudioTileState extends ConsumerState<AudioTile> {
     final isPlaying = _state == PlayerState.playing;
     final accent = widget.accent;
     final exists = widget.attachment.localExists;
-    final progress =
-        _duration.inMilliseconds > 0 ? _position.inMilliseconds / _duration.inMilliseconds : 0.0;
+    final progress = _duration.inMilliseconds > 0
+        ? _position.inMilliseconds / _duration.inMilliseconds
+        : 0.0;
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -163,16 +188,20 @@ class _AudioTileState extends ConsumerState<AudioTile> {
                     color: !exists
                         ? Colors.grey.withAlpha(40)
                         : isPlaying
-                            ? accent
-                            : accent.withAlpha(30),
+                        ? accent
+                        : accent.withAlpha(30),
                   ),
                   child: Icon(
                     !exists
                         ? Icons.cloud_off_rounded
                         : isPlaying
-                            ? Icons.pause_rounded
-                            : Icons.play_arrow_rounded,
-                    color: !exists ? Colors.grey.shade400 : isPlaying ? Colors.white : accent,
+                        ? Icons.pause_rounded
+                        : Icons.play_arrow_rounded,
+                    color: !exists
+                        ? Colors.grey.shade400
+                        : isPlaying
+                        ? Colors.white
+                        : accent,
                     size: 24,
                   ),
                 ),
@@ -187,16 +216,22 @@ class _AudioTileState extends ConsumerState<AudioTile> {
                           ? widget.attachment.label!
                           : widget.attachment.name,
                       style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
-                          color: Color(0xFF1A1A1A)),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        color: Color(0xFF1A1A1A),
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 2),
                     if (!exists)
-                      Text('Not available on this device',
-                          style: TextStyle(fontSize: 11, color: Colors.grey.shade400))
+                      Text(
+                        'Not available on this device',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey.shade400,
+                        ),
+                      )
                     else
                       _WaveformBar(progress: progress, accent: accent),
                   ],
@@ -232,10 +267,14 @@ class _AudioTileState extends ConsumerState<AudioTile> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(_fmt(_position),
-                      style: TextStyle(fontSize: 10, color: Colors.grey.shade400)),
-                  Text(_fmt(_duration),
-                      style: TextStyle(fontSize: 10, color: Colors.grey.shade400)),
+                  Text(
+                    _fmt(_position),
+                    style: TextStyle(fontSize: 10, color: Colors.grey.shade400),
+                  ),
+                  Text(
+                    _fmt(_duration),
+                    style: TextStyle(fontSize: 10, color: Colors.grey.shade400),
+                  ),
                 ],
               ),
             ),
@@ -261,8 +300,28 @@ class _WaveformBar extends StatelessWidget {
       child: Row(
         children: List.generate(bars, (i) {
           final filled = i / bars < progress;
-          final heights = [0.4, 0.6, 0.9, 0.7, 0.5, 0.8, 1.0, 0.6, 0.4, 0.7,
-                          0.9, 0.5, 0.8, 0.6, 1.0, 0.7, 0.4, 0.9, 0.6, 0.5];
+          final heights = [
+            0.4,
+            0.6,
+            0.9,
+            0.7,
+            0.5,
+            0.8,
+            1.0,
+            0.6,
+            0.4,
+            0.7,
+            0.9,
+            0.5,
+            0.8,
+            0.6,
+            1.0,
+            0.7,
+            0.4,
+            0.9,
+            0.6,
+            0.5,
+          ];
           return Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 1),
