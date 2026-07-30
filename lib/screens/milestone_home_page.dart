@@ -603,7 +603,9 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                       : ValueListenableBuilder<double>(
                           valueListenable: _scrollOffset,
                           builder: (context, offset, child) {
-                            final t = DevicePerformance.isLowEnd
+                            final t =
+                                DevicePerformance.isLowEnd ||
+                                    !settings.animationsEnabled
                                 ? 1.0
                                 : (offset / 500).clamp(0.0, 1.0);
                             return DecoratedBox(
@@ -1004,7 +1006,9 @@ class _ProfileHeader extends ConsumerWidget {
         File(profile.avatarImagePath!).existsSync();
 
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 400),
+      duration: settings.animationsEnabled
+          ? const Duration(milliseconds: 400)
+          : Duration.zero,
       child: ClipRRect(
         key: ValueKey(profile.id + (profile.backgroundImagePath ?? '')),
         borderRadius: const BorderRadius.only(
@@ -1040,7 +1044,8 @@ class _ProfileHeader extends ConsumerWidget {
                 ),
               ),
               // Decorative bubbles — skipped on low-end devices
-              if (!DevicePerformance.isLowEnd) ...[
+              if (settings.animationsEnabled &&
+                  !DevicePerformance.isLowEnd) ...[
                 // Upper area
                 Positioned(right: -28, top: -18, child: _Bubble(110, 18)),
                 Positioned(left: -22, top: 30, child: _Bubble(70, 12)),

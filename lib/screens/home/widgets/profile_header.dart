@@ -50,17 +50,21 @@ class ProfileHeader extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final sync = ref.watch(backupSyncProvider);
     final settings = ref.watch(appSettingsProvider);
-    final hasBackground = profile.backgroundImagePath != null &&
+    final hasBackground =
+        profile.backgroundImagePath != null &&
         profile.backgroundImagePath!.isNotEmpty &&
         (profile.backgroundImagePath!.startsWith('http') ||
             (!kIsWeb && File(profile.backgroundImagePath!).existsSync()));
-    final hasAvatar = profile.avatarImagePath != null &&
+    final hasAvatar =
+        profile.avatarImagePath != null &&
         profile.avatarImagePath!.isNotEmpty &&
         (profile.avatarImagePath!.startsWith('http') ||
             (!kIsWeb && File(profile.avatarImagePath!).existsSync()));
 
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 400),
+      duration: settings.animationsEnabled
+          ? const Duration(milliseconds: 400)
+          : Duration.zero,
       child: ClipRRect(
         key: ValueKey(profile.id + (profile.backgroundImagePath ?? '')),
         borderRadius: const BorderRadius.only(
@@ -74,7 +78,8 @@ class ProfileHeader extends ConsumerWidget {
             image: hasBackground
                 ? DecorationImage(
                     image: profile.backgroundImagePath!.startsWith('http')
-                        ? NetworkImage(profile.backgroundImagePath!) as ImageProvider
+                        ? NetworkImage(profile.backgroundImagePath!)
+                              as ImageProvider
                         : FileImage(File(profile.backgroundImagePath!)),
                     fit: BoxFit.cover,
                   )
@@ -98,7 +103,8 @@ class ProfileHeader extends ConsumerWidget {
                 ),
               ),
               // Decorative bubbles — skipped on low-end devices
-              if (!DevicePerformance.isLowEnd) ...[
+              if (settings.animationsEnabled &&
+                  !DevicePerformance.isLowEnd) ...[
                 Positioned(right: -28, top: -18, child: Bubble(110, 18)),
                 Positioned(right: 60, bottom: -22, child: Bubble(80, 14)),
                 Positioned(left: -22, top: 30, child: Bubble(70, 12)),
@@ -129,12 +135,25 @@ class ProfileHeader extends ConsumerWidget {
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     color: Colors.white.withAlpha(30),
-                                    border: Border.all(color: Colors.white, width: 2),
+                                    border: Border.all(
+                                      color: Colors.white,
+                                      width: 2,
+                                    ),
                                     image: hasAvatar
                                         ? DecorationImage(
-                                            image: profile.avatarImagePath!.startsWith('http')
-                                                ? NetworkImage(profile.avatarImagePath!) as ImageProvider
-                                                : FileImage(File(profile.avatarImagePath!)),
+                                            image:
+                                                profile.avatarImagePath!
+                                                    .startsWith('http')
+                                                ? NetworkImage(
+                                                        profile
+                                                            .avatarImagePath!,
+                                                      )
+                                                      as ImageProvider
+                                                : FileImage(
+                                                    File(
+                                                      profile.avatarImagePath!,
+                                                    ),
+                                                  ),
                                             fit: BoxFit.cover,
                                           )
                                         : null,
@@ -151,7 +170,9 @@ class ProfileHeader extends ConsumerWidget {
                                       : Center(
                                           child: Text(
                                             profileTheme.decalEmoji,
-                                            style: const TextStyle(fontSize: 32),
+                                            style: const TextStyle(
+                                              fontSize: 32,
+                                            ),
                                           ),
                                         ),
                                 ),
@@ -196,7 +217,12 @@ class ProfileHeader extends ConsumerWidget {
                                     fontSize: 20,
                                     fontWeight: FontWeight.w800,
                                     letterSpacing: 0.2,
-                                    shadows: [Shadow(color: Colors.black38, blurRadius: 4)],
+                                    shadows: [
+                                      Shadow(
+                                        color: Colors.black38,
+                                        blurRadius: 4,
+                                      ),
+                                    ],
                                   ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -216,7 +242,9 @@ class ProfileHeader extends ConsumerWidget {
                                 const SizedBox(height: 4),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 3),
+                                    horizontal: 8,
+                                    vertical: 3,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: Colors.white.withAlpha(35),
                                     borderRadius: BorderRadius.circular(8),
@@ -266,7 +294,10 @@ class ProfileHeader extends ConsumerWidget {
                             onTap: onAddProfile,
                             child: ClipOval(
                               child: BackdropFilter(
-                                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                filter: ImageFilter.blur(
+                                  sigmaX: 10,
+                                  sigmaY: 10,
+                                ),
                                 child: Container(
                                   width: 26,
                                   height: 26,
@@ -274,9 +305,15 @@ class ProfileHeader extends ConsumerWidget {
                                     shape: BoxShape.circle,
                                     color: Colors.white.withAlpha(30),
                                     border: Border.all(
-                                        color: Colors.white.withAlpha(140), width: 1.5),
+                                      color: Colors.white.withAlpha(140),
+                                      width: 1.5,
+                                    ),
                                   ),
-                                  child: const Icon(Icons.add, color: Colors.white, size: 14),
+                                  child: const Icon(
+                                    Icons.add,
+                                    color: Colors.white,
+                                    size: 14,
+                                  ),
                                 ),
                               ),
                             ),
@@ -288,50 +325,66 @@ class ProfileHeader extends ConsumerWidget {
                       // ── Quick-access strip ────────────────────────
                       Row(
                         children: [
-                          Expanded(child: QuickPill(
-                            icon: Icons.auto_awesome,
-                            label: 'Moments',
-                          )),
+                          Expanded(
+                            child: QuickPill(
+                              icon: Icons.auto_awesome,
+                              label: 'Moments',
+                            ),
+                          ),
                           if (settings.growthTrackingEnabled)
-                            Expanded(child: QuickPill(
-                              icon: Icons.show_chart_rounded,
-                              label: 'Growth',
-                              onTap: onGrowth,
-                            )),
+                            Expanded(
+                              child: QuickPill(
+                                icon: Icons.show_chart_rounded,
+                                label: 'Growth',
+                                onTap: onGrowth,
+                              ),
+                            ),
                           if (settings.checklistEnabled)
-                            Expanded(child: QuickPill(
-                              icon: Icons.checklist_rounded,
-                              label: 'Checklist',
-                              onTap: onChecklist,
-                            )),
+                            Expanded(
+                              child: QuickPill(
+                                icon: Icons.checklist_rounded,
+                                label: 'Checklist',
+                                onTap: onChecklist,
+                              ),
+                            ),
                           if (settings.sparksEnabled)
-                            Expanded(child: QuickPill(
-                              icon: Icons.bolt_rounded,
-                              label: 'Sparks',
-                              onTap: onSparks,
-                            )),
+                            Expanded(
+                              child: QuickPill(
+                                icon: Icons.bolt_rounded,
+                                label: 'Sparks',
+                                onTap: onSparks,
+                              ),
+                            ),
                           if (settings.documentsEnabled)
-                            Expanded(child: QuickPill(
-                              icon: Icons.folder_outlined,
-                              label: 'Docs',
-                              onTap: onDocuments,
-                            )),
+                            Expanded(
+                              child: QuickPill(
+                                icon: Icons.folder_outlined,
+                                label: 'Docs',
+                                onTap: onDocuments,
+                              ),
+                            ),
                           if (settings.linksEnabled)
-                            Expanded(child: QuickPill(
-                              icon: Icons.link_outlined,
-                              label: 'Links',
-                              onTap: onLinks,
-                            )),
-                          Expanded(child: QuickPill(
-                            icon: Icons.people_outline_rounded,
-                            label: 'Feed',
-                            onTap: onSharedFeed,
-                          )),
+                            Expanded(
+                              child: QuickPill(
+                                icon: Icons.link_outlined,
+                                label: 'Links',
+                                onTap: onLinks,
+                              ),
+                            ),
+                          Expanded(
+                            child: QuickPill(
+                              icon: Icons.people_outline_rounded,
+                              label: 'Feed',
+                              onTap: onSharedFeed,
+                            ),
+                          ),
                           if (settings.remindersEnabled)
-                            Expanded(child: RemindersQuickPill(
-                              profile: profile,
-                              profileIndex: profileIndex,
-                            )),
+                            Expanded(
+                              child: RemindersQuickPill(
+                                profile: profile,
+                                profileIndex: profileIndex,
+                              ),
+                            ),
                         ],
                       ),
                     ],
@@ -365,14 +418,17 @@ class _BubbleState extends State<Bubble> with SingleTickerProviderStateMixin {
   void initState() {
     super.initState();
     final ms = (2200 + widget.size * 12).toInt();
-    _ctrl = AnimationController(vsync: this, duration: Duration(milliseconds: ms))
-      ..repeat(reverse: true);
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: ms),
+    )..repeat(reverse: true);
     // Start at a phase offset derived from size so bubbles are out of sync
     _ctrl.forward(from: (widget.size % 100) / 100);
     final travel = (widget.size * 0.12).clamp(6.0, 20.0);
-    _float = Tween<double>(begin: 0, end: -travel).animate(
-      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
-    );
+    _float = Tween<double>(
+      begin: 0,
+      end: -travel,
+    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
   }
 
   @override
@@ -470,7 +526,9 @@ class BackupHeaderIndicator extends StatelessWidget {
               const SizedBox(width: 5),
               Text(
                 sync.isSyncing
-                    ? (sync.currentUploadName != null ? 'Backing up…' : 'Syncing…')
+                    ? (sync.currentUploadName != null
+                          ? 'Backing up…'
+                          : 'Syncing…')
                     : 'Backed up',
                 style: TextStyle(
                   color: Colors.white.withAlpha(220),
@@ -532,7 +590,8 @@ class _QuickPillState extends State<QuickPill> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: Colors.white.withAlpha(
-                        _pressed ? 65 : (active ? 45 : 20)),
+                      _pressed ? 65 : (active ? 45 : 20),
+                    ),
                     border: Border.all(
                       color: Colors.white.withAlpha(active ? 90 : 40),
                       width: 0.8,
@@ -563,11 +622,16 @@ class _QuickPillState extends State<QuickPill> {
 class MiniProfileAvatar extends StatelessWidget {
   final KidProfile profile;
   final VoidCallback onTap;
-  const MiniProfileAvatar({super.key, required this.profile, required this.onTap});
+  const MiniProfileAvatar({
+    super.key,
+    required this.profile,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final hasAvatar = profile.avatarImagePath != null &&
+    final hasAvatar =
+        profile.avatarImagePath != null &&
         profile.avatarImagePath!.isNotEmpty &&
         (profile.avatarImagePath!.startsWith('http') ||
             (!kIsWeb && File(profile.avatarImagePath!).existsSync()));
@@ -584,11 +648,15 @@ class MiniProfileAvatar extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: Colors.white.withAlpha(35),
-              border: Border.all(color: Colors.white.withAlpha(160), width: 1.5),
+              border: Border.all(
+                color: Colors.white.withAlpha(160),
+                width: 1.5,
+              ),
               image: hasAvatar
                   ? DecorationImage(
                       image: profile.avatarImagePath!.startsWith('http')
-                          ? NetworkImage(profile.avatarImagePath!) as ImageProvider
+                          ? NetworkImage(profile.avatarImagePath!)
+                                as ImageProvider
                           : FileImage(File(profile.avatarImagePath!)),
                       fit: BoxFit.cover,
                     )
@@ -615,8 +683,11 @@ class RemindersQuickPill extends StatelessWidget {
   final KidProfile profile;
   final int profileIndex;
 
-  const RemindersQuickPill(
-      {super.key, required this.profile, required this.profileIndex});
+  const RemindersQuickPill({
+    super.key,
+    required this.profile,
+    required this.profileIndex,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -659,7 +730,9 @@ class RemindersQuickPill extends StatelessWidget {
                       overdue > 0
                           ? Icons.alarm_outlined
                           : Icons.notifications_outlined,
-                      color: overdue > 0 ? Colors.orange.shade200 : Colors.white,
+                      color: overdue > 0
+                          ? Colors.orange.shade200
+                          : Colors.white,
                       size: 17,
                     ),
                   ),
@@ -676,7 +749,9 @@ class RemindersQuickPill extends StatelessWidget {
                       color: overdue > 0 ? Colors.orange : Colors.white,
                       shape: BoxShape.circle,
                       border: Border.all(
-                          color: Colors.white.withAlpha(120), width: 1),
+                        color: Colors.white.withAlpha(120),
+                        width: 1,
+                      ),
                     ),
                     child: Center(
                       child: Text(

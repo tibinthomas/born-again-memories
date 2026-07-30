@@ -52,24 +52,40 @@ class _MilestoneCardState extends State<MilestoneCard>
       vsync: this,
       duration: const Duration(milliseconds: 560),
     );
-    final curved =
-        CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic);
+    final curved = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutCubic,
+    );
     _opacity = Tween(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
-          parent: _controller,
-          curve: const Interval(0.0, 0.65, curve: Curves.easeOut)),
+        parent: _controller,
+        curve: const Interval(0.0, 0.65, curve: Curves.easeOut),
+      ),
     );
     _scale = Tween(begin: 0.92, end: 1.0).animate(curved);
-    _slide = Tween(begin: const Offset(0, 0.07), end: Offset.zero)
-        .animate(curved);
+    _slide = Tween(
+      begin: const Offset(0, 0.07),
+      end: Offset.zero,
+    ).animate(curved);
 
     final delay = (widget.animIndex * 60).clamp(0, 320);
-    if (delay == 0) {
+    if (!widget.animationsEnabled) {
+      _controller.value = 1;
+    } else if (delay == 0) {
       _controller.forward();
     } else {
       Future.delayed(Duration(milliseconds: delay), () {
         if (mounted) _controller.forward();
       });
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant MilestoneCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.animationsEnabled && !widget.animationsEnabled) {
+      _controller.value = 1;
+      _pressed = false;
     }
   }
 
@@ -97,7 +113,9 @@ class _MilestoneCardState extends State<MilestoneCard>
             onTap: widget.onTap,
             child: AnimatedScale(
               scale: _pressed ? 0.975 : 1.0,
-              duration: const Duration(milliseconds: 120),
+              duration: widget.animationsEnabled
+                  ? const Duration(milliseconds: 120)
+                  : Duration.zero,
               curve: Curves.easeOut,
               child: _CrystalCard(
                 milestone: milestone,
@@ -146,8 +164,8 @@ class _CrystalCardState extends State<_CrystalCard>
     with SingleTickerProviderStateMixin {
   late final AnimationController _float;
   late final List<double> _phases; // random phase per bubble — loop-safe
-  late final List<double> _amps;   // amplitude multipliers
-  late final List<double> _signs;  // orbit direction per bubble
+  late final List<double> _amps; // amplitude multipliers
+  late final List<double> _signs; // orbit direction per bubble
 
   @override
   void initState() {
@@ -155,14 +173,25 @@ class _CrystalCardState extends State<_CrystalCard>
     // Stable randomness seeded by milestone id — each card looks unique
     final rng = math.Random(widget.milestone.id.hashCode);
     _phases = List.generate(5, (_) => rng.nextDouble() * 2 * math.pi);
-    _amps   = List.generate(5, (_) => 0.75 + rng.nextDouble() * 0.5);
-    _signs  = List.generate(5, (_) => rng.nextBool() ? 1.0 : -1.0);
+    _amps = List.generate(5, (_) => 0.75 + rng.nextDouble() * 0.5);
+    _signs = List.generate(5, (_) => rng.nextBool() ? 1.0 : -1.0);
 
     _float = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 20),
     );
     if (widget.animationsEnabled) _float.repeat();
+  }
+
+  @override
+  void didUpdateWidget(covariant _CrystalCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.animationsEnabled == widget.animationsEnabled) return;
+    if (widget.animationsEnabled) {
+      _float.repeat();
+    } else {
+      _float.stop();
+    }
   }
 
   @override
@@ -191,10 +220,7 @@ class _CrystalCardState extends State<_CrystalCard>
           colors: [bgTL, Colors.white.withAlpha(245), bgBR],
         ),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(
-          color: accent.withAlpha(70),
-          width: 1.4,
-        ),
+        border: Border.all(color: accent.withAlpha(70), width: 1.4),
         boxShadow: DevicePerformance.isLowEnd
             ? [
                 BoxShadow(
@@ -228,60 +254,86 @@ class _CrystalCardState extends State<_CrystalCard>
         child: Stack(
           children: [
             // ── Bubbles moving across the card ────────────────────
-            if (!DevicePerformance.isLowEnd)
-            Positioned.fill(
-              child: LayoutBuilder(
-                builder: (_, box) {
-                  final w = box.maxWidth;
-                  final h = box.maxHeight;
-                  return AnimatedBuilder(
-                    animation: _float,
-                    builder: (_, __) {
-                      final t = _float.value * 2 * math.pi;
-                      // Integer multipliers + phase offsets → seamless loop
-                      // sin(2π·n + φ) == sin(φ), so no jump at reset.
-                      double s(double v) => math.sin(v);
-                      double c(double v) => math.cos(v);
-                      return Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          // Large accent — horizontal sweep near top
-                          Positioned(
-                            left: (s(t + _phases[0]) * 0.5 + 0.5) * (w + 92) - 46,
-                            top: h * 0.04 + s(t * 2 + _phases[0]) * h * 0.07 * _amps[0],
-                            child: _CardBubble(92, accent, 50),
-                          ),
-                          // Large secondary — opposite sweep near bottom
-                          Positioned(
-                            left: (c(_signs[1] * t + _phases[1]) * 0.5 + 0.5) * (w + 72) - 36,
-                            top: h * 0.62 + s(t * 3 + _phases[1]) * h * 0.07 * _amps[1],
-                            child: _CardBubble(72, secondary, 44),
-                          ),
-                          // Small secondary — diagonal figure-8
-                          Positioned(
-                            left: (s(_signs[2] * t * 2 + _phases[2]) * 0.5 + 0.5) * w,
-                            top: (c(t * 2 + _phases[2]) * 0.5 + 0.5) * h,
-                            child: _CardBubble(24, secondary, 38),
-                          ),
-                          // Medium accent — circular orbit
-                          Positioned(
-                            left: w * 0.5 + c(_signs[3] * t + _phases[3]) * w * 0.44 * _amps[3],
-                            top: h * 0.5 + s(t + _phases[3]) * h * 0.40 * _amps[3],
-                            child: _CardBubble(38, accent, 30),
-                          ),
-                          // Tiny accent — small fast orbit
-                          Positioned(
-                            left: w * 0.35 + c(_signs[4] * t * 3 + _phases[4]) * w * 0.28 * _amps[4],
-                            top: h * 0.28 + s(t * 3 + _phases[4]) * h * 0.22 * _amps[4],
-                            child: _CardBubble(16, accent, 24),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                },
+            if (widget.animationsEnabled && !DevicePerformance.isLowEnd)
+              Positioned.fill(
+                child: LayoutBuilder(
+                  builder: (_, box) {
+                    final w = box.maxWidth;
+                    final h = box.maxHeight;
+                    return AnimatedBuilder(
+                      animation: _float,
+                      builder: (_, _) {
+                        final t = _float.value * 2 * math.pi;
+                        // Integer multipliers + phase offsets → seamless loop
+                        // sin(2π·n + φ) == sin(φ), so no jump at reset.
+                        double s(double v) => math.sin(v);
+                        double c(double v) => math.cos(v);
+                        return Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            // Large accent — horizontal sweep near top
+                            Positioned(
+                              left:
+                                  (s(t + _phases[0]) * 0.5 + 0.5) * (w + 92) -
+                                  46,
+                              top:
+                                  h * 0.04 +
+                                  s(t * 2 + _phases[0]) * h * 0.07 * _amps[0],
+                              child: _CardBubble(92, accent, 50),
+                            ),
+                            // Large secondary — opposite sweep near bottom
+                            Positioned(
+                              left:
+                                  (c(_signs[1] * t + _phases[1]) * 0.5 + 0.5) *
+                                      (w + 72) -
+                                  36,
+                              top:
+                                  h * 0.62 +
+                                  s(t * 3 + _phases[1]) * h * 0.07 * _amps[1],
+                              child: _CardBubble(72, secondary, 44),
+                            ),
+                            // Small secondary — diagonal figure-8
+                            Positioned(
+                              left:
+                                  (s(_signs[2] * t * 2 + _phases[2]) * 0.5 +
+                                      0.5) *
+                                  w,
+                              top: (c(t * 2 + _phases[2]) * 0.5 + 0.5) * h,
+                              child: _CardBubble(24, secondary, 38),
+                            ),
+                            // Medium accent — circular orbit
+                            Positioned(
+                              left:
+                                  w * 0.5 +
+                                  c(_signs[3] * t + _phases[3]) *
+                                      w *
+                                      0.44 *
+                                      _amps[3],
+                              top:
+                                  h * 0.5 +
+                                  s(t + _phases[3]) * h * 0.40 * _amps[3],
+                              child: _CardBubble(38, accent, 30),
+                            ),
+                            // Tiny accent — small fast orbit
+                            Positioned(
+                              left:
+                                  w * 0.35 +
+                                  c(_signs[4] * t * 3 + _phases[4]) *
+                                      w *
+                                      0.28 *
+                                      _amps[4],
+                              top:
+                                  h * 0.28 +
+                                  s(t * 3 + _phases[4]) * h * 0.22 * _amps[4],
+                              child: _CardBubble(16, accent, 24),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                ),
               ),
-            ),
 
             // ── Shimmer ───────────────────────────────────────────
             Positioned.fill(
@@ -304,7 +356,10 @@ class _CrystalCardState extends State<_CrystalCard>
 
             // ── Specular top-edge glint ────────────────────────────
             Positioned(
-              top: 0, left: 24, right: 24, height: 1.5,
+              top: 0,
+              left: 24,
+              right: 24,
+              height: 1.5,
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -350,8 +405,11 @@ class _CrystalCardState extends State<_CrystalCard>
                             ),
                           ],
                         ),
-                        child: const Icon(Icons.auto_awesome,
-                            size: 17, color: Colors.white),
+                        child: const Icon(
+                          Icons.auto_awesome,
+                          size: 17,
+                          color: Colors.white,
+                        ),
                       ),
                       const SizedBox(width: 11),
                       Expanded(
@@ -370,8 +428,11 @@ class _CrystalCardState extends State<_CrystalCard>
                             const SizedBox(height: 3),
                             Row(
                               children: [
-                                Icon(Icons.calendar_today_outlined,
-                                    size: 11, color: theme.accent),
+                                Icon(
+                                  Icons.calendar_today_outlined,
+                                  size: 11,
+                                  color: theme.accent,
+                                ),
                                 const SizedBox(width: 4),
                                 Text(
                                   formatDate(milestone.date),
@@ -389,11 +450,17 @@ class _CrystalCardState extends State<_CrystalCard>
                                       color: theme.accent.withAlpha(120),
                                     ),
                                   ),
-                                  Icon(Icons.cake_outlined,
-                                      size: 11, color: theme.accent.withAlpha(180)),
+                                  Icon(
+                                    Icons.cake_outlined,
+                                    size: 11,
+                                    color: theme.accent.withAlpha(180),
+                                  ),
                                   const SizedBox(width: 3),
                                   Text(
-                                    _preciseAge(widget.dateOfBirth!, milestone.date),
+                                    _preciseAge(
+                                      widget.dateOfBirth!,
+                                      milestone.date,
+                                    ),
                                     style: TextStyle(
                                       fontSize: 11,
                                       color: theme.accent,
@@ -425,44 +492,64 @@ class _CrystalCardState extends State<_CrystalCard>
                                 : theme.accent.withAlpha(90),
                           ),
                         ),
-                      if (widget.onEdit != null || widget.onDelete != null || widget.onShare != null)
+                      if (widget.onEdit != null ||
+                          widget.onDelete != null ||
+                          widget.onShare != null)
                         PopupMenuButton<String>(
-                          icon: Icon(Icons.more_vert,
-                              size: 18, color: Colors.grey.shade500),
+                          icon: Icon(
+                            Icons.more_vert,
+                            size: 18,
+                            color: Colors.grey.shade500,
+                          ),
                           padding: EdgeInsets.zero,
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14)),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
                           elevation: 4,
                           itemBuilder: (_) => [
                             if (widget.onShare != null)
                               const PopupMenuItem(
                                 value: 'share',
-                                child: Row(children: [
-                                  Icon(Icons.share_outlined,
-                                      size: 18, color: Color(0xFF5B9BD5)),
-                                  SizedBox(width: 10),
-                                  Text('Share'),
-                                ]),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.share_outlined,
+                                      size: 18,
+                                      color: Color(0xFF5B9BD5),
+                                    ),
+                                    SizedBox(width: 10),
+                                    Text('Share'),
+                                  ],
+                                ),
                               ),
                             if (widget.onEdit != null)
                               const PopupMenuItem(
                                 value: 'edit',
-                                child: Row(children: [
-                                  Icon(Icons.edit_outlined, size: 18),
-                                  SizedBox(width: 10),
-                                  Text('Edit'),
-                                ]),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.edit_outlined, size: 18),
+                                    SizedBox(width: 10),
+                                    Text('Edit'),
+                                  ],
+                                ),
                               ),
                             if (widget.onDelete != null)
                               const PopupMenuItem(
                                 value: 'delete',
-                                child: Row(children: [
-                                  Icon(Icons.delete_outline,
-                                      size: 18, color: Colors.red),
-                                  SizedBox(width: 10),
-                                  Text('Delete',
-                                      style: TextStyle(color: Colors.red)),
-                                ]),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.delete_outline,
+                                      size: 18,
+                                      color: Colors.red,
+                                    ),
+                                    SizedBox(width: 10),
+                                    Text(
+                                      'Delete',
+                                      style: TextStyle(color: Colors.red),
+                                    ),
+                                  ],
+                                ),
                               ),
                           ],
                           onSelected: (v) {
@@ -497,26 +584,30 @@ class _CrystalCardState extends State<_CrystalCard>
                       spacing: 6,
                       runSpacing: 6,
                       children: milestone.tags
-                          .map((tag) => Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: theme.accent.withAlpha(14),
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color: theme.accent.withAlpha(75),
-                                    width: 0.8,
-                                  ),
+                          .map(
+                            (tag) => Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: theme.accent.withAlpha(14),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: theme.accent.withAlpha(75),
+                                  width: 0.8,
                                 ),
-                                child: Text(
-                                  '#$tag',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: theme.accent,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                              ),
+                              child: Text(
+                                '#$tag',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: theme.accent,
+                                  fontWeight: FontWeight.w600,
                                 ),
-                              ))
+                              ),
+                            ),
+                          )
                           .toList(),
                     ),
                   ],
@@ -529,18 +620,25 @@ class _CrystalCardState extends State<_CrystalCard>
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 3),
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.amber.shade50,
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                                color: Colors.amber.shade200, width: 0.8),
+                              color: Colors.amber.shade200,
+                              width: 0.8,
+                            ),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.bolt_rounded,
-                                  size: 11, color: Colors.amber.shade700),
+                              Icon(
+                                Icons.bolt_rounded,
+                                size: 11,
+                                color: Colors.amber.shade700,
+                              ),
                               const SizedBox(width: 3),
                               Text(
                                 milestone.sparkTitle!,
@@ -573,9 +671,15 @@ class _MediaCountRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final photos = milestone.attachments.where((a) => a.type == AttachmentType.image).length;
-    final videos = milestone.attachments.where((a) => a.type == AttachmentType.video).length;
-    final audios = milestone.attachments.where((a) => a.type == AttachmentType.audio).length;
+    final photos = milestone.attachments
+        .where((a) => a.type == AttachmentType.image)
+        .length;
+    final videos = milestone.attachments
+        .where((a) => a.type == AttachmentType.video)
+        .length;
+    final audios = milestone.attachments
+        .where((a) => a.type == AttachmentType.audio)
+        .length;
 
     return Row(
       children: [
@@ -611,7 +715,11 @@ class _MediaChip extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             '$count',
-            style: TextStyle(fontSize: 11, color: accent, fontWeight: FontWeight.w600),
+            style: TextStyle(
+              fontSize: 11,
+              color: accent,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),

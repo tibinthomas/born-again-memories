@@ -70,10 +70,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final settings = ref.read(appSettingsProvider);
     if (!settings.soundEnabled || _testingSound) return;
     setState(() => _testingSound = true);
-    HapticFeedback.mediumImpact();
+    if (settings.hapticEnabled) {
+      HapticFeedback.mediumImpact();
+    }
     await playChime();
     await Future.delayed(const Duration(milliseconds: 800));
     if (mounted) setState(() => _testingSound = false);
+  }
+
+  void _setHapticEnabled(bool enabled) {
+    final settings = ref.read(appSettingsProvider);
+    ref
+        .read(appSettingsProvider.notifier)
+        .update(settings.copyWith(hapticEnabled: enabled));
+    if (enabled) {
+      HapticFeedback.vibrate();
+    }
   }
 
   void _showBackupPermissionsSheet(BuildContext context, Color accent) {
@@ -337,9 +349,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       onVolumeChanged: (v) => ref
                           .read(appSettingsProvider.notifier)
                           .update(settings.copyWith(soundVolume: v)),
-                      onHapticChanged: (v) => ref
-                          .read(appSettingsProvider.notifier)
-                          .update(settings.copyWith(hapticEnabled: v)),
+                      onHapticChanged: _setHapticEnabled,
                       onAnimationsChanged: (v) => ref
                           .read(appSettingsProvider.notifier)
                           .update(settings.copyWith(animationsEnabled: v)),
