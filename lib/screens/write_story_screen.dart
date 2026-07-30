@@ -25,8 +25,16 @@ class _WriteStoryScreenState extends ConsumerState<WriteStoryScreen> {
   bool get _isEditing => widget.editing != null;
 
   static const _suggestedTags = [
-    'sleep', 'feeding', 'toddler', 'newborn', 'tips',
-    'tricks', 'health', 'play', 'milestones', 'parenting',
+    'sleep',
+    'feeding',
+    'toddler',
+    'newborn',
+    'tips',
+    'tricks',
+    'health',
+    'play',
+    'milestones',
+    'parenting',
   ];
 
   @override
@@ -82,7 +90,8 @@ class _WriteStoryScreenState extends ConsumerState<WriteStoryScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-              'Story is too long. Max $_maxWords words (currently $_wordCount).'),
+            'Story is too long. Max $_maxWords words (currently $_wordCount).',
+          ),
           backgroundColor: Colors.red.shade400,
         ),
       );
@@ -92,6 +101,7 @@ class _WriteStoryScreenState extends ConsumerState<WriteStoryScreen> {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) return;
+      late final BlogPost savedPost;
 
       if (_isEditing) {
         final updated = widget.editing!.copyWith(
@@ -100,6 +110,7 @@ class _WriteStoryScreenState extends ConsumerState<WriteStoryScreen> {
           tags: _tags,
         );
         await FirestoreService.updateBlog(updated);
+        savedPost = updated;
       } else {
         final post = BlogPost(
           id: 'blog_${DateTime.now().microsecondsSinceEpoch}',
@@ -112,20 +123,23 @@ class _WriteStoryScreenState extends ConsumerState<WriteStoryScreen> {
           tags: _tags,
         );
         await FirestoreService.createBlog(post);
+        savedPost = post;
       }
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            _isEditing ? 'Story updated!' : 'Story published! Thanks for sharing.',
+            _isEditing
+                ? 'Story updated!'
+                : 'Story published! Thanks for sharing.',
           ),
           backgroundColor: Colors.green.shade600,
           behavior: SnackBarBehavior.floating,
           duration: const Duration(seconds: 3),
         ),
       );
-      Navigator.pop(context);
+      Navigator.pop(context, savedPost);
     } catch (e, st) {
       debugPrint('Publish error: $e\n$st');
       if (mounted) {
@@ -162,9 +176,10 @@ class _WriteStoryScreenState extends ConsumerState<WriteStoryScreen> {
         title: Text(
           _isEditing ? 'Edit story' : 'Write a story',
           style: const TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF1A1A2E)),
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1A1A2E),
+          ),
         ),
         actions: [
           Padding(
@@ -173,26 +188,32 @@ class _WriteStoryScreenState extends ConsumerState<WriteStoryScreen> {
               onPressed: (_canPublish && !_saving) ? _publish : null,
               style: FilledButton.styleFrom(
                 backgroundColor: accent,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 8,
+                ),
                 minimumSize: Size.zero,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
               child: _saving
                   ? const SizedBox(
                       width: 16,
                       height: 16,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white),
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
                     )
                   : Text(
                       _isEditing ? 'Update' : 'Publish',
                       style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
                     ),
             ),
           ),
@@ -201,7 +222,11 @@ class _WriteStoryScreenState extends ConsumerState<WriteStoryScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(
-              16, 8, 16, MediaQuery.viewInsetsOf(context).bottom + 32),
+            16,
+            8,
+            16,
+            MediaQuery.viewInsetsOf(context).bottom + 32,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -210,16 +235,18 @@ class _WriteStoryScreenState extends ConsumerState<WriteStoryScreen> {
                 controller: _titleCtrl,
                 maxLength: 120,
                 style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF1A1A2E),
-                    height: 1.3),
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF1A1A2E),
+                  height: 1.3,
+                ),
                 decoration: InputDecoration(
                   hintText: 'Story title…',
                   hintStyle: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.grey.shade300),
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.grey.shade300,
+                  ),
                   border: InputBorder.none,
                   counterText: '',
                 ),
@@ -234,16 +261,18 @@ class _WriteStoryScreenState extends ConsumerState<WriteStoryScreen> {
                 maxLines: null,
                 minLines: 12,
                 style: const TextStyle(
-                    fontSize: 15,
-                    color: Color(0xFF1A1A2E),
-                    height: 1.65),
+                  fontSize: 15,
+                  color: Color(0xFF1A1A2E),
+                  height: 1.65,
+                ),
                 decoration: InputDecoration(
                   hintText:
                       'Share a tip, trick, or story about raising your little one…',
                   hintStyle: TextStyle(
-                      fontSize: 15,
-                      color: Colors.grey.shade400,
-                      height: 1.65),
+                    fontSize: 15,
+                    color: Colors.grey.shade400,
+                    height: 1.65,
+                  ),
                   border: InputBorder.none,
                 ),
                 onChanged: (_) => setState(() {}),
@@ -269,8 +298,7 @@ class _WriteStoryScreenState extends ConsumerState<WriteStoryScreen> {
                   padding: const EdgeInsets.only(top: 4),
                   child: Text(
                     'Over the $_maxWords-word limit — please shorten your story.',
-                    style: TextStyle(
-                        fontSize: 12, color: Colors.red.shade400),
+                    style: TextStyle(fontSize: 12, color: Colors.red.shade400),
                   ),
                 ),
               const SizedBox(height: 16),
@@ -288,14 +316,20 @@ class _WriteStoryScreenState extends ConsumerState<WriteStoryScreen> {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.tag_rounded,
-                            size: 16, color: Colors.grey.shade500),
+                        Icon(
+                          Icons.tag_rounded,
+                          size: 16,
+                          color: Colors.grey.shade500,
+                        ),
                         const SizedBox(width: 6),
-                        Text('Tags',
-                            style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.grey.shade500)),
+                        Text(
+                          'Tags',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey.shade500,
+                          ),
+                        ),
                       ],
                     ),
                     if (_tags.isNotEmpty) ...[
@@ -304,33 +338,47 @@ class _WriteStoryScreenState extends ConsumerState<WriteStoryScreen> {
                         spacing: 6,
                         runSpacing: 6,
                         children: _tags
-                            .map((t) => GestureDetector(
-                                  onTap: () => setState(() => _tags.remove(t)),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 3),
-                                    decoration: BoxDecoration(
-                                      color:
-                                          Color.lerp(Colors.white, accent, 0.12),
-                                      borderRadius: BorderRadius.circular(10),
-                                      border:
-                                          Border.all(color: accent.withAlpha(60)),
+                            .map(
+                              (t) => GestureDetector(
+                                onTap: () => setState(() => _tags.remove(t)),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 3,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Color.lerp(
+                                      Colors.white,
+                                      accent,
+                                      0.12,
                                     ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text('#$t',
-                                            style: TextStyle(
-                                                fontSize: 12,
-                                                color: accent,
-                                                fontWeight: FontWeight.w600)),
-                                        const SizedBox(width: 4),
-                                        Icon(Icons.close_rounded,
-                                            size: 12, color: accent),
-                                      ],
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: accent.withAlpha(60),
                                     ),
                                   ),
-                                ))
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        '#$t',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: accent,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Icon(
+                                        Icons.close_rounded,
+                                        size: 12,
+                                        color: accent,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            )
                             .toList(),
                       ),
                     ],
@@ -340,11 +388,12 @@ class _WriteStoryScreenState extends ConsumerState<WriteStoryScreen> {
                       decoration: InputDecoration(
                         hintText: 'Add a tag and press Enter',
                         hintStyle: TextStyle(
-                            fontSize: 13, color: Colors.grey.shade400),
+                          fontSize: 13,
+                          color: Colors.grey.shade400,
+                        ),
                         border: InputBorder.none,
                         isDense: true,
-                        contentPadding:
-                            const EdgeInsets.symmetric(vertical: 4),
+                        contentPadding: const EdgeInsets.symmetric(vertical: 4),
                       ),
                       textInputAction: TextInputAction.done,
                       onSubmitted: _addTag,
@@ -356,23 +405,28 @@ class _WriteStoryScreenState extends ConsumerState<WriteStoryScreen> {
                       runSpacing: 4,
                       children: _suggestedTags
                           .where((t) => !_tags.contains(t))
-                          .map((t) => GestureDetector(
-                                onTap: () => _addTag(t),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 3),
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey.shade100,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Text(
-                                    '+ $t',
-                                    style: TextStyle(
-                                        fontSize: 11,
-                                        color: Colors.grey.shade500),
+                          .map(
+                            (t) => GestureDetector(
+                              onTap: () => _addTag(t),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade100,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  '+ $t',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.grey.shade500,
                                   ),
                                 ),
-                              ))
+                              ),
+                            ),
+                          )
                           .toList(),
                     ),
                   ],

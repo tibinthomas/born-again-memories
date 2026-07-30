@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/blog_post.dart';
 import '../services/firestore_service.dart';
+import 'write_story_screen.dart';
 
 class StoryDetailScreen extends StatefulWidget {
   final BlogPost post;
@@ -41,11 +42,57 @@ class _StoryDetailScreenState extends State<StoryDetailScreen> {
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Error: $e'),
-          backgroundColor: Colors.red.shade400,
-          behavior: SnackBarBehavior.floating,
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.red.shade400,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _editStory() async {
+    final updated = await Navigator.push<BlogPost>(
+      context,
+      MaterialPageRoute(builder: (_) => WriteStoryScreen(editing: _post)),
+    );
+    if (updated != null && mounted) setState(() => _post = updated);
+  }
+
+  Future<void> _deleteStory() async {
+    final confirmed =
+        await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: const Text('Delete story?'),
+            content: Text('“${_post.title}” will be permanently deleted.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                style: FilledButton.styleFrom(backgroundColor: Colors.red),
+                onPressed: () => Navigator.pop(dialogContext, true),
+                child: const Text('Delete'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+    if (!confirmed) return;
+
+    try {
+      await FirestoreService.deleteBlog(_post.id);
+      if (!mounted) return;
+      Navigator.pop(context);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not delete the story.')),
+        );
       }
     }
   }
@@ -54,6 +101,9 @@ class _StoryDetailScreenState extends State<StoryDetailScreen> {
   Widget build(BuildContext context) {
     final liked = _post.isLikedBy(widget.currentUid);
     final accent = widget.accent;
+    final likesLabel = _post.likesCount == 1
+        ? '1 like'
+        : '${_post.likesCount} likes';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF2F2F7),
@@ -71,6 +121,20 @@ class _StoryDetailScreenState extends State<StoryDetailScreen> {
               onPressed: () => Navigator.pop(context),
             ),
             actions: [
+              if (_post.authorId == widget.currentUid) ...[
+                IconButton(
+                  icon: const Icon(Icons.edit_outlined),
+                  tooltip: 'Edit story',
+                  color: Colors.grey.shade600,
+                  onPressed: _editStory,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline),
+                  tooltip: 'Delete story',
+                  color: Colors.red.shade400,
+                  onPressed: _deleteStory,
+                ),
+              ],
               Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: IconButton(
@@ -81,9 +145,7 @@ class _StoryDetailScreenState extends State<StoryDetailScreen> {
                           ? Icons.favorite_rounded
                           : Icons.favorite_border_rounded,
                       key: ValueKey(liked),
-                      color: liked
-                          ? Colors.red.shade400
-                          : Colors.grey.shade400,
+                      color: liked ? Colors.red.shade400 : Colors.grey.shade400,
                       size: 22,
                     ),
                   ),
@@ -122,7 +184,9 @@ class _StoryDetailScreenState extends State<StoryDetailScreen> {
                           Text(
                             _formatDate(_post.createdAt),
                             style: TextStyle(
-                                fontSize: 12, color: Colors.grey.shade500),
+                              fontSize: 12,
+                              color: Colors.grey.shade500,
+                            ),
                           ),
                         ],
                       ),
@@ -148,22 +212,26 @@ class _StoryDetailScreenState extends State<StoryDetailScreen> {
                       spacing: 6,
                       runSpacing: 4,
                       children: _post.tags
-                          .map((t) => Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: accent.withAlpha(18),
-                                  borderRadius: BorderRadius.circular(12),
+                          .map(
+                            (t) => Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                color: accent.withAlpha(18),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                '#$t',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: accent,
+                                  fontWeight: FontWeight.w600,
                                 ),
-                                child: Text(
-                                  '#$t',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: accent,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ))
+                              ),
+                            ),
+                          )
                           .toList(),
                     ),
                   ],
@@ -190,7 +258,9 @@ class _StoryDetailScreenState extends State<StoryDetailScreen> {
                       behavior: HitTestBehavior.opaque,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 28, vertical: 12),
+                          horizontal: 28,
+                          vertical: 12,
+                        ),
                         decoration: BoxDecoration(
                           color: liked
                               ? Colors.red.shade50
@@ -215,9 +285,7 @@ class _StoryDetailScreenState extends State<StoryDetailScreen> {
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              liked
-                                  ? '${_post.likesCount} likes'
-                                  : 'Like this story',
+                              liked ? likesLabel : 'Like this story',
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
@@ -242,8 +310,18 @@ class _StoryDetailScreenState extends State<StoryDetailScreen> {
 
   String _formatDate(DateTime dt) {
     const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December',
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
     ];
     return '${months[dt.month - 1]} ${dt.day}, ${dt.year}';
   }
@@ -259,16 +337,19 @@ class _AuthorAvatar extends StatelessWidget {
     return CircleAvatar(
       radius: 22,
       backgroundImage: photoUrl != null ? NetworkImage(photoUrl!) : null,
-      backgroundColor: Colors.primaries[
-              name.isNotEmpty ? name.codeUnitAt(0) % Colors.primaries.length : 0]
+      backgroundColor: Colors
+          .primaries[name.isNotEmpty
+              ? name.codeUnitAt(0) % Colors.primaries.length
+              : 0]
           .shade200,
       child: photoUrl == null
           ? Text(
               name.isNotEmpty ? name[0].toUpperCase() : '?',
               style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white),
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
             )
           : null,
     );

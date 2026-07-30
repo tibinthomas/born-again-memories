@@ -26,7 +26,8 @@ class StoriesScreen extends ConsumerWidget {
     final profiles = ref.watch(profilesProvider) ?? [];
     final theme = profiles.isNotEmpty
         ? ProfileTheme.forProfile(
-            profiles[profileIndex.clamp(0, profiles.length - 1)])
+            profiles[profileIndex.clamp(0, profiles.length - 1)],
+          )
         : ProfileTheme.forGender(Gender.neutral);
     final accent = theme.accent;
     final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
@@ -44,7 +45,10 @@ class StoriesScreen extends ConsumerWidget {
                 children: [
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      size: 20,
+                    ),
                     tooltip: 'Back',
                     color: const Color(0xFF1A1A2E),
                   ),
@@ -64,7 +68,9 @@ class StoriesScreen extends ConsumerWidget {
                         Text(
                           'Tips, tricks & tales from parents',
                           style: TextStyle(
-                              fontSize: 12, color: Color(0xFF888888)),
+                            fontSize: 12,
+                            color: Color(0xFF888888),
+                          ),
                         ),
                       ],
                     ),
@@ -80,8 +86,10 @@ class StoriesScreen extends ConsumerWidget {
                 loading: () =>
                     Center(child: CircularProgressIndicator(color: accent)),
                 error: (e, _) => Center(
-                  child: Text('Could not load stories.',
-                      style: TextStyle(color: Colors.grey.shade500)),
+                  child: Text(
+                    'Could not load stories.',
+                    style: TextStyle(color: Colors.grey.shade500),
+                  ),
                 ),
                 data: (list) {
                   if (list.isEmpty) {
@@ -113,6 +121,12 @@ class StoriesScreen extends ConsumerWidget {
                           ),
                           onLike: () =>
                               FirestoreService.toggleLike(list[i].id, uid),
+                          onEdit: list[i].authorId == uid
+                              ? () => _openWrite(context, list[i])
+                              : null,
+                          onDelete: list[i].authorId == uid
+                              ? () => _confirmDelete(context, list[i])
+                              : null,
                         ),
                       ),
                     ),
@@ -133,11 +147,50 @@ class StoriesScreen extends ConsumerWidget {
     );
   }
 
-  void _openWrite(BuildContext context) {
+  void _openWrite(BuildContext context, [BlogPost? editing]) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const WriteStoryScreen()),
+      MaterialPageRoute(builder: (_) => WriteStoryScreen(editing: editing)),
     );
+  }
+
+  Future<void> _confirmDelete(BuildContext context, BlogPost post) async {
+    final confirmed =
+        await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: const Text('Delete story?'),
+            content: Text('“${post.title}” will be permanently deleted.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                style: FilledButton.styleFrom(backgroundColor: Colors.red),
+                onPressed: () => Navigator.pop(dialogContext, true),
+                child: const Text('Delete'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+    if (!confirmed) return;
+
+    try {
+      await FirestoreService.deleteBlog(post.id);
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Story deleted.')));
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not delete the story.')),
+        );
+      }
+    }
   }
 }
 
@@ -149,6 +202,8 @@ class _StoryCard extends StatelessWidget {
   final Color accent;
   final VoidCallback onTap;
   final VoidCallback onLike;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   const _StoryCard({
     required this.post,
@@ -156,6 +211,8 @@ class _StoryCard extends StatelessWidget {
     required this.accent,
     required this.onTap,
     required this.onLike,
+    this.onEdit,
+    this.onDelete,
   });
 
   @override
@@ -168,9 +225,10 @@ class _StoryCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withAlpha(7),
-              blurRadius: 10,
-              offset: const Offset(0, 3)),
+            color: Colors.black.withAlpha(7),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
         ],
       ),
       clipBehavior: Clip.antiAlias,
@@ -186,7 +244,9 @@ class _StoryCard extends StatelessWidget {
               Row(
                 children: [
                   _AuthorAvatar(
-                      name: post.authorName, photoUrl: post.authorPhotoUrl),
+                    name: post.authorName,
+                    photoUrl: post.authorPhotoUrl,
+                  ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(
@@ -195,18 +255,59 @@ class _StoryCard extends StatelessWidget {
                         Text(
                           post.authorName,
                           style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF1A1A2E)),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF1A1A2E),
+                          ),
                         ),
                         Text(
                           _timeAgo(post.createdAt),
                           style: TextStyle(
-                              fontSize: 11, color: Colors.grey.shade400),
+                            fontSize: 11,
+                            color: Colors.grey.shade400,
+                          ),
                         ),
                       ],
                     ),
                   ),
+                  if (onEdit != null && onDelete != null)
+                    PopupMenuButton<_StoryAction>(
+                      tooltip: 'Story actions',
+                      onSelected: (action) {
+                        switch (action) {
+                          case _StoryAction.edit:
+                            onEdit!();
+                            break;
+                          case _StoryAction.delete:
+                            onDelete!();
+                            break;
+                        }
+                      },
+                      itemBuilder: (_) => const [
+                        PopupMenuItem(
+                          value: _StoryAction.edit,
+                          child: ListTile(
+                            leading: Icon(Icons.edit_outlined),
+                            title: Text('Edit'),
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: _StoryAction.delete,
+                          child: ListTile(
+                            leading: Icon(
+                              Icons.delete_outline,
+                              color: Colors.red,
+                            ),
+                            title: Text(
+                              'Delete',
+                              style: TextStyle(color: Colors.red),
+                            ),
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                        ),
+                      ],
+                    ),
                 ],
               ),
               const SizedBox(height: 10),
@@ -227,9 +328,10 @@ class _StoryCard extends StatelessWidget {
               Text(
                 post.excerpt,
                 style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey.shade600,
-                    height: 1.5),
+                  fontSize: 13,
+                  color: Colors.grey.shade600,
+                  height: 1.5,
+                ),
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -241,19 +343,26 @@ class _StoryCard extends StatelessWidget {
                   spacing: 6,
                   runSpacing: 4,
                   children: post.tags
-                      .map((t) => Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: accent.withAlpha(14),
-                              borderRadius: BorderRadius.circular(12),
+                      .map(
+                        (t) => Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: accent.withAlpha(14),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            '#$t',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: accent,
+                              fontWeight: FontWeight.w600,
                             ),
-                            child: Text('#$t',
-                                style: TextStyle(
-                                    fontSize: 11,
-                                    color: accent,
-                                    fontWeight: FontWeight.w600)),
-                          ))
+                          ),
+                        ),
+                      )
                       .toList(),
                 ),
               ],
@@ -287,11 +396,12 @@ class _StoryCard extends StatelessWidget {
                         Text(
                           '${post.likesCount}',
                           style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: liked
-                                  ? Colors.red.shade400
-                                  : Colors.grey.shade400),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: liked
+                                ? Colors.red.shade400
+                                : Colors.grey.shade400,
+                          ),
                         ),
                       ],
                     ),
@@ -300,9 +410,10 @@ class _StoryCard extends StatelessWidget {
                   Text(
                     'Read more →',
                     style: TextStyle(
-                        fontSize: 12,
-                        color: accent,
-                        fontWeight: FontWeight.w600),
+                      fontSize: 12,
+                      color: accent,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ],
               ),
@@ -320,12 +431,24 @@ class _StoryCard extends StatelessWidget {
     if (diff.inDays < 1) return '${diff.inHours}h ago';
     if (diff.inDays < 7) return '${diff.inDays}d ago';
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return '${months[dt.month - 1]} ${dt.day}';
   }
 }
+
+enum _StoryAction { edit, delete }
 
 // ── Author avatar ─────────────────────────────────────────────────────────────
 
@@ -339,18 +462,19 @@ class _AuthorAvatar extends StatelessWidget {
     return CircleAvatar(
       radius: 18,
       backgroundImage: photoUrl != null ? NetworkImage(photoUrl!) : null,
-      backgroundColor: Colors.primaries[
-              name.isNotEmpty
-                  ? name.codeUnitAt(0) % Colors.primaries.length
-                  : 0]
+      backgroundColor: Colors
+          .primaries[name.isNotEmpty
+              ? name.codeUnitAt(0) % Colors.primaries.length
+              : 0]
           .shade200,
       child: photoUrl == null
           ? Text(
               name.isNotEmpty ? name[0].toUpperCase() : '?',
               style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white),
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
             )
           : null,
     );
@@ -372,22 +496,25 @@ class _EmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.article_outlined,
-                size: 56, color: Colors.grey.shade300),
+            Icon(Icons.article_outlined, size: 56, color: Colors.grey.shade300),
             const SizedBox(height: 16),
             const Text(
               'No stories yet',
               style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF1A1A2E)),
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF1A1A2E),
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               'Be the first to share a parenting tip,\ntrick, or story with the community.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                  fontSize: 13, color: Colors.grey.shade500, height: 1.5),
+                fontSize: 13,
+                color: Colors.grey.shade500,
+                height: 1.5,
+              ),
             ),
             const SizedBox(height: 24),
             FilledButton.icon(
@@ -395,15 +522,25 @@ class _EmptyState extends StatelessWidget {
               style: FilledButton.styleFrom(
                 backgroundColor: accent,
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 24, vertical: 12),
+                  horizontal: 24,
+                  vertical: 12,
+                ),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14)),
+                  borderRadius: BorderRadius.circular(14),
+                ),
               ),
-              icon: const Icon(Icons.edit_outlined,
-                  size: 16, color: Colors.white),
-              label: const Text('Write the first story',
-                  style: TextStyle(
-                      fontWeight: FontWeight.w700, color: Colors.white)),
+              icon: const Icon(
+                Icons.edit_outlined,
+                size: 16,
+                color: Colors.white,
+              ),
+              label: const Text(
+                'Write the first story',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
             ),
           ],
         ),
@@ -435,21 +572,28 @@ class _AnimatedCardState extends State<_AnimatedCard>
     super.initState();
     if (DevicePerformance.isLowEnd) return;
     _ctrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 560));
-    final curved =
-        CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic);
-    _opacity = Tween(begin: 0.0, end: 1.0).animate(CurvedAnimation(
+      vsync: this,
+      duration: const Duration(milliseconds: 560),
+    );
+    final curved = CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic);
+    _opacity = Tween(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
         parent: _ctrl,
-        curve: const Interval(0.0, 0.65, curve: Curves.easeOut)));
+        curve: const Interval(0.0, 0.65, curve: Curves.easeOut),
+      ),
+    );
     _scale = Tween(begin: 0.92, end: 1.0).animate(curved);
-    _slide = Tween(begin: const Offset(0, 0.07), end: Offset.zero)
-        .animate(curved);
+    _slide = Tween(
+      begin: const Offset(0, 0.07),
+      end: Offset.zero,
+    ).animate(curved);
     final delay = (widget.index * 60).clamp(0, 320);
     if (delay == 0) {
       _ctrl.forward();
     } else {
-      Future.delayed(
-          Duration(milliseconds: delay), () { if (mounted) _ctrl.forward(); });
+      Future.delayed(Duration(milliseconds: delay), () {
+        if (mounted) _ctrl.forward();
+      });
     }
   }
 
