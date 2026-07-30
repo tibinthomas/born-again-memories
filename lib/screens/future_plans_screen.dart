@@ -6,6 +6,7 @@ import '../models/future_plan.dart';
 import '../models/kid_profile.dart';
 import '../providers/profiles_provider.dart';
 import '../utils/app_date_picker.dart';
+import '../utils/future_plan_validator.dart';
 import '../utils/date_formatter.dart';
 import '../utils/profile_theme.dart';
 import '../widgets/gradient_fab.dart';
@@ -41,7 +42,10 @@ class FuturePlansScreen extends ConsumerWidget {
           _AppBar(profile: profile, theme: theme),
           if (plans.isEmpty)
             SliverFillRemaining(
-              child: _EmptyState(theme: theme, onAdd: () => _showAddSheet(context, ref, theme)),
+              child: _EmptyState(
+                theme: theme,
+                onAdd: () => _showAddSheet(context, ref, theme),
+              ),
             )
           else ...[
             _SummaryBar(plans: plans, theme: theme),
@@ -50,7 +54,8 @@ class FuturePlansScreen extends ConsumerWidget {
                 category: cat,
                 plans: plans.where((p) => p.category == cat).toList(),
                 theme: theme,
-                onAdd: () => _showAddSheet(context, ref, theme, initialCategory: cat),
+                onAdd: () =>
+                    _showAddSheet(context, ref, theme, initialCategory: cat),
                 onEdit: (plan) => _showEditSheet(context, ref, theme, plan),
                 onDelete: (plan) => _confirmDelete(context, ref, plan),
               ),
@@ -68,8 +73,12 @@ class FuturePlansScreen extends ConsumerWidget {
     );
   }
 
-  void _showAddSheet(BuildContext context, WidgetRef ref, ProfileTheme theme,
-      {FuturePlanCategory? initialCategory}) {
+  void _showAddSheet(
+    BuildContext context,
+    WidgetRef ref,
+    ProfileTheme theme, {
+    FuturePlanCategory? initialCategory,
+  }) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -84,17 +93,18 @@ class FuturePlansScreen extends ConsumerWidget {
   }
 
   void _showEditSheet(
-      BuildContext context, WidgetRef ref, ProfileTheme theme, FuturePlan plan) {
+    BuildContext context,
+    WidgetRef ref,
+    ProfileTheme theme,
+    FuturePlan plan,
+  ) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _PlanSheet(
-        profileIndex: profileIndex,
-        theme: theme,
-        editing: plan,
-      ),
+      builder: (_) =>
+          _PlanSheet(profileIndex: profileIndex, theme: theme, editing: plan),
     );
   }
 
@@ -113,7 +123,9 @@ class FuturePlansScreen extends ConsumerWidget {
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
-              ref.read(profilesProvider.notifier).deleteFuturePlan(profileIndex, plan.id);
+              ref
+                  .read(profilesProvider.notifier)
+                  .deleteFuturePlan(profileIndex, plan.id);
             },
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
@@ -197,10 +209,16 @@ class _SummaryBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final totalTarget = plans.fold<double>(
-        0, (s, p) => s + (p.targetAmount ?? 0));
+      0,
+      (s, p) => s + (p.targetAmount ?? 0),
+    );
     final totalCurrent = plans.fold<double>(
-        0, (s, p) => s + (p.currentAmount ?? 0));
-    final overall = totalTarget > 0 ? (totalCurrent / totalTarget).clamp(0.0, 1.0) : 0.0;
+      0,
+      (s, p) => s + (p.currentAmount ?? 0),
+    );
+    final overall = totalTarget > 0
+        ? (totalCurrent / totalTarget).clamp(0.0, 1.0)
+        : 0.0;
 
     return SliverToBoxAdapter(
       child: Padding(
@@ -318,7 +336,10 @@ class _CategorySection extends StatelessWidget {
                 GestureDetector(
                   onTap: onAdd,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: theme.soft,
                       borderRadius: BorderRadius.circular(12),
@@ -358,21 +379,26 @@ class _CategorySection extends StatelessWidget {
                     const SizedBox(height: 6),
                     Text(
                       'No ${category.label.toLowerCase()} plans yet',
-                      style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                      style: TextStyle(
+                        color: Colors.grey.shade500,
+                        fontSize: 13,
+                      ),
                     ),
                   ],
                 ),
               )
             else
-              ...plans.map((plan) => Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: _PlanCard(
-                      plan: plan,
-                      theme: theme,
-                      onEdit: () => onEdit(plan),
-                      onDelete: () => onDelete(plan),
-                    ),
-                  )),
+              ...plans.map(
+                (plan) => Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: _PlanCard(
+                    plan: plan,
+                    theme: theme,
+                    onEdit: () => onEdit(plan),
+                    onDelete: () => onDelete(plan),
+                  ),
+                ),
+              ),
             const SizedBox(height: 4),
           ],
         ),
@@ -455,7 +481,9 @@ class _PlanCard extends StatelessWidget {
                           children: [
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 7, vertical: 2),
+                                horizontal: 7,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
                                 color: theme.soft,
                                 borderRadius: BorderRadius.circular(8),
@@ -471,13 +499,18 @@ class _PlanCard extends StatelessWidget {
                             ),
                             if (plan.targetDate != null) ...[
                               const SizedBox(width: 6),
-                              Icon(Icons.calendar_today_outlined,
-                                  size: 11, color: Colors.grey.shade400),
+                              Icon(
+                                Icons.calendar_today_outlined,
+                                size: 11,
+                                color: Colors.grey.shade400,
+                              ),
                               const SizedBox(width: 3),
                               Text(
                                 formatMonthYear(plan.targetDate!),
                                 style: TextStyle(
-                                    fontSize: 11, color: Colors.grey.shade500),
+                                  fontSize: 11,
+                                  color: Colors.grey.shade500,
+                                ),
                               ),
                             ],
                           ],
@@ -486,10 +519,14 @@ class _PlanCard extends StatelessWidget {
                     ),
                   ),
                   PopupMenuButton<String>(
-                    icon: Icon(Icons.more_vert,
-                        color: Colors.grey.shade400, size: 18),
+                    icon: Icon(
+                      Icons.more_vert,
+                      color: Colors.grey.shade400,
+                      size: 18,
+                    ),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14)),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                     onSelected: (v) {
                       if (v == 'edit') onEdit();
                       if (v == 'delete') onDelete();
@@ -497,19 +534,27 @@ class _PlanCard extends StatelessWidget {
                     itemBuilder: (_) => [
                       const PopupMenuItem(
                         value: 'edit',
-                        child: Row(children: [
-                          Icon(Icons.edit_outlined, size: 16),
-                          SizedBox(width: 8),
-                          Text('Edit'),
-                        ]),
+                        child: Row(
+                          children: [
+                            Icon(Icons.edit_outlined, size: 16),
+                            SizedBox(width: 8),
+                            Text('Edit'),
+                          ],
+                        ),
                       ),
                       const PopupMenuItem(
                         value: 'delete',
-                        child: Row(children: [
-                          Icon(Icons.delete_outline, size: 16, color: Colors.red),
-                          SizedBox(width: 8),
-                          Text('Delete', style: TextStyle(color: Colors.red)),
-                        ]),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.delete_outline,
+                              size: 16,
+                              color: Colors.red,
+                            ),
+                            SizedBox(width: 8),
+                            Text('Delete', style: TextStyle(color: Colors.red)),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -539,9 +584,7 @@ class _PlanCard extends StatelessWidget {
                               minHeight: 6,
                               backgroundColor: theme.soft,
                               valueColor: AlwaysStoppedAnimation(
-                                progress >= 1.0
-                                    ? Colors.green
-                                    : theme.accent,
+                                progress >= 1.0 ? Colors.green : theme.accent,
                               ),
                             ),
                           ),
@@ -559,7 +602,9 @@ class _PlanCard extends StatelessWidget {
                               Text(
                                 ' / ${_fmt(plan.targetAmount!, plan.currency)}',
                                 style: TextStyle(
-                                    fontSize: 12, color: Colors.grey.shade500),
+                                  fontSize: 12,
+                                  color: Colors.grey.shade500,
+                                ),
                               ),
                             ],
                           ),
@@ -627,24 +672,33 @@ class _EmptyState extends StatelessWidget {
               'Track gold, land, savings, stocks and more — everything you\'re building for their education, marriage and future.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                  fontSize: 14, color: Colors.grey.shade600, height: 1.5),
+                fontSize: 14,
+                color: Colors.grey.shade600,
+                height: 1.5,
+              ),
             ),
             const SizedBox(height: 28),
             FilledButton.icon(
               onPressed: onAdd,
               style: FilledButton.styleFrom(
                 backgroundColor: theme.accent,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 14,
+                ),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18)),
+                  borderRadius: BorderRadius.circular(18),
+                ),
               ),
               icon: const Icon(Icons.add_rounded, color: Colors.white),
-              label: const Text('Add first plan',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15)),
+              label: const Text(
+                'Add first plan',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                ),
+              ),
             ),
           ],
         ),
@@ -673,6 +727,7 @@ class _PlanSheet extends ConsumerStatefulWidget {
 }
 
 class _PlanSheetState extends ConsumerState<_PlanSheet> {
+  final _formKey = GlobalKey<FormState>();
   late FuturePlanCategory _category;
   late AssetType _assetType;
   late final TextEditingController _titleCtrl;
@@ -683,20 +738,25 @@ class _PlanSheetState extends ConsumerState<_PlanSheet> {
   DateTime? _targetDate;
   bool _saving = false;
 
-  static const _currencies = ['INR', 'USD', 'EUR', 'GBP', 'AED', 'SGD'];
+  static const _currencies = ['INR', 'USD', 'CAD', 'EUR', 'GBP', 'AED', 'SGD'];
 
   @override
   void initState() {
     super.initState();
     final e = widget.editing;
-    _category = e?.category ?? widget.initialCategory ?? FuturePlanCategory.education;
+    _category =
+        e?.category ?? widget.initialCategory ?? FuturePlanCategory.education;
     _assetType = e?.assetType ?? AssetType.money;
     _titleCtrl = TextEditingController(text: e?.title ?? '');
     _descCtrl = TextEditingController(text: e?.description ?? '');
     _targetCtrl = TextEditingController(
-        text: e?.targetAmount != null ? e!.targetAmount!.toStringAsFixed(0) : '');
+      text: e?.targetAmount != null ? e!.targetAmount!.toStringAsFixed(0) : '',
+    );
     _currentCtrl = TextEditingController(
-        text: e?.currentAmount != null ? e!.currentAmount!.toStringAsFixed(0) : '');
+      text: e?.currentAmount != null
+          ? e!.currentAmount!.toStringAsFixed(0)
+          : '',
+    );
     _currency = e?.currency ?? 'INR';
     _targetDate = e?.targetDate;
   }
@@ -713,13 +773,8 @@ class _PlanSheetState extends ConsumerState<_PlanSheet> {
   bool get _isEdit => widget.editing != null;
 
   Future<void> _save() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
     final title = _titleCtrl.text.trim();
-    if (title.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a title')),
-      );
-      return;
-    }
     setState(() => _saving = true);
 
     final target = double.tryParse(_targetCtrl.text.trim());
@@ -730,7 +785,9 @@ class _PlanSheetState extends ConsumerState<_PlanSheet> {
         category: _category,
         assetType: _assetType,
         title: title,
-        description: _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim(),
+        description: _descCtrl.text.trim().isEmpty
+            ? null
+            : _descCtrl.text.trim(),
         clearDescription: _descCtrl.text.trim().isEmpty,
         targetAmount: target,
         clearTargetAmount: target == null,
@@ -740,21 +797,27 @@ class _PlanSheetState extends ConsumerState<_PlanSheet> {
         targetDate: _targetDate,
         clearTargetDate: _targetDate == null,
       );
-      await ref.read(profilesProvider.notifier).updateFuturePlan(widget.profileIndex, updated);
+      await ref
+          .read(profilesProvider.notifier)
+          .updateFuturePlan(widget.profileIndex, updated);
     } else {
       final plan = FuturePlan(
         id: 'plan_${DateTime.now().microsecondsSinceEpoch}',
         category: _category,
         assetType: _assetType,
         title: title,
-        description: _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim(),
+        description: _descCtrl.text.trim().isEmpty
+            ? null
+            : _descCtrl.text.trim(),
         targetAmount: target,
         currentAmount: current,
         currency: _currency,
         targetDate: _targetDate,
         createdAt: DateTime.now(),
       );
-      await ref.read(profilesProvider.notifier).addFuturePlan(widget.profileIndex, plan);
+      await ref
+          .read(profilesProvider.notifier)
+          .addFuturePlan(widget.profileIndex, plan);
     }
 
     if (mounted) Navigator.pop(context);
@@ -769,270 +832,339 @@ class _PlanSheetState extends ConsumerState<_PlanSheet> {
         color: Theme.of(context).scaffoldBackgroundColor,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Handle
-          Container(
-            margin: const EdgeInsets.only(top: 12),
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade300,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          // Header row
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 8, 0),
-            child: Row(
-              children: [
-                Text(
-                  _isEdit ? 'Edit Plan' : 'New Plan',
-                  style: const TextStyle(
-                      fontSize: 17, fontWeight: FontWeight.w700),
-                ),
-                const Spacer(),
-                TextButton(
-                  onPressed: _saving ? null : _save,
-                  child: _saving
-                      ? SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(
-                              strokeWidth: 2, color: theme.accent),
-                        )
-                      : Text('Save',
-                          style: TextStyle(
-                              color: theme.accent,
-                              fontWeight: FontWeight.w600)),
-                ),
-              ],
-            ),
-          ),
-          Flexible(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(
-                16,
-                8,
-                16,
-                MediaQuery.viewInsetsOf(context).bottom + 24,
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle
+            Container(
+              margin: const EdgeInsets.only(top: 12),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            ),
+            // Header row
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 8, 0),
+              child: Row(
                 children: [
-                  // Category picker
-                  _Label('Category'),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: FuturePlanCategory.values.map((cat) {
-                      final sel = _category == cat;
-                      return Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: GestureDetector(
-                            onTap: () => setState(() => _category = cat),
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 180),
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                              decoration: BoxDecoration(
-                                color: sel ? theme.accent : theme.soft,
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(
-                                  color: sel ? theme.accent : theme.accent.withAlpha(40),
-                                ),
-                              ),
-                              child: Column(
-                                children: [
-                                  Text(cat.emoji,
-                                      style: const TextStyle(fontSize: 18)),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    cat.label,
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: sel ? Colors.white : theme.accent,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                  Text(
+                    _isEdit ? 'Edit Plan' : 'New Plan',
+                    style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const Spacer(),
+                  TextButton(
+                    onPressed: _saving ? null : _save,
+                    child: _saving
+                        ? SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: theme.accent,
+                            ),
+                          )
+                        : Text(
+                            'Save',
+                            style: TextStyle(
+                              color: theme.accent,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
-                        ),
-                      );
-                    }).toList(),
                   ),
-                  const SizedBox(height: 16),
-
-                  // Asset type
-                  _Label('Asset Type'),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: AssetType.values.map((type) {
-                      final sel = _assetType == type;
-                      return GestureDetector(
-                        onTap: () => setState(() => _assetType = type),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 160),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: sel ? theme.accent : Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: sel ? theme.accent : Colors.grey.shade300,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(type.emoji,
-                                  style: const TextStyle(fontSize: 14)),
-                              const SizedBox(width: 5),
-                              Text(
-                                type.label,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color:
-                                      sel ? Colors.white : Colors.grey.shade700,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Title
-                  _Label('Title'),
-                  const SizedBox(height: 6),
-                  TextField(
-                    controller: _titleCtrl,
-                    textCapitalization: TextCapitalization.sentences,
-                    decoration: _inputDeco(
-                      'e.g. Gold saved for marriage',
-                      Icons.title_outlined,
-                      theme,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Description
-                  _Label('Notes (optional)'),
-                  const SizedBox(height: 6),
-                  TextField(
-                    controller: _descCtrl,
-                    maxLines: 2,
-                    textCapitalization: TextCapitalization.sentences,
-                    decoration: _inputDeco(
-                      'Add any details…',
-                      Icons.notes_outlined,
-                      theme,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Amount row
-                  _Label('Amount'),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      // Currency dropdown
-                      Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey.shade300),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        child: DropdownButton<String>(
-                          value: _currency,
-                          underline: const SizedBox.shrink(),
-                          items: _currencies
-                              .map((c) => DropdownMenuItem(
-                                    value: c,
-                                    child: Text(c,
-                                        style: const TextStyle(fontSize: 13)),
-                                  ))
-                              .toList(),
-                          onChanged: (v) =>
-                              setState(() => _currency = v ?? _currency),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: TextField(
-                          controller: _currentCtrl,
-                          keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true),
-                          inputFormatters: [
-                            FilteringTextInputFormatter.allow(
-                                RegExp(r'[0-9.]'))
-                          ],
-                          decoration: _inputDeco(
-                              'Current amount', Icons.account_balance_wallet_outlined, theme),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: TextField(
-                          controller: _targetCtrl,
-                          keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true),
-                          inputFormatters: [
-                            FilteringTextInputFormatter.allow(
-                                RegExp(r'[0-9.]'))
-                          ],
-                          decoration:
-                              _inputDeco('Target', Icons.flag_outlined, theme),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Target date
-                  OutlinedButton.icon(
-                    onPressed: () async {
-                      final picked = await showAppDatePicker(
-                        context: context,
-                        initialDate: _targetDate ?? DateTime.now().add(const Duration(days: 365)),
-                        firstDate: DateTime.now(),
-                        lastDate: DateTime.now().add(const Duration(days: 365 * 30)),
-                      );
-                      if (picked != null) setState(() => _targetDate = picked);
-                    },
-                    icon: Icon(Icons.calendar_month_outlined, color: theme.accent),
-                    label: Text(
-                      _targetDate != null
-                          ? 'Target: ${formatMonthYear(_targetDate!)}'
-                          : 'Set target date (optional)',
-                      style: TextStyle(
-                          color: theme.accent, fontWeight: FontWeight.w500),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14)),
-                      side: BorderSide(color: theme.accent.withAlpha(120)),
-                    ),
-                  ),
-                  if (_targetDate != null)
-                    TextButton(
-                      onPressed: () => setState(() => _targetDate = null),
-                      child: const Text('Remove date',
-                          style: TextStyle(color: Colors.red, fontSize: 12)),
-                    ),
                 ],
               ),
             ),
-          ),
-        ],
+            Flexible(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(
+                  16,
+                  8,
+                  16,
+                  MediaQuery.viewInsetsOf(context).bottom + 24,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Category picker
+                    _Label('Category'),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: FuturePlanCategory.values.map((cat) {
+                        final sel = _category == cat;
+                        return Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: GestureDetector(
+                              onTap: () => setState(() => _category = cat),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 180),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 10,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: sel ? theme.accent : theme.soft,
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(
+                                    color: sel
+                                        ? theme.accent
+                                        : theme.accent.withAlpha(40),
+                                  ),
+                                ),
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      cat.emoji,
+                                      style: const TextStyle(fontSize: 18),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      cat.label,
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: sel
+                                            ? Colors.white
+                                            : theme.accent,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Asset type
+                    _Label('Asset Type'),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: AssetType.values.map((type) {
+                        final sel = _assetType == type;
+                        return GestureDetector(
+                          onTap: () => setState(() => _assetType = type),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 160),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: sel ? theme.accent : Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: sel
+                                    ? theme.accent
+                                    : Colors.grey.shade300,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  type.emoji,
+                                  style: const TextStyle(fontSize: 14),
+                                ),
+                                const SizedBox(width: 5),
+                                Text(
+                                  type.label,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: sel
+                                        ? Colors.white
+                                        : Colors.grey.shade700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Title
+                    _Label('Title'),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      controller: _titleCtrl,
+                      textCapitalization: TextCapitalization.sentences,
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                      validator: validateFuturePlanTitle,
+                      decoration: _inputDeco(
+                        'e.g. Gold saved for marriage',
+                        Icons.title_outlined,
+                        theme,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Description
+                    _Label('Notes (optional)'),
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: _descCtrl,
+                      maxLines: 2,
+                      textCapitalization: TextCapitalization.sentences,
+                      decoration: _inputDeco(
+                        'Add any details…',
+                        Icons.notes_outlined,
+                        theme,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Amount row
+                    _Label('Amount'),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        // Currency dropdown
+                        Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey.shade300),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          child: DropdownButton<String>(
+                            value: _currency,
+                            underline: const SizedBox.shrink(),
+                            items: _currencies
+                                .map(
+                                  (c) => DropdownMenuItem(
+                                    value: c,
+                                    child: Text(
+                                      c,
+                                      style: const TextStyle(fontSize: 13),
+                                    ),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: (v) =>
+                                setState(() => _currency = v ?? _currency),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: TextFormField(
+                            controller: _currentCtrl,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(
+                                RegExp(r'[0-9.]'),
+                              ),
+                            ],
+                            autovalidateMode:
+                                AutovalidateMode.onUserInteraction,
+                            validator: (value) => validateFuturePlanAmount(
+                              value,
+                              label: 'current amount',
+                            ),
+                            onChanged: (_) => _formKey.currentState?.validate(),
+                            decoration: _inputDeco(
+                              'Current amount',
+                              Icons.account_balance_wallet_outlined,
+                              theme,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: TextFormField(
+                            controller: _targetCtrl,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(
+                                RegExp(r'[0-9.]'),
+                              ),
+                            ],
+                            autovalidateMode:
+                                AutovalidateMode.onUserInteraction,
+                            validator: (value) => validateFuturePlanTarget(
+                              value,
+                              _currentCtrl.text,
+                            ),
+                            onChanged: (_) => _formKey.currentState?.validate(),
+                            decoration: _inputDeco(
+                              'Target',
+                              Icons.flag_outlined,
+                              theme,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Target date
+                    OutlinedButton.icon(
+                      onPressed: () async {
+                        final picked = await showAppDatePicker(
+                          context: context,
+                          initialDate:
+                              _targetDate ??
+                              DateTime.now().add(const Duration(days: 365)),
+                          firstDate: DateTime.now(),
+                          lastDate: DateTime.now().add(
+                            const Duration(days: 365 * 30),
+                          ),
+                        );
+                        if (picked != null) {
+                          setState(() => _targetDate = picked);
+                        }
+                      },
+                      icon: Icon(
+                        Icons.calendar_month_outlined,
+                        color: theme.accent,
+                      ),
+                      label: Text(
+                        _targetDate != null
+                            ? 'Target: ${formatMonthYear(_targetDate!)}'
+                            : 'Set target date (optional)',
+                        style: TextStyle(
+                          color: theme.accent,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        side: BorderSide(color: theme.accent.withAlpha(120)),
+                      ),
+                    ),
+                    if (_targetDate != null)
+                      TextButton(
+                        onPressed: () => setState(() => _targetDate = null),
+                        child: const Text(
+                          'Remove date',
+                          style: TextStyle(color: Colors.red, fontSize: 12),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1044,8 +1176,10 @@ class _PlanSheetState extends ConsumerState<_PlanSheet> {
         prefixIcon: Icon(icon, color: theme.accent, size: 18),
         filled: true,
         fillColor: Colors.white,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(color: Colors.grey.shade200),
@@ -1069,19 +1203,23 @@ class _Label extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Text(
-        text,
-        style: TextStyle(
-          fontWeight: FontWeight.w600,
-          fontSize: 13,
-          color: Colors.grey.shade700,
-        ),
-      );
+    text,
+    style: TextStyle(
+      fontWeight: FontWeight.w600,
+      fontSize: 13,
+      color: Colors.grey.shade700,
+    ),
+  );
 }
 
 String _fmt(double amount, String currency) {
   if (amount == 0) return '$currency 0';
-  if (amount >= 10000000) return '$currency ${(amount / 10000000).toStringAsFixed(1)}Cr';
-  if (amount >= 100000) return '$currency ${(amount / 100000).toStringAsFixed(1)}L';
+  if (amount >= 10000000) {
+    return '$currency ${(amount / 10000000).toStringAsFixed(1)}Cr';
+  }
+  if (amount >= 100000) {
+    return '$currency ${(amount / 100000).toStringAsFixed(1)}L';
+  }
   if (amount >= 1000) return '$currency ${(amount / 1000).toStringAsFixed(1)}K';
   return '$currency ${amount.toStringAsFixed(0)}';
 }

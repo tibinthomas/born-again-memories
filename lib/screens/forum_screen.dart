@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/services.dart';
 
 import '../models/forum_question.dart';
 import '../models/kid_profile.dart';
@@ -15,6 +16,8 @@ final forumQuestionsProvider = StreamProvider<List<ForumQuestion>>(
   (_) => FirestoreService.streamForumQuestions(),
 );
 
+const _maxQuestionCharacters = 500;
+
 class ForumScreen extends ConsumerWidget {
   final int profileIndex;
   const ForumScreen({super.key, required this.profileIndex});
@@ -25,7 +28,8 @@ class ForumScreen extends ConsumerWidget {
     final profiles = ref.watch(profilesProvider) ?? [];
     final theme = profiles.isNotEmpty
         ? ProfileTheme.forProfile(
-            profiles[profileIndex.clamp(0, profiles.length - 1)])
+            profiles[profileIndex.clamp(0, profiles.length - 1)],
+          )
         : ProfileTheme.forGender(Gender.neutral);
     final accent = theme.accent;
     final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
@@ -42,7 +46,10 @@ class ForumScreen extends ConsumerWidget {
                 children: [
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      size: 20,
+                    ),
                     tooltip: 'Back',
                     color: const Color(0xFF1A1A2E),
                   ),
@@ -51,14 +58,21 @@ class ForumScreen extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text('Q&A Forum',
-                            style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF1A1A2E))),
-                        Text('Ask the parenting community',
-                            style: TextStyle(
-                                fontSize: 12, color: Color(0xFF888888))),
+                        Text(
+                          'Q&A Forum',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF1A1A2E),
+                          ),
+                        ),
+                        Text(
+                          'Ask the parenting community',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF888888),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -75,18 +89,23 @@ class ForumScreen extends ConsumerWidget {
                   return Center(
                     child: Padding(
                       padding: const EdgeInsets.all(24),
-                      child: Text('Error: $e',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              color: Colors.red.shade400, fontSize: 13)),
+                      child: Text(
+                        'Error: $e',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.red.shade400,
+                          fontSize: 13,
+                        ),
+                      ),
                     ),
                   );
                 },
                 data: (list) {
                   if (list.isEmpty) {
                     return _EmptyState(
-                        accent: accent,
-                        onAsk: () => _showAskSheet(context, accent, uid));
+                      accent: accent,
+                      onAsk: () => _showAskSheet(context, accent, uid),
+                    );
                   }
                   return ListView.builder(
                     padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
@@ -109,10 +128,13 @@ class ForumScreen extends ConsumerWidget {
                               ),
                             ),
                           ),
-                          onEdit: () =>
-                              _showAskSheet(context, accent, uid, editing: list[i]),
-                          onDelete: () =>
-                              _confirmDelete(context, list[i].id),
+                          onEdit: () => _showAskSheet(
+                            context,
+                            accent,
+                            uid,
+                            editing: list[i],
+                          ),
+                          onDelete: () => _confirmDelete(context, list[i].id),
                         ),
                       ),
                     ),
@@ -133,15 +155,19 @@ class ForumScreen extends ConsumerWidget {
     );
   }
 
-  void _showAskSheet(BuildContext context, Color accent, String uid,
-      {ForumQuestion? editing}) {
+  void _showAskSheet(
+    BuildContext context,
+    Color accent,
+    String uid, {
+    ForumQuestion? editing,
+  }) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _AskQuestionSheet(
-          accent: accent, uid: uid, editing: editing),
+      builder: (_) =>
+          _AskQuestionSheet(accent: accent, uid: uid, editing: editing),
     );
   }
 
@@ -152,18 +178,19 @@ class ForumScreen extends ConsumerWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('Delete question?'),
         content: const Text(
-            'This will also delete all answers. This cannot be undone.'),
+          'This will also delete all answers. This cannot be undone.',
+        ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel')),
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
               FirestoreService.deleteForumQuestion(questionId);
             },
-            child:
-                const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -200,9 +227,10 @@ class _QuestionCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withAlpha(7),
-              blurRadius: 10,
-              offset: const Offset(0, 3)),
+            color: Colors.black.withAlpha(7),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
         ],
       ),
       clipBehavior: Clip.antiAlias,
@@ -217,42 +245,55 @@ class _QuestionCard extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _Avatar(name: question.authorName, photoUrl: question.authorPhotoUrl),
+                  _Avatar(
+                    name: question.authorName,
+                    photoUrl: question.authorPhotoUrl,
+                  ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(question.authorName,
-                            style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF1A1A2E))),
-                        Text(_timeAgo(question.createdAt),
-                            style: TextStyle(
-                                fontSize: 11, color: Colors.grey.shade400)),
+                        Text(
+                          question.authorName,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF1A1A2E),
+                          ),
+                        ),
+                        Text(
+                          _timeAgo(question.createdAt),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey.shade400,
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                  if (isOwner)
-                    _OwnerMenu(onEdit: onEdit, onDelete: onDelete),
+                  if (isOwner) _OwnerMenu(onEdit: onEdit, onDelete: onDelete),
                 ],
               ),
               const SizedBox(height: 10),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.help_outline_rounded,
-                      size: 16, color: accent.withAlpha(180)),
+                  Icon(
+                    Icons.help_outline_rounded,
+                    size: 16,
+                    color: accent.withAlpha(180),
+                  ),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       question.content,
                       style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF1A1A2E),
-                          height: 1.4),
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1A1A2E),
+                        height: 1.4,
+                      ),
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -261,10 +302,14 @@ class _QuestionCard extends StatelessWidget {
               ),
               if (question.edited) ...[
                 const SizedBox(height: 2),
-                Text('edited',
-                    style: TextStyle(
-                        fontSize: 10, color: Colors.grey.shade400,
-                        fontStyle: FontStyle.italic)),
+                Text(
+                  'edited',
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: Colors.grey.shade400,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
               ],
               if (question.tags.isNotEmpty) ...[
                 const SizedBox(height: 8),
@@ -272,19 +317,26 @@ class _QuestionCard extends StatelessWidget {
                   spacing: 6,
                   runSpacing: 4,
                   children: question.tags
-                      .map((t) => Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: accent.withAlpha(14),
-                              borderRadius: BorderRadius.circular(12),
+                      .map(
+                        (t) => Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: accent.withAlpha(14),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            '#$t',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: accent,
+                              fontWeight: FontWeight.w600,
                             ),
-                            child: Text('#$t',
-                                style: TextStyle(
-                                    fontSize: 11,
-                                    color: accent,
-                                    fontWeight: FontWeight.w600)),
-                          ))
+                          ),
+                        ),
+                      )
                       .toList(),
                 ),
               ],
@@ -293,24 +345,31 @@ class _QuestionCard extends StatelessWidget {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  Icon(Icons.chat_bubble_outline_rounded,
-                      size: 15, color: Colors.grey.shade400),
+                  Icon(
+                    Icons.chat_bubble_outline_rounded,
+                    size: 15,
+                    color: Colors.grey.shade400,
+                  ),
                   const SizedBox(width: 5),
                   Text(
                     question.answerCount == 1
                         ? '1 answer'
                         : '${question.answerCount} answers',
                     style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade500,
-                        fontWeight: FontWeight.w500),
+                      fontSize: 12,
+                      color: Colors.grey.shade500,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                   const Spacer(),
-                  Text('Answer →',
-                      style: TextStyle(
-                          fontSize: 12,
-                          color: accent,
-                          fontWeight: FontWeight.w600)),
+                  Text(
+                    'Answer →',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: accent,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -327,8 +386,18 @@ class _QuestionCard extends StatelessWidget {
     if (diff.inDays < 1) return '${diff.inHours}h ago';
     if (diff.inDays < 7) return '${diff.inDays}d ago';
     const months = [
-      'Jan','Feb','Mar','Apr','May','Jun',
-      'Jul','Aug','Sep','Oct','Nov','Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return '${months[dt.month - 1]} ${dt.day}';
   }
@@ -341,8 +410,11 @@ class _AskQuestionSheet extends StatefulWidget {
   final String uid;
   final ForumQuestion? editing;
 
-  const _AskQuestionSheet(
-      {required this.accent, required this.uid, this.editing});
+  const _AskQuestionSheet({
+    required this.accent,
+    required this.uid,
+    this.editing,
+  });
 
   @override
   State<_AskQuestionSheet> createState() => _AskQuestionSheetState();
@@ -355,7 +427,10 @@ class _AskQuestionSheetState extends State<_AskQuestionSheet> {
   bool _saving = false;
 
   bool get _isEditing => widget.editing != null;
-  bool get _canSubmit => _ctrl.text.trim().length >= 10;
+  bool get _canSubmit {
+    final length = _ctrl.text.trim().length;
+    return length >= 10 && length <= _maxQuestionCharacters;
+  }
 
   @override
   void initState() {
@@ -410,11 +485,13 @@ class _AskQuestionSheetState extends State<_AskQuestionSheet> {
       if (mounted) Navigator.pop(context);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Error: $e'),
-          backgroundColor: Colors.red.shade400,
-          behavior: SnackBarBehavior.floating,
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.red.shade400,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -424,36 +501,46 @@ class _AskQuestionSheetState extends State<_AskQuestionSheet> {
   @override
   Widget build(BuildContext context) {
     final accent = widget.accent;
+    final questionLength = _ctrl.text.trim().length;
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.fromLTRB(
-          20, 16, 20, MediaQuery.viewInsetsOf(context).bottom + 24),
+        20,
+        16,
+        20,
+        MediaQuery.viewInsetsOf(context).bottom + 24,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Center(
             child: Container(
-              width: 40, height: 4,
+              width: 40,
+              height: 4,
               decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2)),
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
           ),
           const SizedBox(height: 16),
           Text(
             _isEditing ? 'Edit question' : 'Ask the community',
             style: const TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF1A1A2E)),
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF1A1A2E),
+            ),
           ),
           const SizedBox(height: 4),
-          Text('Text only · be specific · be kind',
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+          Text(
+            'Text only · be specific · be kind',
+            style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+          ),
           const SizedBox(height: 14),
           TextField(
             controller: _ctrl,
@@ -461,11 +548,19 @@ class _AskQuestionSheetState extends State<_AskQuestionSheet> {
             minLines: 3,
             autofocus: true,
             style: const TextStyle(
-                fontSize: 15, color: Color(0xFF1A1A2E), height: 1.5),
+              fontSize: 15,
+              color: Color(0xFF1A1A2E),
+              height: 1.5,
+            ),
             decoration: InputDecoration(
               hintText: 'What would you like to ask?',
-              hintStyle:
-                  TextStyle(fontSize: 15, color: Colors.grey.shade400),
+              helperText: questionLength == 0 ? 'Minimum 10 characters' : null,
+              errorText: questionLength > 0 && questionLength < 10
+                  ? 'Enter at least 10 characters ($questionLength/10)'
+                  : questionLength > _maxQuestionCharacters
+                  ? 'Question cannot exceed $_maxQuestionCharacters characters'
+                  : null,
+              hintStyle: TextStyle(fontSize: 15, color: Colors.grey.shade400),
               filled: true,
               fillColor: const Color(0xFFF2F2F7),
               border: OutlineInputBorder(
@@ -474,6 +569,8 @@ class _AskQuestionSheetState extends State<_AskQuestionSheet> {
               ),
               contentPadding: const EdgeInsets.all(14),
             ),
+            maxLength: _maxQuestionCharacters,
+            maxLengthEnforcement: MaxLengthEnforcement.none,
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: 12),
@@ -482,22 +579,30 @@ class _AskQuestionSheetState extends State<_AskQuestionSheet> {
             spacing: 6,
             runSpacing: 6,
             children: [
-              ..._tags.map((t) => GestureDetector(
-                    onTap: () => setState(() => _tags.remove(t)),
-                    child: Chip(
-                      label: Text('#$t',
-                          style: TextStyle(
-                              fontSize: 12,
-                              color: accent,
-                              fontWeight: FontWeight.w600)),
-                      deleteIcon:
-                          Icon(Icons.close_rounded, size: 14, color: accent),
-                      onDeleted: () => setState(() => _tags.remove(t)),
-                      backgroundColor: accent.withAlpha(14),
-                      side: BorderSide(color: accent.withAlpha(50)),
-                      padding: EdgeInsets.zero,
+              ..._tags.map(
+                (t) => GestureDetector(
+                  onTap: () => setState(() => _tags.remove(t)),
+                  child: Chip(
+                    label: Text(
+                      '#$t',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: accent,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  )),
+                    deleteIcon: Icon(
+                      Icons.close_rounded,
+                      size: 14,
+                      color: accent,
+                    ),
+                    onDeleted: () => setState(() => _tags.remove(t)),
+                    backgroundColor: accent.withAlpha(14),
+                    side: BorderSide(color: accent.withAlpha(50)),
+                    padding: EdgeInsets.zero,
+                  ),
+                ),
+              ),
               if (_tags.length < 5)
                 SizedBox(
                   width: 120,
@@ -506,7 +611,9 @@ class _AskQuestionSheetState extends State<_AskQuestionSheet> {
                     decoration: InputDecoration(
                       hintText: '+ add tag',
                       hintStyle: TextStyle(
-                          fontSize: 12, color: Colors.grey.shade400),
+                        fontSize: 12,
+                        color: Colors.grey.shade400,
+                      ),
                       border: InputBorder.none,
                       isDense: true,
                     ),
@@ -526,19 +633,25 @@ class _AskQuestionSheetState extends State<_AskQuestionSheet> {
                 backgroundColor: accent,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14)),
+                  borderRadius: BorderRadius.circular(14),
+                ),
               ),
               child: _saving
                   ? const SizedBox(
-                      width: 18, height: 18,
+                      width: 18,
+                      height: 18,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white))
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
                   : Text(
                       _isEditing ? 'Save changes' : 'Post question',
                       style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white),
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
                     ),
             ),
           ),
@@ -560,15 +673,20 @@ class _Avatar extends StatelessWidget {
     return CircleAvatar(
       radius: 18,
       backgroundImage: photoUrl != null ? NetworkImage(photoUrl!) : null,
-      backgroundColor: Colors.primaries[
-              name.isNotEmpty ? name.codeUnitAt(0) % Colors.primaries.length : 0]
+      backgroundColor: Colors
+          .primaries[name.isNotEmpty
+              ? name.codeUnitAt(0) % Colors.primaries.length
+              : 0]
           .shade200,
       child: photoUrl == null
-          ? Text(name.isNotEmpty ? name[0].toUpperCase() : '?',
+          ? Text(
+              name.isNotEmpty ? name[0].toUpperCase() : '?',
               style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white))
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            )
           : null,
     );
   }
@@ -582,26 +700,34 @@ class _OwnerMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PopupMenuButton<String>(
-      icon: Icon(Icons.more_horiz_rounded,
-          size: 20, color: Colors.grey.shade400),
+      icon: Icon(
+        Icons.more_horiz_rounded,
+        size: 20,
+        color: Colors.grey.shade400,
+      ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       onSelected: (v) => v == 'edit' ? onEdit() : onDelete(),
       itemBuilder: (_) => const [
         PopupMenuItem(
-            value: 'edit',
-            child: Row(children: [
+          value: 'edit',
+          child: Row(
+            children: [
               Icon(Icons.edit_outlined, size: 16),
               SizedBox(width: 8),
               Text('Edit'),
-            ])),
+            ],
+          ),
+        ),
         PopupMenuItem(
-            value: 'delete',
-            child: Row(children: [
-              Icon(Icons.delete_outline_rounded,
-                  size: 16, color: Colors.red),
+          value: 'delete',
+          child: Row(
+            children: [
+              Icon(Icons.delete_outline_rounded, size: 16, color: Colors.red),
               SizedBox(width: 8),
               Text('Delete', style: TextStyle(color: Colors.red)),
-            ])),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -620,22 +746,29 @@ class _EmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.help_outline_rounded,
-                size: 56, color: Colors.grey.shade300),
+            Icon(
+              Icons.help_outline_rounded,
+              size: 56,
+              color: Colors.grey.shade300,
+            ),
             const SizedBox(height: 16),
-            const Text('No questions yet',
-                style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF1A1A2E))),
+            const Text(
+              'No questions yet',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF1A1A2E),
+              ),
+            ),
             const SizedBox(height: 8),
             Text(
               'Be the first to ask the community\na parenting question.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.grey.shade500,
-                  height: 1.5),
+                fontSize: 13,
+                color: Colors.grey.shade500,
+                height: 1.5,
+              ),
             ),
             const SizedBox(height: 24),
             FilledButton.icon(
@@ -643,15 +776,25 @@ class _EmptyState extends StatelessWidget {
               style: FilledButton.styleFrom(
                 backgroundColor: accent,
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 24, vertical: 12),
+                  horizontal: 24,
+                  vertical: 12,
+                ),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14)),
+                  borderRadius: BorderRadius.circular(14),
+                ),
               ),
-              icon: const Icon(Icons.help_outline_rounded,
-                  size: 16, color: Colors.white),
-              label: const Text('Ask the first question',
-                  style: TextStyle(
-                      fontWeight: FontWeight.w700, color: Colors.white)),
+              icon: const Icon(
+                Icons.help_outline_rounded,
+                size: 16,
+                color: Colors.white,
+              ),
+              label: const Text(
+                'Ask the first question',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
             ),
           ],
         ),
@@ -683,21 +826,28 @@ class _AnimatedCardState extends State<_AnimatedCard>
     super.initState();
     if (DevicePerformance.isLowEnd) return;
     _ctrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 560));
-    final curved =
-        CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic);
-    _opacity = Tween(begin: 0.0, end: 1.0).animate(CurvedAnimation(
+      vsync: this,
+      duration: const Duration(milliseconds: 560),
+    );
+    final curved = CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic);
+    _opacity = Tween(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
         parent: _ctrl,
-        curve: const Interval(0.0, 0.65, curve: Curves.easeOut)));
+        curve: const Interval(0.0, 0.65, curve: Curves.easeOut),
+      ),
+    );
     _scale = Tween(begin: 0.92, end: 1.0).animate(curved);
-    _slide = Tween(begin: const Offset(0, 0.07), end: Offset.zero)
-        .animate(curved);
+    _slide = Tween(
+      begin: const Offset(0, 0.07),
+      end: Offset.zero,
+    ).animate(curved);
     final delay = (widget.index * 60).clamp(0, 320);
     if (delay == 0) {
       _ctrl.forward();
     } else {
-      Future.delayed(Duration(milliseconds: delay),
-          () { if (mounted) _ctrl.forward(); });
+      Future.delayed(Duration(milliseconds: delay), () {
+        if (mounted) _ctrl.forward();
+      });
     }
   }
 

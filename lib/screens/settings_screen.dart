@@ -20,6 +20,7 @@ import '../services/drive_service.dart';
 import '../services/firestore_service.dart';
 import '../services/icloud_service.dart';
 import '../services/local_storage_service.dart';
+import '../utils/account_deletion_validator.dart';
 import '../utils/chime.dart';
 import '../utils/profile_theme.dart';
 import 'privacy_policy_screen.dart';
@@ -975,76 +976,92 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     required bool deleteDriveBackup,
     required bool deleteICloudBackup,
   }) {
-    final controller = TextEditingController();
+    var confirmation = '';
     final isApple = ref.read(authServiceProvider).isAppleUser;
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDlgState) => AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: const Text('Delete account?'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                deleteICloudBackup
-                    ? 'Your account and iCloud backup will be deleted. '
-                          'Your memories are kept for 28 days in case you change your mind — '
-                          'but without the iCloud files.'
-                    : deleteDriveBackup
-                    ? 'Your account and Google Drive backup will be deleted. '
-                          'Your memories are kept for 28 days in case you change your mind — '
-                          'but without the Drive files.'
-                    : isApple
-                    ? 'Your account will be scheduled for deletion. '
-                          'Your memories are kept for 28 days — sign back in to recover them. '
-                          'Your iCloud backup will be kept.'
-                    : 'Your account will be scheduled for deletion. '
-                          'Your memories are kept for 28 days — sign back in to recover them. '
-                          'Your Google Drive backup will be kept.',
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Type "delete" to confirm',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-              const SizedBox(height: 6),
-              TextField(
-                controller: controller,
-                autofocus: true,
-                onChanged: (_) => setDlgState(() {}),
-                decoration: const InputDecoration(
-                  hintText: 'delete',
-                  border: OutlineInputBorder(),
-                  isDense: true,
+        builder: (ctx, setDlgState) {
+          final confirmationValid = isAccountDeletionConfirmationValid(
+            confirmation,
+          );
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: const Text('Delete account?'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  deleteICloudBackup
+                      ? 'Your account and iCloud backup will be deleted. '
+                            'Your memories are kept for 28 days in case you change your mind — '
+                            'but without the iCloud files.'
+                      : deleteDriveBackup
+                      ? 'Your account and Google Drive backup will be deleted. '
+                            'Your memories are kept for 28 days in case you change your mind — '
+                            'but without the Drive files.'
+                      : isApple
+                      ? 'Your account will be scheduled for deletion. '
+                            'Your memories are kept for 28 days — sign back in to recover them. '
+                            'Your iCloud backup will be kept.'
+                      : 'Your account will be scheduled for deletion. '
+                            'Your memories are kept for 28 days — sign back in to recover them. '
+                            'Your Google Drive backup will be kept.',
                 ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Type "delete" to confirm',
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+                const SizedBox(height: 6),
+                TextField(
+                  autofocus: true,
+                  onChanged: (value) {
+                    setDlgState(() => confirmation = value);
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'delete',
+                    border: const OutlineInputBorder(),
+                    isDense: true,
+                    errorText: confirmation.isNotEmpty && !confirmationValid
+                        ? 'Confirmation text does not match'
+                        : null,
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.red,
+                  disabledForegroundColor: Colors.grey.shade400,
+                ),
+                onPressed: confirmationValid
+                    ? () async {
+                        if (!isAccountDeletionConfirmationValid(confirmation)) {
+                          return;
+                        }
+                        Navigator.pop(ctx);
+                        await _reauthAndDelete(
+                          deleteDriveBackup: deleteDriveBackup,
+                          deleteICloudBackup: deleteICloudBackup,
+                        );
+                      }
+                    : null,
+                child: const Text('Delete'),
               ),
             ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: controller.text.trim().toLowerCase() == 'delete'
-                  ? () async {
-                      Navigator.pop(ctx);
-                      await _reauthAndDelete(
-                        deleteDriveBackup: deleteDriveBackup,
-                        deleteICloudBackup: deleteICloudBackup,
-                      );
-                    }
-                  : null,
-              child: const Text('Delete', style: TextStyle(color: Colors.red)),
-            ),
-          ],
-        ),
+          );
+        },
       ),
-    ).then((_) => controller.dispose());
+    );
   }
 
   Future<void> _reauthAndDelete({

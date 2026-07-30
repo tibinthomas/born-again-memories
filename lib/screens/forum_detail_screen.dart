@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/services.dart';
 
 import '../models/forum_question.dart';
 import '../services/firestore_service.dart';
@@ -8,6 +9,9 @@ import '../services/firestore_service.dart';
 final _answersProvider = StreamProviderFamily<List<ForumAnswer>, String>(
   (_, questionId) => FirestoreService.streamForumAnswers(questionId),
 );
+
+const _maxQuestionCharacters = 500;
+const _maxAnswerCharacters = 2000;
 
 class ForumDetailScreen extends ConsumerStatefulWidget {
   final ForumQuestion question;
@@ -29,6 +33,13 @@ class _ForumDetailScreenState extends ConsumerState<ForumDetailScreen> {
   final _answerCtrl = TextEditingController();
   bool _submitting = false;
   ForumAnswer? _editingAnswer;
+  late ForumQuestion _question;
+
+  @override
+  void initState() {
+    super.initState();
+    _question = widget.question;
+  }
 
   @override
   void dispose() {
@@ -38,7 +49,7 @@ class _ForumDetailScreenState extends ConsumerState<ForumDetailScreen> {
 
   Future<void> _submitAnswer() async {
     final text = _answerCtrl.text.trim();
-    if (text.isEmpty) return;
+    if (text.isEmpty || text.length > _maxAnswerCharacters) return;
     setState(() => _submitting = true);
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -46,7 +57,7 @@ class _ForumDetailScreenState extends ConsumerState<ForumDetailScreen> {
 
       if (_editingAnswer != null) {
         await FirestoreService.updateForumAnswer(
-          widget.question.id,
+          _question.id,
           _editingAnswer!.copyWith(content: text, edited: true),
         );
       } else {
@@ -58,17 +69,19 @@ class _ForumDetailScreenState extends ConsumerState<ForumDetailScreen> {
           authorPhotoUrl: user.photoURL,
           createdAt: DateTime.now(),
         );
-        await FirestoreService.createForumAnswer(widget.question.id, answer);
+        await FirestoreService.createForumAnswer(_question.id, answer);
       }
       _answerCtrl.clear();
       setState(() => _editingAnswer = null);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Error: $e'),
-          backgroundColor: Colors.red.shade400,
-          behavior: SnackBarBehavior.floating,
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.red.shade400,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _submitting = false);
@@ -98,16 +111,15 @@ class _ForumDetailScreenState extends ConsumerState<ForumDetailScreen> {
         content: const Text('This cannot be undone.'),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel')),
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
-              FirestoreService.deleteForumAnswer(
-                  widget.question.id, answerId);
+              FirestoreService.deleteForumAnswer(_question.id, answerId);
             },
-            child:
-                const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -116,9 +128,9 @@ class _ForumDetailScreenState extends ConsumerState<ForumDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final answers = ref.watch(_answersProvider(widget.question.id));
+    final answers = ref.watch(_answersProvider(_question.id));
     final accent = widget.accent;
-    final q = widget.question;
+    final q = _question;
     final isQuestionOwner = q.authorId == widget.currentUid;
 
     return Scaffold(
@@ -134,17 +146,22 @@ class _ForumDetailScreenState extends ConsumerState<ForumDetailScreen> {
                   elevation: 0,
                   pinned: true,
                   leading: IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                        size: 20),
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      size: 20,
+                    ),
                     tooltip: 'Back',
                     color: const Color(0xFF1A1A2E),
                     onPressed: () => Navigator.pop(context),
                   ),
-                  title: const Text('Question',
-                      style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF1A1A2E))),
+                  title: const Text(
+                    'Question',
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1A1A2E),
+                    ),
+                  ),
                   actions: [
                     if (isQuestionOwner)
                       _OwnerMenu(
@@ -165,21 +182,28 @@ class _ForumDetailScreenState extends ConsumerState<ForumDetailScreen> {
                         Row(
                           children: [
                             _Avatar(
-                                name: q.authorName,
-                                photoUrl: q.authorPhotoUrl),
+                              name: q.authorName,
+                              photoUrl: q.authorPhotoUrl,
+                            ),
                             const SizedBox(width: 10),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(q.authorName,
-                                    style: const TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w700,
-                                        color: Color(0xFF1A1A2E))),
-                                Text(_formatDate(q.createdAt),
-                                    style: TextStyle(
-                                        fontSize: 11,
-                                        color: Colors.grey.shade400)),
+                                Text(
+                                  q.authorName,
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF1A1A2E),
+                                  ),
+                                ),
+                                Text(
+                                  _formatDate(q.createdAt),
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.grey.shade400,
+                                  ),
+                                ),
                               ],
                             ),
                           ],
@@ -188,29 +212,35 @@ class _ForumDetailScreenState extends ConsumerState<ForumDetailScreen> {
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(Icons.help_outline_rounded,
-                                size: 18,
-                                color: accent.withAlpha(180)),
+                            Icon(
+                              Icons.help_outline_rounded,
+                              size: 18,
+                              color: accent.withAlpha(180),
+                            ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 q.content,
                                 style: const TextStyle(
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.w700,
-                                    color: Color(0xFF1A1A2E),
-                                    height: 1.4),
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF1A1A2E),
+                                  height: 1.4,
+                                ),
                               ),
                             ),
                           ],
                         ),
                         if (q.edited) ...[
                           const SizedBox(height: 4),
-                          Text('edited',
-                              style: TextStyle(
-                                  fontSize: 10,
-                                  color: Colors.grey.shade400,
-                                  fontStyle: FontStyle.italic)),
+                          Text(
+                            'edited',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.grey.shade400,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
                         ],
                         if (q.tags.isNotEmpty) ...[
                           const SizedBox(height: 12),
@@ -218,20 +248,26 @@ class _ForumDetailScreenState extends ConsumerState<ForumDetailScreen> {
                             spacing: 6,
                             runSpacing: 4,
                             children: q.tags
-                                .map((t) => Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 8, vertical: 3),
-                                      decoration: BoxDecoration(
-                                        color: accent.withAlpha(14),
-                                        borderRadius:
-                                            BorderRadius.circular(12),
+                                .map(
+                                  (t) => Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 3,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: accent.withAlpha(14),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      '#$t',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: accent,
+                                        fontWeight: FontWeight.w600,
                                       ),
-                                      child: Text('#$t',
-                                          style: TextStyle(
-                                              fontSize: 12,
-                                              color: accent,
-                                              fontWeight: FontWeight.w600)),
-                                    ))
+                                    ),
+                                  ),
+                                )
                                 .toList(),
                           ),
                         ],
@@ -248,15 +284,16 @@ class _ForumDetailScreenState extends ConsumerState<ForumDetailScreen> {
                     padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
                     child: answers.when(
                       loading: () => const SizedBox.shrink(),
-                      error: (_, __) => const SizedBox.shrink(),
+                      error: (_, _) => const SizedBox.shrink(),
                       data: (list) => Text(
                         list.isEmpty
                             ? 'No answers yet — be the first!'
                             : '${list.length} ${list.length == 1 ? 'Answer' : 'Answers'}',
                         style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.grey.shade500),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.grey.shade500,
+                        ),
                       ),
                     ),
                   ),
@@ -266,31 +303,31 @@ class _ForumDetailScreenState extends ConsumerState<ForumDetailScreen> {
                 answers.when(
                   loading: () => SliverToBoxAdapter(
                     child: Center(
-                        child: Padding(
-                      padding: const EdgeInsets.all(32),
-                      child:
-                          CircularProgressIndicator(color: accent),
-                    )),
+                      child: Padding(
+                        padding: const EdgeInsets.all(32),
+                        child: CircularProgressIndicator(color: accent),
+                      ),
+                    ),
                   ),
                   error: (e, _) => SliverToBoxAdapter(
                     child: Center(
-                        child: Text('Could not load answers.',
-                            style: TextStyle(
-                                color: Colors.grey.shade500))),
+                      child: Text(
+                        'Could not load answers.',
+                        style: TextStyle(color: Colors.grey.shade500),
+                      ),
+                    ),
                   ),
                   data: (list) => SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (_, i) => Padding(
-                        padding:
-                            const EdgeInsets.fromLTRB(16, 0, 16, 10),
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
                         child: _AnswerCard(
                           answer: list[i],
                           accent: accent,
                           currentUid: widget.currentUid,
                           isEditing: _editingAnswer?.id == list[i].id,
                           onEdit: () => _startEditAnswer(list[i]),
-                          onDelete: () =>
-                              _confirmDeleteAnswer(list[i].id),
+                          onDelete: () => _confirmDeleteAnswer(list[i].id),
                         ),
                       ),
                       childCount: list.length,
@@ -317,17 +354,18 @@ class _ForumDetailScreenState extends ConsumerState<ForumDetailScreen> {
     );
   }
 
-  void _showEditQuestionSheet(BuildContext context) {
-    showModalBottomSheet(
+  Future<void> _showEditQuestionSheet(BuildContext context) async {
+    final updated = await showModalBottomSheet<ForumQuestion>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _EditQuestionSheet(
-        question: widget.question,
-        accent: widget.accent,
-      ),
+      builder: (_) =>
+          _EditQuestionSheet(question: _question, accent: widget.accent),
     );
+    if (updated != null && mounted) {
+      setState(() => _question = updated);
+    }
   }
 
   void _confirmDeleteQuestion(BuildContext context) {
@@ -337,19 +375,20 @@ class _ForumDetailScreenState extends ConsumerState<ForumDetailScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('Delete question?'),
         content: const Text(
-            'This will also delete all answers. This cannot be undone.'),
+          'This will also delete all answers. This cannot be undone.',
+        ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel')),
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
               Navigator.pop(context);
-              FirestoreService.deleteForumQuestion(widget.question.id);
+              FirestoreService.deleteForumQuestion(_question.id);
             },
-            child:
-                const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -358,8 +397,18 @@ class _ForumDetailScreenState extends ConsumerState<ForumDetailScreen> {
 
   String _formatDate(DateTime dt) {
     const months = [
-      'Jan','Feb','Mar','Apr','May','Jun',
-      'Jul','Aug','Sep','Oct','Nov','Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return '${months[dt.month - 1]} ${dt.day}, ${dt.year}';
   }
@@ -397,9 +446,10 @@ class _AnswerCard extends StatelessWidget {
             : null,
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withAlpha(6),
-              blurRadius: 8,
-              offset: const Offset(0, 2)),
+            color: Colors.black.withAlpha(6),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
       padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
@@ -409,43 +459,52 @@ class _AnswerCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _Avatar(
-                  name: answer.authorName, photoUrl: answer.authorPhotoUrl),
+              _Avatar(name: answer.authorName, photoUrl: answer.authorPhotoUrl),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(answer.authorName,
-                        style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF1A1A2E))),
-                    Text(_timeAgo(answer.createdAt),
-                        style: TextStyle(
-                            fontSize: 11, color: Colors.grey.shade400)),
+                    Text(
+                      answer.authorName,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1A1A2E),
+                      ),
+                    ),
+                    Text(
+                      _timeAgo(answer.createdAt),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey.shade400,
+                      ),
+                    ),
                   ],
                 ),
               ),
-              if (isOwner)
-                _OwnerMenu(onEdit: onEdit, onDelete: onDelete),
+              if (isOwner) _OwnerMenu(onEdit: onEdit, onDelete: onDelete),
             ],
           ),
           const SizedBox(height: 8),
           Text(
             answer.content,
             style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade800,
-                height: 1.55),
+              fontSize: 14,
+              color: Colors.grey.shade800,
+              height: 1.55,
+            ),
           ),
           if (answer.edited) ...[
             const SizedBox(height: 4),
-            Text('edited',
-                style: TextStyle(
-                    fontSize: 10,
-                    color: Colors.grey.shade400,
-                    fontStyle: FontStyle.italic)),
+            Text(
+              'edited',
+              style: TextStyle(
+                fontSize: 10,
+                color: Colors.grey.shade400,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
           ],
         ],
       ),
@@ -459,8 +518,18 @@ class _AnswerCard extends StatelessWidget {
     if (diff.inDays < 1) return '${diff.inHours}h ago';
     if (diff.inDays < 7) return '${diff.inDays}d ago';
     const months = [
-      'Jan','Feb','Mar','Apr','May','Jun',
-      'Jul','Aug','Sep','Oct','Nov','Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return '${months[dt.month - 1]} ${dt.day}';
   }
@@ -492,13 +561,18 @@ class _AnswerInputBar extends StatelessWidget {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withAlpha(12),
-              blurRadius: 12,
-              offset: const Offset(0, -3)),
+            color: Colors.black.withAlpha(12),
+            blurRadius: 12,
+            offset: const Offset(0, -3),
+          ),
         ],
       ),
       padding: EdgeInsets.fromLTRB(
-          16, 10, 12, MediaQuery.viewInsetsOf(context).bottom + 12),
+        16,
+        10,
+        12,
+        MediaQuery.viewInsetsOf(context).bottom + 12,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -508,67 +582,93 @@ class _AnswerInputBar extends StatelessWidget {
               children: [
                 Icon(Icons.edit_outlined, size: 14, color: accent),
                 const SizedBox(width: 6),
-                Text('Editing your answer',
-                    style: TextStyle(
-                        fontSize: 12,
-                        color: accent,
-                        fontWeight: FontWeight.w600)),
+                Text(
+                  'Editing your answer',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: accent,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 const Spacer(),
                 GestureDetector(
                   onTap: onCancelEdit,
-                  child: Text('Cancel',
-                      style: TextStyle(
-                          fontSize: 12, color: Colors.grey.shade500)),
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 6),
           ],
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: controller,
-                  maxLines: 4,
-                  minLines: 1,
-                  style: const TextStyle(fontSize: 14),
-                  decoration: InputDecoration(
-                    hintText: 'Write your answer…',
-                    hintStyle: TextStyle(
-                        fontSize: 14, color: Colors.grey.shade400),
-                    filled: true,
-                    fillColor: const Color(0xFFF2F2F7),
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 10),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: BorderSide.none,
+          ValueListenableBuilder<TextEditingValue>(
+            valueListenable: controller,
+            builder: (context, value, _) {
+              final answerLength = value.text.trim().length;
+              final canSubmit =
+                  answerLength > 0 && answerLength <= _maxAnswerCharacters;
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: controller,
+                      maxLines: 4,
+                      minLines: 1,
+                      maxLength: _maxAnswerCharacters,
+                      maxLengthEnforcement: MaxLengthEnforcement.none,
+                      style: const TextStyle(fontSize: 14),
+                      decoration: InputDecoration(
+                        hintText: 'Write your answer…',
+                        errorText: answerLength > _maxAnswerCharacters
+                            ? 'Answer cannot exceed $_maxAnswerCharacters characters'
+                            : null,
+                        hintStyle: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey.shade400,
+                        ),
+                        filled: true,
+                        fillColor: const Color(0xFFF2F2F7),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 10,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              GestureDetector(
-                onTap: submitting ? null : onSubmit,
-                child: Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    color: accent,
-                    borderRadius: BorderRadius.circular(12),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: submitting || !canSubmit ? null : onSubmit,
+                    child: Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: canSubmit ? accent : Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: submitting
+                          ? const Padding(
+                              padding: EdgeInsets.all(10),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(
+                              Icons.send_rounded,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                    ),
                   ),
-                  child: submitting
-                      ? const Padding(
-                          padding: EdgeInsets.all(10),
-                          child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white),
-                        )
-                      : const Icon(Icons.send_rounded,
-                          color: Colors.white, size: 20),
-                ),
-              ),
-            ],
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -581,8 +681,7 @@ class _AnswerInputBar extends StatelessWidget {
 class _EditQuestionSheet extends StatefulWidget {
   final ForumQuestion question;
   final Color accent;
-  const _EditQuestionSheet(
-      {required this.question, required this.accent});
+  const _EditQuestionSheet({required this.question, required this.accent});
 
   @override
   State<_EditQuestionSheet> createState() => _EditQuestionSheetState();
@@ -607,17 +706,17 @@ class _EditQuestionSheetState extends State<_EditQuestionSheet> {
   }
 
   Future<void> _save() async {
-    if (_ctrl.text.trim().length < 10) return;
+    final length = _ctrl.text.trim().length;
+    if (length < 10 || length > _maxQuestionCharacters) return;
     setState(() => _saving = true);
     try {
-      await FirestoreService.updateForumQuestion(
-        widget.question.copyWith(
-          content: _ctrl.text.trim(),
-          tags: _tags,
-          edited: true,
-        ),
+      final updated = widget.question.copyWith(
+        content: _ctrl.text.trim(),
+        tags: _tags,
+        edited: true,
       );
-      if (mounted) Navigator.pop(context);
+      await FirestoreService.updateForumQuestion(updated);
+      if (mounted) Navigator.pop(context, updated);
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -626,31 +725,41 @@ class _EditQuestionSheetState extends State<_EditQuestionSheet> {
   @override
   Widget build(BuildContext context) {
     final accent = widget.accent;
+    final questionLength = _ctrl.text.trim().length;
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.fromLTRB(
-          20, 16, 20, MediaQuery.viewInsetsOf(context).bottom + 24),
+        20,
+        16,
+        20,
+        MediaQuery.viewInsetsOf(context).bottom + 24,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Center(
             child: Container(
-              width: 40, height: 4,
+              width: 40,
+              height: 4,
               decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2)),
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
           ),
           const SizedBox(height: 16),
-          const Text('Edit question',
-              style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF1A1A2E))),
+          const Text(
+            'Edit question',
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF1A1A2E),
+            ),
+          ),
           const SizedBox(height: 14),
           TextField(
             controller: _ctrl,
@@ -658,8 +767,17 @@ class _EditQuestionSheetState extends State<_EditQuestionSheet> {
             minLines: 3,
             autofocus: true,
             style: const TextStyle(
-                fontSize: 15, color: Color(0xFF1A1A2E), height: 1.5),
+              fontSize: 15,
+              color: Color(0xFF1A1A2E),
+              height: 1.5,
+            ),
             decoration: InputDecoration(
+              helperText: questionLength == 0 ? 'Minimum 10 characters' : null,
+              errorText: questionLength > 0 && questionLength < 10
+                  ? 'Enter at least 10 characters ($questionLength/10)'
+                  : questionLength > _maxQuestionCharacters
+                  ? 'Question cannot exceed $_maxQuestionCharacters characters'
+                  : null,
               filled: true,
               fillColor: const Color(0xFFF2F2F7),
               border: OutlineInputBorder(
@@ -668,31 +786,44 @@ class _EditQuestionSheetState extends State<_EditQuestionSheet> {
               ),
               contentPadding: const EdgeInsets.all(14),
             ),
+            maxLength: _maxQuestionCharacters,
+            maxLengthEnforcement: MaxLengthEnforcement.none,
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
             child: FilledButton(
-              onPressed: (_ctrl.text.trim().length >= 10 && !_saving)
+              onPressed:
+                  (_ctrl.text.trim().length >= 10 &&
+                      _ctrl.text.trim().length <= _maxQuestionCharacters &&
+                      !_saving)
                   ? _save
                   : null,
               style: FilledButton.styleFrom(
                 backgroundColor: accent,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14)),
+                  borderRadius: BorderRadius.circular(14),
+                ),
               ),
               child: _saving
                   ? const SizedBox(
-                      width: 18, height: 18,
+                      width: 18,
+                      height: 18,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white))
-                  : const Text('Save changes',
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text(
+                      'Save changes',
                       style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white)),
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
             ),
           ),
         ],
@@ -713,17 +844,20 @@ class _Avatar extends StatelessWidget {
     return CircleAvatar(
       radius: 18,
       backgroundImage: photoUrl != null ? NetworkImage(photoUrl!) : null,
-      backgroundColor: Colors.primaries[
-              name.isNotEmpty
-                  ? name.codeUnitAt(0) % Colors.primaries.length
-                  : 0]
+      backgroundColor: Colors
+          .primaries[name.isNotEmpty
+              ? name.codeUnitAt(0) % Colors.primaries.length
+              : 0]
           .shade200,
       child: photoUrl == null
-          ? Text(name.isNotEmpty ? name[0].toUpperCase() : '?',
+          ? Text(
+              name.isNotEmpty ? name[0].toUpperCase() : '?',
               style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white))
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            )
           : null,
     );
   }
@@ -737,26 +871,34 @@ class _OwnerMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PopupMenuButton<String>(
-      icon: Icon(Icons.more_horiz_rounded,
-          size: 20, color: Colors.grey.shade400),
+      icon: Icon(
+        Icons.more_horiz_rounded,
+        size: 20,
+        color: Colors.grey.shade400,
+      ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       onSelected: (v) => v == 'edit' ? onEdit() : onDelete(),
       itemBuilder: (_) => const [
         PopupMenuItem(
-            value: 'edit',
-            child: Row(children: [
+          value: 'edit',
+          child: Row(
+            children: [
               Icon(Icons.edit_outlined, size: 16),
               SizedBox(width: 8),
               Text('Edit'),
-            ])),
+            ],
+          ),
+        ),
         PopupMenuItem(
-            value: 'delete',
-            child: Row(children: [
-              Icon(Icons.delete_outline_rounded,
-                  size: 16, color: Colors.red),
+          value: 'delete',
+          child: Row(
+            children: [
+              Icon(Icons.delete_outline_rounded, size: 16, color: Colors.red),
               SizedBox(width: 8),
               Text('Delete', style: TextStyle(color: Colors.red)),
-            ])),
+            ],
+          ),
+        ),
       ],
     );
   }
