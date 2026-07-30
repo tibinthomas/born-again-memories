@@ -1114,49 +1114,66 @@ class _PlanSheetState extends ConsumerState<_PlanSheet> {
                     const SizedBox(height: 12),
 
                     // Target date
-                    OutlinedButton.icon(
-                      onPressed: () async {
-                        final picked = await showAppDatePicker(
-                          context: context,
-                          initialDate:
-                              _targetDate ??
-                              DateTime.now().add(const Duration(days: 365)),
-                          firstDate: DateTime.now(),
-                          lastDate: DateTime.now().add(
-                            const Duration(days: 365 * 30),
-                          ),
-                        );
-                        if (picked != null) {
-                          setState(() => _targetDate = picked);
-                        }
-                      },
-                      icon: Icon(
-                        Icons.calendar_month_outlined,
-                        color: theme.accent,
-                      ),
-                      label: Text(
-                        _targetDate != null
-                            ? 'Target: ${formatMonthYear(_targetDate!)}'
-                            : 'Set target date (optional)',
-                        style: TextStyle(
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () async {
+                          final picked = await showAppDatePicker(
+                            context: context,
+                            initialDate:
+                                _targetDate ??
+                                DateTime.now().add(const Duration(days: 365)),
+                            firstDate: DateTime.now(),
+                            lastDate: DateTime.now().add(
+                              const Duration(days: 365 * 30),
+                            ),
+                          );
+                          if (picked != null) {
+                            setState(() => _targetDate = picked);
+                          }
+                        },
+                        icon: Icon(
+                          Icons.calendar_month_outlined,
                           color: theme.accent,
-                          fontWeight: FontWeight.w500,
+                          size: 20,
                         ),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
+                        label: Text(
+                          _targetDate != null
+                              ? 'Target: ${formatMonthYear(_targetDate!)}'
+                              : 'Set target date (optional)',
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: theme.accent,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 13,
+                          ),
                         ),
-                        side: BorderSide(color: theme.accent.withAlpha(120)),
+                        style: OutlinedButton.styleFrom(
+                          alignment: Alignment.centerLeft,
+                          minimumSize: const Size.fromHeight(54),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 15,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          side: BorderSide(color: theme.accent.withAlpha(120)),
+                        ),
                       ),
                     ),
                     if (_targetDate != null)
-                      TextButton(
-                        onPressed: () => setState(() => _targetDate = null),
-                        child: const Text(
-                          'Remove date',
-                          style: TextStyle(color: Colors.red, fontSize: 12),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton.icon(
+                          onPressed: () => setState(() => _targetDate = null),
+                          icon: const Icon(Icons.close_rounded, size: 15),
+                          label: const Text('Remove date'),
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.red,
+                            visualDensity: VisualDensity.compact,
+                            textStyle: const TextStyle(fontSize: 12),
+                          ),
                         ),
                       ),
                   ],

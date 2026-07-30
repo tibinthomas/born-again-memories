@@ -60,8 +60,10 @@ class BackupSyncState {
   final String? syncError;
   final DriveQuota? quota;
   final DateTime? lastSyncedAt;
+
   /// Email of the Google account whose Drive currently holds the backups.
   final String? driveBackupEmail;
+
   /// Non-null when the user picked a different Google account and we are
   /// waiting for them to confirm or cancel the switch.
   final String? pendingSwitchEmail;
@@ -98,22 +100,23 @@ class BackupSyncState {
     bool clearError = false,
     bool clearSyncError = false,
     bool clearPendingSwitch = false,
-  }) =>
-      BackupSyncState(
-        isSyncing: isSyncing ?? this.isSyncing,
-        isRequestingAccess: isRequestingAccess ?? this.isRequestingAccess,
-        driveAccessGranted: driveAccessGranted ?? this.driveAccessGranted,
-        iCloudAccessGranted: iCloudAccessGranted ?? this.iCloudAccessGranted,
-        currentUploadName:
-            clearCurrentUpload ? null : currentUploadName ?? this.currentUploadName,
-        accessError: clearError ? null : accessError ?? this.accessError,
-        syncError: clearSyncError ? null : syncError ?? this.syncError,
-        quota: quota ?? this.quota,
-        lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
-        driveBackupEmail: driveBackupEmail ?? this.driveBackupEmail,
-        pendingSwitchEmail:
-            clearPendingSwitch ? null : pendingSwitchEmail ?? this.pendingSwitchEmail,
-      );
+  }) => BackupSyncState(
+    isSyncing: isSyncing ?? this.isSyncing,
+    isRequestingAccess: isRequestingAccess ?? this.isRequestingAccess,
+    driveAccessGranted: driveAccessGranted ?? this.driveAccessGranted,
+    iCloudAccessGranted: iCloudAccessGranted ?? this.iCloudAccessGranted,
+    currentUploadName: clearCurrentUpload
+        ? null
+        : currentUploadName ?? this.currentUploadName,
+    accessError: clearError ? null : accessError ?? this.accessError,
+    syncError: clearSyncError ? null : syncError ?? this.syncError,
+    quota: quota ?? this.quota,
+    lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
+    driveBackupEmail: driveBackupEmail ?? this.driveBackupEmail,
+    pendingSwitchEmail: clearPendingSwitch
+        ? null
+        : pendingSwitchEmail ?? this.pendingSwitchEmail,
+  );
 }
 
 class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
@@ -139,7 +142,8 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
       if (!available) {
         state = state.copyWith(
           iCloudAccessGranted: false,
-          syncError: 'iCloud is not available. Please check your iCloud settings.',
+          syncError:
+              'iCloud is not available. Please check your iCloud settings.',
         );
         return;
       }
@@ -185,7 +189,9 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
         // Persist the user's choice to enable iCloud backup.
         final uid = _ref.read(authStateProvider).value?.uid;
         if (uid != null) {
-          await FirestoreService.updateUserDoc(uid, {'iCloudBackupEnabled': true});
+          await FirestoreService.updateUserDoc(uid, {
+            'iCloudBackupEnabled': true,
+          });
         }
         if (!mounted) return;
         state = state.copyWith(
@@ -248,12 +254,15 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
         // Detect account switch when backups already exist on a different Drive.
         final newEmail = gs.currentUser?.email;
         final savedEmail = state.driveBackupEmail;
-        if (savedEmail != null &&
-            newEmail != null &&
-            newEmail != savedEmail) {
+        if (savedEmail != null && newEmail != null && newEmail != savedEmail) {
           final profiles = _ref.read(profilesProvider) ?? [];
-          final hasBackedUp = profiles.any((p) => p.milestones.any((m) =>
-              m.attachments.any((a) => a.backupStatus == BackupStatus.backedUp)));
+          final hasBackedUp = profiles.any(
+            (p) => p.milestones.any(
+              (m) => m.attachments.any(
+                (a) => a.backupStatus == BackupStatus.backedUp,
+              ),
+            ),
+          );
           if (hasBackedUp) {
             // Surface the warning to the UI; do not start sync yet.
             state = state.copyWith(
@@ -269,8 +278,9 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
         if (newEmail != null && savedEmail == null) {
           final uid = _ref.read(authStateProvider).value?.uid;
           if (uid != null) {
-            await FirestoreService.updateUserDoc(
-                uid, {'driveBackupEmail': newEmail});
+            await FirestoreService.updateUserDoc(uid, {
+              'driveBackupEmail': newEmail,
+            });
           }
         }
 
@@ -308,7 +318,9 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
       for (final milestone in profile.milestones) {
         for (final attachment in milestone.attachments) {
           if (attachment.backupStatus == BackupStatus.backedUp) {
-            _ref.read(profilesProvider.notifier).updateAttachmentBackupStatus(
+            _ref
+                .read(profilesProvider.notifier)
+                .updateAttachmentBackupStatus(
                   profile.id,
                   milestone.id,
                   attachment.id,
@@ -361,7 +373,9 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
             if (!mounted) return;
             if (attachment.backupStatus == BackupStatus.backedUp) continue;
             if (!attachment.localExists) {
-              debugPrint('[BackupSync] skipping "${attachment.name}" — file not found at ${attachment.localPath}');
+              debugPrint(
+                '[BackupSync] skipping "${attachment.name}" — file not found at ${attachment.localPath}',
+              );
               continue;
             }
 
@@ -371,7 +385,9 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
 
             try {
               if (isApple) {
-                debugPrint('[BackupSync] iCloud uploading "${attachment.name}"');
+                debugPrint(
+                  '[BackupSync] iCloud uploading "${attachment.name}"',
+                );
                 final relativePath = await ICloudService.uploadFile(
                   localPath: attachment.localPath,
                   fileName: attachment.name,
@@ -379,7 +395,9 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
                   milestoneId: milestone.id,
                   type: attachment.type,
                 );
-                debugPrint('[BackupSync] iCloud uploaded "${attachment.name}" → $relativePath');
+                debugPrint(
+                  '[BackupSync] iCloud uploaded "${attachment.name}" → $relativePath',
+                );
 
                 await FirestoreService.updateAttachmentBackup(
                   uid: uid,
@@ -391,7 +409,9 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
                   status: BackupStatus.backedUp,
                 );
 
-                _ref.read(profilesProvider.notifier).updateAttachmentBackupStatus(
+                _ref
+                    .read(profilesProvider.notifier)
+                    .updateAttachmentBackupStatus(
                       profile.id,
                       milestone.id,
                       attachment.id,
@@ -399,7 +419,9 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
                       iCloudFileId: relativePath,
                     );
               } else {
-                debugPrint('[BackupSync] Drive uploading "${attachment.name}" from ${attachment.localPath}');
+                debugPrint(
+                  '[BackupSync] Drive uploading "${attachment.name}" from ${attachment.localPath}',
+                );
                 final fileId = await DriveService.uploadFile(
                   googleSignIn: authService.googleSignIn,
                   localPath: attachment.localPath,
@@ -408,7 +430,9 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
                   milestoneId: milestone.id,
                   type: attachment.type,
                 );
-                debugPrint('[BackupSync] Drive uploaded "${attachment.name}" → driveId=$fileId');
+                debugPrint(
+                  '[BackupSync] Drive uploaded "${attachment.name}" → driveId=$fileId',
+                );
 
                 await FirestoreService.updateAttachmentBackup(
                   uid: uid,
@@ -419,7 +443,9 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
                   status: BackupStatus.backedUp,
                 );
 
-                _ref.read(profilesProvider.notifier).updateAttachmentBackupStatus(
+                _ref
+                    .read(profilesProvider.notifier)
+                    .updateAttachmentBackupStatus(
                       profile.id,
                       milestone.id,
                       attachment.id,
@@ -428,22 +454,28 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
                     );
               }
             } on ICloudNotAvailableException {
-              debugPrint('[BackupSync] ICloudNotAvailableException on "${attachment.name}" — stopping sync');
+              debugPrint(
+                '[BackupSync] ICloudNotAvailableException on "${attachment.name}" — stopping sync',
+              );
               if (mounted) {
                 state = state.copyWith(
                   iCloudAccessGranted: false,
                   clearCurrentUpload: true,
-                  syncError: 'iCloud access lost. Tap "Enable iCloud Backup" to reconnect.',
+                  syncError:
+                      'iCloud access lost. Tap "Enable iCloud Backup" to reconnect.',
                 );
               }
               return;
             } on DriveNotAuthorizedException {
-              debugPrint('[BackupSync] DriveNotAuthorizedException on "${attachment.name}" — stopping sync');
+              debugPrint(
+                '[BackupSync] DriveNotAuthorizedException on "${attachment.name}" — stopping sync',
+              );
               if (mounted) {
                 state = state.copyWith(
                   driveAccessGranted: false,
                   clearCurrentUpload: true,
-                  syncError: 'Drive access revoked. Tap "Enable Drive Backup" to reconnect.',
+                  syncError:
+                      'Drive access revoked. Tap "Enable Drive Backup" to reconnect.',
                 );
               }
               return;
@@ -461,10 +493,18 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
                   status: BackupStatus.failed,
                 );
               } catch (fe, fst) {
-                debugPrint('[BackupSync] Firestore status update failed: $fe\n$fst');
+                debugPrint(
+                  '[BackupSync] Firestore status update failed: $fe\n$fst',
+                );
               }
-              _ref.read(profilesProvider.notifier).updateAttachmentBackupStatus(
-                    profile.id, milestone.id, attachment.id, BackupStatus.failed);
+              _ref
+                  .read(profilesProvider.notifier)
+                  .updateAttachmentBackupStatus(
+                    profile.id,
+                    milestone.id,
+                    attachment.id,
+                    BackupStatus.failed,
+                  );
             }
           }
         }
@@ -476,7 +516,9 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
       try {
         if (!isApple) {
           quota = await DriveService.getQuota(authService.googleSignIn);
-          debugPrint('[BackupSync] quota: used=${quota?.usedBytes} limit=${quota?.limitBytes}');
+          debugPrint(
+            '[BackupSync] quota: used=${quota?.usedBytes} limit=${quota?.limitBytes}',
+          );
         }
         now = DateTime.now();
         await FirestoreService.updateUserDoc(uid, {
@@ -526,7 +568,9 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
     if (used != null) {
       final limit = (data['driveLimitBytes'] as num?)?.toInt();
       quota = DriveQuota(
-          usedBytes: used, limitBytes: (limit == 0) ? null : limit);
+        usedBytes: used,
+        limitBytes: (limit == 0) ? null : limit,
+      );
     }
 
     DateTime? lastSync;
@@ -549,9 +593,9 @@ class BackupSyncNotifier extends StateNotifier<BackupSyncState> {
 
 final backupSyncProvider =
     StateNotifierProvider<BackupSyncNotifier, BackupSyncState>((ref) {
-  // Recreate per signed-in user so cached Drive/iCloud state (backup email,
-  // quota, access flags) never leaks across account switches, and so _init
-  // re-runs once auth is actually ready instead of bailing on a null uid.
-  ref.watch(authStateProvider.select((a) => a.value?.uid));
-  return BackupSyncNotifier(ref);
-});
+      // Recreate per signed-in user so cached Drive/iCloud state (backup email,
+      // quota, access flags) never leaks across account switches, and so _init
+      // re-runs once auth is actually ready instead of bailing on a null uid.
+      ref.watch(authStateProvider.select((a) => a.value?.uid));
+      return BackupSyncNotifier(ref);
+    });
