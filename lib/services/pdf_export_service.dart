@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
 import '../models/attachment.dart';
 import '../models/kid_profile.dart';
@@ -27,10 +28,14 @@ class PdfExportService {
     final theme = ProfileTheme.forProfile(profile);
     final accentPdf = _toPdf(theme.accent);
     final softPdf = _toPdf(theme.soft);
+    final emojiFont = await _loadEmojiFont();
 
     final doc = pw.Document(
       title: '${profile.name}\'s Memory Book',
       author: 'M 4 Memories',
+      theme: emojiFont == null
+          ? null
+          : pw.ThemeData.withFont(fontFallback: [emojiFont]),
     );
 
     // Pre-load images if requested (do it once, outside page builders)
@@ -51,27 +56,31 @@ class PdfExportService {
     }
 
     // ── Cover page ─────────────────────────────────────────────────────────
-    doc.addPage(_buildCoverPage(
-      profile: profile,
-      count: milestones.length,
-      accentPdf: accentPdf,
-      softPdf: softPdf,
-    ));
+    doc.addPage(
+      _buildCoverPage(
+        profile: profile,
+        count: milestones.length,
+        accentPdf: accentPdf,
+        softPdf: softPdf,
+      ),
+    );
 
     // ── Milestone pages (MultiPage handles pagination automatically) ────────
-    doc.addPage(pw.MultiPage(
-      pageFormat: PdfPageFormat.a4,
-      margin: const pw.EdgeInsets.all(36),
-      build: (pw.Context ctx) => [
-        for (final m in milestones)
-          _buildMilestoneCard(
-            milestone: m,
-            profile: profile,
-            accentPdf: accentPdf,
-            imageBytes: imageCache[m.id],
-          ),
-      ],
-    ));
+    doc.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(36),
+        build: (pw.Context ctx) => [
+          for (final m in milestones)
+            _buildMilestoneCard(
+              milestone: m,
+              profile: profile,
+              accentPdf: accentPdf,
+              imageBytes: imageCache[m.id],
+            ),
+        ],
+      ),
+    );
 
     return doc.save();
   }
@@ -154,11 +163,14 @@ class PdfExportService {
                     // Stats box
                     pw.Container(
                       padding: const pw.EdgeInsets.symmetric(
-                          horizontal: 32, vertical: 18),
+                        horizontal: 32,
+                        vertical: 18,
+                      ),
                       decoration: pw.BoxDecoration(
                         color: PdfColors.white,
-                        borderRadius:
-                            const pw.BorderRadius.all(pw.Radius.circular(16)),
+                        borderRadius: const pw.BorderRadius.all(
+                          pw.Radius.circular(16),
+                        ),
                         border: pw.Border.all(
                           color: PdfColors.grey200,
                           width: 0.5,
@@ -266,13 +278,17 @@ class PdfExportService {
                             pw.Text(
                               dateStr,
                               style: const pw.TextStyle(
-                                  fontSize: 10, color: PdfColors.grey600),
+                                fontSize: 10,
+                                color: PdfColors.grey600,
+                              ),
                             ),
                             if (ageStr != null)
                               pw.Text(
                                 ageStr,
                                 style: const pw.TextStyle(
-                                    fontSize: 9, color: PdfColors.grey500),
+                                  fontSize: 9,
+                                  color: PdfColors.grey500,
+                                ),
                               ),
                           ],
                         ),
@@ -284,7 +300,9 @@ class PdfExportService {
                       pw.Text(
                         milestone.description,
                         style: const pw.TextStyle(
-                            fontSize: 11, color: PdfColors.grey700),
+                          fontSize: 11,
+                          color: PdfColors.grey700,
+                        ),
                         maxLines: 4,
                         overflow: pw.TextOverflow.clip,
                       ),
@@ -314,16 +332,21 @@ class PdfExportService {
                         children: milestone.tags.map((tag) {
                           return pw.Container(
                             padding: const pw.EdgeInsets.symmetric(
-                                horizontal: 7, vertical: 2),
+                              horizontal: 7,
+                              vertical: 2,
+                            ),
                             decoration: pw.BoxDecoration(
                               color: PdfColors.grey100,
                               borderRadius: const pw.BorderRadius.all(
-                                  pw.Radius.circular(4)),
+                                pw.Radius.circular(4),
+                              ),
                             ),
                             child: pw.Text(
                               tag,
                               style: const pw.TextStyle(
-                                  fontSize: 9, color: PdfColors.grey600),
+                                fontSize: 9,
+                                color: PdfColors.grey600,
+                              ),
                             ),
                           );
                         }).toList(),
@@ -343,6 +366,15 @@ class PdfExportService {
 
   static Iterable<Attachment> _images(Milestone m) =>
       m.attachments.where((a) => a.type == AttachmentType.image);
+
+  static Future<pw.Font?> _loadEmojiFont() async {
+    try {
+      return await PdfGoogleFonts.notoColorEmoji();
+    } catch (e) {
+      debugPrint('[PdfExport] Could not load the emoji font: $e');
+      return null;
+    }
+  }
 
   static Future<Uint8List?> _loadImageBytes(
     Attachment a, {
@@ -373,7 +405,8 @@ class PdfExportService {
       }
       // Drive shareable URL (stored as localPath on web after upload)
       if (bytes == null && a.localPath.startsWith('http')) {
-        final resp = await http.get(Uri.parse(a.localPath))
+        final resp = await http
+            .get(Uri.parse(a.localPath))
             .timeout(const Duration(seconds: 10));
         if (resp.statusCode == 200) bytes = resp.bodyBytes;
       }
@@ -416,8 +449,18 @@ class PdfExportService {
 
   static String _formatDate(DateTime d) {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return '${months[d.month - 1]} ${d.day}, ${d.year}';
   }
@@ -431,7 +474,10 @@ class PdfExportService {
     int y = date.year - dob.year;
     int m = date.month - dob.month;
     if (date.day < dob.day) m -= 1;
-    if (m < 0) { y -= 1; m += 12; }
+    if (m < 0) {
+      y -= 1;
+      m += 12;
+    }
     final totalMonths = y * 12 + m;
     if (totalMonths < 24) return '${totalMonths}mo old';
     return '${y}yr${m > 0 ? ' ${m}mo' : ''} old';

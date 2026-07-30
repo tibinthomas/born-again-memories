@@ -8,6 +8,7 @@ import '../models/growth_entry.dart';
 import '../models/kid_profile.dart';
 import '../providers/profiles_provider.dart';
 import '../utils/app_date_picker.dart';
+import '../utils/growth_measurement_validator.dart';
 import '../utils/profile_theme.dart';
 import '../widgets/gradient_fab.dart';
 
@@ -29,15 +30,21 @@ class _GrowthScreenState extends ConsumerState<GrowthScreen>
   void initState() {
     super.initState();
     _tab = TabController(length: 3, vsync: this);
+    _tab.addListener(_handleTabChanged);
   }
 
   @override
   void dispose() {
+    _tab.removeListener(_handleTabChanged);
     _tab.dispose();
     super.dispose();
   }
 
-  void _showAddSheet([GrowthEntry? editing]) {
+  void _handleTabChanged() {
+    if (mounted) setState(() {});
+  }
+
+  void _showEntrySheet(WhoMetric metric, [GrowthEntry? editing]) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -45,6 +52,7 @@ class _GrowthScreenState extends ConsumerState<GrowthScreen>
       backgroundColor: Colors.transparent,
       builder: (_) => _EntrySheet(
         profileIndex: widget.profileIndex,
+        metric: metric,
         editing: editing,
       ),
     );
@@ -76,7 +84,10 @@ class _GrowthScreenState extends ConsumerState<GrowthScreen>
                 children: [
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      size: 20,
+                    ),
                     tooltip: 'Back',
                     color: const Color(0xFF1A1A2E),
                   ),
@@ -96,7 +107,9 @@ class _GrowthScreenState extends ConsumerState<GrowthScreen>
                         Text(
                           profile.ageText,
                           style: TextStyle(
-                              fontSize: 12, color: Colors.grey.shade500),
+                            fontSize: 12,
+                            color: Colors.grey.shade500,
+                          ),
                         ),
                       ],
                     ),
@@ -126,9 +139,13 @@ class _GrowthScreenState extends ConsumerState<GrowthScreen>
                   labelColor: Colors.white,
                   unselectedLabelColor: Colors.grey.shade500,
                   labelStyle: const TextStyle(
-                      fontSize: 13, fontWeight: FontWeight.w600),
-                  unselectedLabelStyle:
-                      const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  unselectedLabelStyle: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
                   indicator: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
                     color: theme.accent,
@@ -156,7 +173,7 @@ class _GrowthScreenState extends ConsumerState<GrowthScreen>
                     gender: genderStr,
                     theme: theme,
                     profileIndex: widget.profileIndex,
-                    onEdit: _showAddSheet,
+                    onEdit: (entry) => _showEntrySheet(WhoMetric.weight, entry),
                   ),
                   _GrowthTab(
                     profile: profile,
@@ -164,7 +181,7 @@ class _GrowthScreenState extends ConsumerState<GrowthScreen>
                     gender: genderStr,
                     theme: theme,
                     profileIndex: widget.profileIndex,
-                    onEdit: _showAddSheet,
+                    onEdit: (entry) => _showEntrySheet(WhoMetric.height, entry),
                   ),
                   _GrowthTab(
                     profile: profile,
@@ -172,7 +189,7 @@ class _GrowthScreenState extends ConsumerState<GrowthScreen>
                     gender: genderStr,
                     theme: theme,
                     profileIndex: widget.profileIndex,
-                    onEdit: _showAddSheet,
+                    onEdit: (entry) => _showEntrySheet(WhoMetric.head, entry),
                   ),
                 ],
               ),
@@ -184,8 +201,12 @@ class _GrowthScreenState extends ConsumerState<GrowthScreen>
         gradient: theme.headerGradient,
         accent: theme.accent,
         icon: Icons.add_rounded,
-        label: 'Add measurement',
-        onTap: () => _showAddSheet(),
+        label: switch (WhoMetric.values[_tab.index]) {
+          WhoMetric.weight => 'Add weight',
+          WhoMetric.height => 'Add height',
+          WhoMetric.head => 'Add head circumference',
+        },
+        onTap: () => _showEntrySheet(WhoMetric.values[_tab.index]),
       ),
     );
   }
@@ -210,35 +231,41 @@ class _GrowthTab extends ConsumerWidget {
     required this.onEdit,
   });
 
-  List<GrowthEntry> get _entries => profile.growthEntries
-      .where((e) => switch (metric) {
-            WhoMetric.weight => e.weightKg != null,
-            WhoMetric.height => e.heightCm != null,
-            WhoMetric.head => e.headCm != null,
-          })
-      .toList()
-    ..sort((a, b) => a.date.compareTo(b.date));
+  List<GrowthEntry> get _entries =>
+      profile.growthEntries
+          .where(
+            (e) => switch (metric) {
+              WhoMetric.weight => e.weightKg != null,
+              WhoMetric.height => e.heightCm != null,
+              WhoMetric.head => e.headCm != null,
+            },
+          )
+          .toList()
+        ..sort((a, b) => a.date.compareTo(b.date));
 
   String get _unit => switch (metric) {
-        WhoMetric.weight => 'kg',
-        WhoMetric.height => 'cm',
-        WhoMetric.head => 'cm',
-      };
+    WhoMetric.weight => 'kg',
+    WhoMetric.height => 'cm',
+    WhoMetric.head => 'cm',
+  };
 
   String get _label => switch (metric) {
-        WhoMetric.weight => 'Weight',
-        WhoMetric.height => 'Height',
-        WhoMetric.head => 'Head circ.',
-      };
+    WhoMetric.weight => 'Weight',
+    WhoMetric.height => 'Height',
+    WhoMetric.head => 'Head circ.',
+  };
 
   double _value(GrowthEntry e) => switch (metric) {
-        WhoMetric.weight => e.weightKg!,
-        WhoMetric.height => e.heightCm!,
-        WhoMetric.head => e.headCm!,
-      };
+    WhoMetric.weight => e.weightKg!,
+    WhoMetric.height => e.heightCm!,
+    WhoMetric.head => e.headCm!,
+  };
 
   int _ageMonths(GrowthEntry e) =>
-      (e.date.difference(profile.dateOfBirth).inDays / 30.4375).floor().clamp(0, 60);
+      (e.date.difference(profile.dateOfBirth).inDays / 30.4375).floor().clamp(
+        0,
+        60,
+      );
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -248,17 +275,18 @@ class _GrowthTab extends ConsumerWidget {
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
       children: [
         // ── Summary card ─────────────────────────────────────────────
-        if (entries.isNotEmpty) _SummaryCard(
-          entry: entries.last,
-          metric: metric,
-          gender: gender,
-          dob: profile.dateOfBirth,
-          theme: theme,
-          label: _label,
-          unit: _unit,
-          value: _value(entries.last),
-          ageMonths: _ageMonths(entries.last),
-        ),
+        if (entries.isNotEmpty)
+          _SummaryCard(
+            entry: entries.last,
+            metric: metric,
+            gender: gender,
+            dob: profile.dateOfBirth,
+            theme: theme,
+            label: _label,
+            unit: _unit,
+            value: _value(entries.last),
+            ageMonths: _ageMonths(entries.last),
+          ),
         if (entries.isNotEmpty) const SizedBox(height: 14),
 
         // ── Chart ────────────────────────────────────────────────────
@@ -282,14 +310,19 @@ class _GrowthTab extends ConsumerWidget {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.show_chart_rounded,
-                            size: 40, color: Colors.grey.shade300),
+                        Icon(
+                          Icons.show_chart_rounded,
+                          size: 40,
+                          color: Colors.grey.shade300,
+                        ),
                         const SizedBox(height: 8),
                         Text(
                           'No data yet — add your first\nmeasurement below',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                              fontSize: 13, color: Colors.grey.shade400),
+                            fontSize: 13,
+                            color: Colors.grey.shade400,
+                          ),
                         ),
                       ],
                     ),
@@ -316,9 +349,10 @@ class _GrowthTab extends ConsumerWidget {
             child: Text(
               'All measurements',
               style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey.shade500),
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade500,
+              ),
             ),
           ),
           Container(
@@ -327,9 +361,10 @@ class _GrowthTab extends ConsumerWidget {
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                    color: Colors.black.withAlpha(8),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2)),
+                  color: Colors.black.withAlpha(8),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
               ],
             ),
             clipBehavior: Clip.antiAlias,
@@ -340,7 +375,10 @@ class _GrowthTab extends ConsumerWidget {
                 final entry = e.value;
                 final ageM = _ageMonths(entry);
                 final pcts = whoPercentiles(
-                    gender: gender, metric: metric, ageMonths: ageM);
+                  gender: gender,
+                  metric: metric,
+                  ageMonths: ageM,
+                );
                 final pct = pcts != null
                     ? estimatePercentile(pcts, _value(entry))
                     : null;
@@ -350,11 +388,12 @@ class _GrowthTab extends ConsumerWidget {
                   children: [
                     if (i > 0)
                       Divider(
-                          height: 1,
-                          thickness: 1,
-                          indent: 16,
-                          endIndent: 16,
-                          color: Colors.grey.shade100),
+                        height: 1,
+                        thickness: 1,
+                        indent: 16,
+                        endIndent: 16,
+                        color: Colors.grey.shade100,
+                      ),
                     Dismissible(
                       key: Key(entry.id),
                       direction: DismissDirection.endToStart,
@@ -362,52 +401,65 @@ class _GrowthTab extends ConsumerWidget {
                         alignment: Alignment.centerRight,
                         padding: const EdgeInsets.only(right: 20),
                         color: Colors.red.shade50,
-                        child: Icon(Icons.delete_outline_rounded,
-                            color: Colors.red.shade400),
+                        child: Icon(
+                          Icons.delete_outline_rounded,
+                          color: Colors.red.shade400,
+                        ),
                       ),
                       confirmDismiss: (_) async {
                         return await showDialog<bool>(
-                          context: context,
-                          builder: (ctx) => AlertDialog(
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16)),
-                            title: const Text('Delete measurement?'),
-                            content: const Text(
-                                'This measurement will be permanently removed.'),
-                            actions: [
-                              TextButton(
-                                  onPressed: () => Navigator.pop(ctx, false),
-                                  child: const Text('Cancel')),
-                              FilledButton(
-                                style: FilledButton.styleFrom(
-                                    backgroundColor: Colors.red),
-                                onPressed: () => Navigator.pop(ctx, true),
-                                child: const Text('Delete'),
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                title: const Text('Delete measurement?'),
+                                content: const Text(
+                                  'This measurement will be permanently removed.',
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(ctx, false),
+                                    child: const Text('Cancel'),
+                                  ),
+                                  FilledButton(
+                                    style: FilledButton.styleFrom(
+                                      backgroundColor: Colors.red,
+                                    ),
+                                    onPressed: () => Navigator.pop(ctx, true),
+                                    child: const Text('Delete'),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                        ) ??
+                            ) ??
                             false;
                       },
-                      onDismissed: (_) => ref
-                          .read(profilesProvider.notifier)
-                          .deleteGrowthEntry(profileIndex, entry.id),
+                      onDismissed: (_) => _deleteMeasurement(ref, entry),
                       child: InkWell(
                         onTap: () => onEdit(entry),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 12),
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
                           child: Row(
                             children: [
                               Container(
                                 width: 38,
                                 height: 38,
                                 decoration: BoxDecoration(
-                                  color: Color.lerp(Colors.white, theme.accent, 0.12),
+                                  color: Color.lerp(
+                                    Colors.white,
+                                    theme.accent,
+                                    0.12,
+                                  ),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
-                                child: Icon(Icons.show_chart_rounded,
-                                    size: 18, color: theme.accent),
+                                child: Icon(
+                                  Icons.show_chart_rounded,
+                                  size: 18,
+                                  color: theme.accent,
+                                ),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
@@ -417,21 +469,26 @@ class _GrowthTab extends ConsumerWidget {
                                     Text(
                                       '${_value(entry).toStringAsFixed(metric == WhoMetric.weight ? 2 : 1)} $_unit',
                                       style: const TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w700,
-                                          color: Color(0xFF1A1A2E)),
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFF1A1A2E),
+                                      ),
                                     ),
                                     Text(
                                       _formatDate(entry.date),
                                       style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey.shade500),
+                                        fontSize: 12,
+                                        color: Colors.grey.shade500,
+                                      ),
                                     ),
                                   ],
                                 ),
                               ),
                               if (pct != null)
-                                _PercentileBadge(pct: pct, accent: theme.accent),
+                                _PercentileBadge(
+                                  pct: pct,
+                                  accent: theme.accent,
+                                ),
                             ],
                           ),
                         ),
@@ -449,10 +506,34 @@ class _GrowthTab extends ConsumerWidget {
 
   String _formatDate(DateTime d) {
     const months = [
-      'Jan','Feb','Mar','Apr','May','Jun',
-      'Jul','Aug','Sep','Oct','Nov','Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return '${months[d.month - 1]} ${d.day}, ${d.year}';
+  }
+
+  Future<void> _deleteMeasurement(WidgetRef ref, GrowthEntry entry) async {
+    final updated = switch (metric) {
+      WhoMetric.weight => entry.copyWith(clearWeight: true),
+      WhoMetric.height => entry.copyWith(clearHeight: true),
+      WhoMetric.head => entry.copyWith(clearHead: true),
+    };
+    final notifier = ref.read(profilesProvider.notifier);
+    if (updated.hasData) {
+      await notifier.updateGrowthEntry(profileIndex, updated);
+    } else {
+      await notifier.deleteGrowthEntry(profileIndex, entry.id);
+    }
   }
 }
 
@@ -483,7 +564,11 @@ class _SummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final pcts = whoPercentiles(gender: gender, metric: metric, ageMonths: ageMonths);
+    final pcts = whoPercentiles(
+      gender: gender,
+      metric: metric,
+      ageMonths: ageMonths,
+    );
     final pct = pcts != null ? estimatePercentile(pcts, value) : null;
     final pctLabel = pct != null ? '${pct.round()}th percentile' : null;
 
@@ -513,9 +598,10 @@ class _SummaryCard extends StatelessWidget {
                 Text(
                   'Latest $label',
                   style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.white.withAlpha(200),
-                      fontWeight: FontWeight.w500),
+                    fontSize: 12,
+                    color: Colors.white.withAlpha(200),
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -529,8 +615,10 @@ class _SummaryCard extends StatelessWidget {
                 if (pctLabel != null) ...[
                   const SizedBox(height: 4),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white.withAlpha(40),
                       borderRadius: BorderRadius.circular(8),
@@ -538,9 +626,10 @@ class _SummaryCard extends StatelessWidget {
                     child: Text(
                       pctLabel,
                       style: const TextStyle(
-                          fontSize: 11,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600),
+                        fontSize: 11,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],
@@ -555,14 +644,11 @@ class _SummaryCard extends StatelessWidget {
               shape: BoxShape.circle,
             ),
             child: Center(
-              child: Text(
-                switch (metric) {
-                  WhoMetric.weight => '⚖️',
-                  WhoMetric.height => '📏',
-                  WhoMetric.head => '👶',
-                },
-                style: const TextStyle(fontSize: 24),
-              ),
+              child: Text(switch (metric) {
+                WhoMetric.weight => '⚖️',
+                WhoMetric.height => '📏',
+                WhoMetric.head => '👶',
+              }, style: const TextStyle(fontSize: 24)),
             ),
           ),
         ],
@@ -585,13 +671,13 @@ class _PercentileBadge extends StatelessWidget {
     final bg = isLow
         ? Colors.orange.shade50
         : isHigh
-            ? Colors.blue.shade50
-            : Color.lerp(Colors.white, accent, 0.10)!;
+        ? Colors.blue.shade50
+        : Color.lerp(Colors.white, accent, 0.10)!;
     final fg = isLow
         ? Colors.orange.shade700
         : isHigh
-            ? Colors.blue.shade700
-            : accent;
+        ? Colors.blue.shade700
+        : accent;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -602,8 +688,7 @@ class _PercentileBadge extends StatelessWidget {
       ),
       child: Text(
         'P${pct.round()}',
-        style: TextStyle(
-            fontSize: 11, fontWeight: FontWeight.w700, color: fg),
+        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: fg),
       ),
     );
   }
@@ -733,8 +818,10 @@ class _ChartPainter extends CustomPainter {
     for (int m = maxAge; m >= minAge; m--) {
       final pcts = whoPercentiles(gender: gender, metric: metric, ageMonths: m);
       if (pcts == null) continue;
-      bandPath.lineTo(toCanvas(m.toDouble(), pcts[0]).dx,
-          toCanvas(m.toDouble(), pcts[0]).dy);
+      bandPath.lineTo(
+        toCanvas(m.toDouble(), pcts[0]).dx,
+        toCanvas(m.toDouble(), pcts[0]).dy,
+      );
     }
     bandPath.close();
     canvas.drawPath(bandPath, bandPaintP3);
@@ -807,7 +894,10 @@ class _ChartPainter extends CustomPainter {
     if (entries.length > 1) {
       final dataPath = Path();
       for (int i = 0; i < entries.length; i++) {
-        final pt = toCanvas(_ageMonths(entries[i]).toDouble(), valueExtractor(entries[i]));
+        final pt = toCanvas(
+          _ageMonths(entries[i]).toDouble(),
+          valueExtractor(entries[i]),
+        );
         if (i == 0) {
           dataPath.moveTo(pt.dx, pt.dy);
         } else {
@@ -890,14 +980,23 @@ class _ChartPainter extends CustomPainter {
       final pt = toCanvas(maxAge.toDouble(), val);
       final tp = TextPainter(
         text: TextSpan(
-            text: text,
-            style: TextStyle(fontSize: 8, color: color, fontWeight: FontWeight.w500)),
+          text: text,
+          style: TextStyle(
+            fontSize: 8,
+            color: color,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
         textDirection: TextDirection.ltr,
       )..layout();
       tp.paint(canvas, Offset(pt.dx + 2, pt.dy - tp.height / 2));
     }
 
-    final lastPcts = whoPercentiles(gender: gender, metric: metric, ageMonths: maxAge);
+    final lastPcts = whoPercentiles(
+      gender: gender,
+      metric: metric,
+      ageMonths: maxAge,
+    );
     if (lastPcts != null) {
       drawLabel('P97', lastPcts[2], Colors.grey.shade400);
       drawLabel('P50', lastPcts[1], Colors.grey.shade500);
@@ -917,19 +1016,23 @@ class _ChartPainter extends CustomPainter {
 
 class _EntrySheet extends ConsumerStatefulWidget {
   final int profileIndex;
+  final WhoMetric metric;
   final GrowthEntry? editing;
 
-  const _EntrySheet({required this.profileIndex, this.editing});
+  const _EntrySheet({
+    required this.profileIndex,
+    required this.metric,
+    this.editing,
+  });
 
   @override
   ConsumerState<_EntrySheet> createState() => _EntrySheetState();
 }
 
 class _EntrySheetState extends ConsumerState<_EntrySheet> {
+  final _formKey = GlobalKey<FormState>();
   late DateTime _date;
-  final _weightCtrl = TextEditingController();
-  final _heightCtrl = TextEditingController();
-  final _headCtrl = TextEditingController();
+  final _valueCtrl = TextEditingController();
   final _noteCtrl = TextEditingController();
   bool _saving = false;
 
@@ -939,18 +1042,23 @@ class _EntrySheetState extends ConsumerState<_EntrySheet> {
     final e = widget.editing;
     _date = e?.date ?? DateTime.now();
     if (e != null) {
-      if (e.weightKg != null) _weightCtrl.text = e.weightKg!.toStringAsFixed(2);
-      if (e.heightCm != null) _heightCtrl.text = e.heightCm!.toStringAsFixed(1);
-      if (e.headCm != null) _headCtrl.text = e.headCm!.toStringAsFixed(1);
+      final value = switch (widget.metric) {
+        WhoMetric.weight => e.weightKg,
+        WhoMetric.height => e.heightCm,
+        WhoMetric.head => e.headCm,
+      };
+      if (value != null) {
+        _valueCtrl.text = value.toStringAsFixed(
+          widget.metric == WhoMetric.weight ? 2 : 1,
+        );
+      }
       if (e.note != null) _noteCtrl.text = e.note!;
     }
   }
 
   @override
   void dispose() {
-    _weightCtrl.dispose();
-    _heightCtrl.dispose();
-    _headCtrl.dispose();
+    _valueCtrl.dispose();
     _noteCtrl.dispose();
     super.dispose();
   }
@@ -960,22 +1068,35 @@ class _EntrySheetState extends ConsumerState<_EntrySheet> {
 
   ProfileTheme get _theme => ProfileTheme.forProfile(_profile);
 
-  bool get _hasData =>
-      _weightCtrl.text.trim().isNotEmpty ||
-      _heightCtrl.text.trim().isNotEmpty ||
-      _headCtrl.text.trim().isNotEmpty;
+  bool get _hasData => _valueCtrl.text.trim().isNotEmpty;
+
+  String get _measurementName => switch (widget.metric) {
+    WhoMetric.weight => 'weight',
+    WhoMetric.height => 'height',
+    WhoMetric.head => 'head circumference',
+  };
 
   Future<void> _save() async {
-    if (!_hasData) return;
+    if (!_hasData || !(_formKey.currentState?.validate() ?? false)) return;
+    final birthDate = DateUtils.dateOnly(_profile.dateOfBirth);
+    if (DateUtils.dateOnly(_date).isBefore(birthDate)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Measurement date cannot be before the birthdate.'),
+        ),
+      );
+      return;
+    }
     setState(() => _saving = true);
+    final value = double.parse(_valueCtrl.text.trim());
+    final existing = widget.editing;
 
     final entry = GrowthEntry(
-      id: widget.editing?.id ??
-          'growth_${DateTime.now().microsecondsSinceEpoch}',
+      id: existing?.id ?? 'growth_${DateTime.now().microsecondsSinceEpoch}',
       date: _date,
-      weightKg: double.tryParse(_weightCtrl.text.trim()),
-      heightCm: double.tryParse(_heightCtrl.text.trim()),
-      headCm: double.tryParse(_headCtrl.text.trim()),
+      weightKg: widget.metric == WhoMetric.weight ? value : existing?.weightKg,
+      heightCm: widget.metric == WhoMetric.height ? value : existing?.heightCm,
+      headCm: widget.metric == WhoMetric.head ? value : existing?.headCm,
       note: _noteCtrl.text.trim().isEmpty ? null : _noteCtrl.text.trim(),
     );
 
@@ -998,164 +1119,219 @@ class _EntrySheetState extends ConsumerState<_EntrySheet> {
     final accent = theme.accent;
 
     return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.sizeOf(context).height * 0.9,
+      ),
       decoration: const BoxDecoration(
         color: Color(0xFFF2F2F7),
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       padding: EdgeInsets.fromLTRB(
-          20, 16, 20, MediaQuery.viewInsetsOf(context).bottom + 32),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Handle
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              margin: const EdgeInsets.only(bottom: 20),
-              decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2)),
-            ),
-          ),
-
-          Text(
-            widget.editing != null ? 'Edit measurement' : 'New measurement',
-            style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF1A1A2E)),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Fill in any or all measurements for this date.',
-            style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
-          ),
-          const SizedBox(height: 20),
-
-          // Date picker
-          GestureDetector(
-            onTap: () async {
-              final picked = await showAppDatePicker(
-                context: context,
-                initialDate: _date,
-                firstDate: DateTime(2000),
-                lastDate: DateTime.now(),
-              );
-              if (picked != null) setState(() => _date = picked);
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Colors.grey.shade200),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.calendar_today_outlined, size: 16, color: accent),
-                  const SizedBox(width: 10),
-                  Text(
-                    _formatDate(_date),
-                    style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFF1A1A2E)),
-                  ),
-                  const Spacer(),
-                  Text('Change',
-                      style: TextStyle(fontSize: 12, color: accent)),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 14),
-
-          // Measurement fields
-          Row(
+        20,
+        16,
+        20,
+        MediaQuery.viewInsetsOf(context).bottom + 32,
+      ),
+      child: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: _MeasureField(
-                  controller: _weightCtrl,
-                  label: 'Weight (kg)',
-                  hint: 'e.g. 7.50',
-                  accent: accent,
+              // Handle
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _MeasureField(
-                  controller: _heightCtrl,
-                  label: 'Height (cm)',
-                  hint: 'e.g. 68.5',
-                  accent: accent,
+
+              Text(
+                widget.editing != null
+                    ? 'Edit $_measurementName'
+                    : 'New $_measurementName',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1A1A2E),
                 ),
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _MeasureField(
-                  controller: _headCtrl,
-                  label: 'Head (cm)',
-                  hint: 'e.g. 43.0',
-                  accent: accent,
+              const SizedBox(height: 4),
+              Text(
+                'Enter the $_measurementName for this date.',
+                style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
+              ),
+              const SizedBox(height: 20),
+
+              // Date picker
+              GestureDetector(
+                onTap: () async {
+                  final birthDate = DateUtils.dateOnly(_profile.dateOfBirth);
+                  final today = DateUtils.dateOnly(DateTime.now());
+                  final picked = await showAppDatePicker(
+                    context: context,
+                    initialDate: DateUtils.dateOnly(_date).isBefore(birthDate)
+                        ? birthDate
+                        : DateUtils.dateOnly(_date),
+                    firstDate: birthDate,
+                    lastDate: today,
+                  );
+                  if (picked != null) setState(() => _date = picked);
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.calendar_today_outlined,
+                        size: 16,
+                        color: accent,
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        _formatDate(_date),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF1A1A2E),
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        'Change',
+                        style: TextStyle(fontSize: 12, color: accent),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              _MeasureField(
+                controller: _valueCtrl,
+                label: switch (widget.metric) {
+                  WhoMetric.weight => 'Weight (kg)',
+                  WhoMetric.height => 'Height (cm)',
+                  WhoMetric.head => 'Head circumference (cm)',
+                },
+                hint: switch (widget.metric) {
+                  WhoMetric.weight => 'e.g. 7.50',
+                  WhoMetric.height => 'e.g. 68.5',
+                  WhoMetric.head => 'e.g. 43.0',
+                },
+                accent: accent,
+                validator: (value) => switch (widget.metric) {
+                  WhoMetric.weight => validateGrowthMeasurement(
+                    value,
+                    label: 'Weight',
+                    min: 0.5,
+                    max: 100,
+                  ),
+                  WhoMetric.height => validateGrowthMeasurement(
+                    value,
+                    label: 'Height',
+                    min: 30,
+                    max: 220,
+                  ),
+                  WhoMetric.head => validateGrowthMeasurement(
+                    value,
+                    label: 'Head',
+                    min: 20,
+                    max: 70,
+                  ),
+                },
+                onChanged: (_) => setState(() {}),
+              ),
+              const SizedBox(height: 10),
+
+              // Note field
+              TextField(
+                controller: _noteCtrl,
+                decoration: InputDecoration(
+                  labelText: 'Note (optional)',
+                  hintText: 'e.g. Measured at pediatrician',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(color: Colors.grey.shade200),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(color: accent, width: 1.5),
+                  ),
+                  filled: true,
+                  fillColor: Colors.white,
+                ),
+                onChanged: (_) => setState(() {}),
+              ),
+              const SizedBox(height: 20),
+
+              // Save button
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: accent,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  onPressed: (_hasData && !_saving) ? _save : null,
+                  child: _saving
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Text(
+                          widget.editing != null
+                              ? 'Update'
+                              : 'Save $_measurementName',
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
-
-          // Note field
-          TextField(
-            controller: _noteCtrl,
-            decoration: InputDecoration(
-              labelText: 'Note (optional)',
-              hintText: 'e.g. Measured at pediatrician',
-              border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide(color: Colors.grey.shade200)),
-              focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide(color: accent, width: 1.5)),
-              filled: true,
-              fillColor: Colors.white,
-            ),
-            onChanged: (_) => setState(() {}),
-          ),
-          const SizedBox(height: 20),
-
-          // Save button
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              style: FilledButton.styleFrom(
-                backgroundColor: accent,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14)),
-              ),
-              onPressed: (_hasData && !_saving) ? _save : null,
-              child: _saving
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white))
-                  : Text(
-                      widget.editing != null ? 'Update' : 'Save measurement',
-                      style: const TextStyle(
-                          fontSize: 15, fontWeight: FontWeight.w600)),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 
   String _formatDate(DateTime d) {
     const months = [
-      'Jan','Feb','Mar','Apr','May','Jun',
-      'Jul','Aug','Sep','Oct','Nov','Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return '${months[d.month - 1]} ${d.day}, ${d.year}';
   }
@@ -1166,19 +1342,26 @@ class _MeasureField extends StatelessWidget {
   final String label;
   final String hint;
   final Color accent;
+  final FormFieldValidator<String> validator;
+  final ValueChanged<String> onChanged;
 
   const _MeasureField({
     required this.controller,
     required this.label,
     required this.hint,
     required this.accent,
+    required this.validator,
+    required this.onChanged,
   });
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
+    return TextFormField(
       controller: controller,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      validator: validator,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+      onChanged: onChanged,
       textAlign: TextAlign.center,
       style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
       decoration: InputDecoration(
@@ -1187,15 +1370,16 @@ class _MeasureField extends StatelessWidget {
         hintText: hint,
         hintStyle: const TextStyle(fontSize: 11),
         border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey.shade200)),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.shade200),
+        ),
         focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: accent, width: 1.5)),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: accent, width: 1.5),
+        ),
         filled: true,
         fillColor: Colors.white,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
       ),
     );
   }

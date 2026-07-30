@@ -556,34 +556,48 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                           gender: currentProfile.gender,
                         )
                       : filtered.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.search_off,
-                                size: 48,
-                                color: Colors.grey.shade300,
+                      ? LayoutBuilder(
+                          builder: (context, constraints) => SingleChildScrollView(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                minHeight: (constraints.maxHeight - 16)
+                                    .clamp(0, double.infinity)
+                                    .toDouble(),
                               ),
-                              const SizedBox(height: 12),
-                              Text(
-                                _showFavoritesOnly
-                                    ? 'No favourite memories yet.'
-                                    : 'No milestones match your filter.',
-                                style: TextStyle(color: Colors.grey.shade500),
+                              child: Center(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.search_off,
+                                      size: 48,
+                                      color: Colors.grey.shade300,
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      _showFavoritesOnly
+                                          ? 'No favourite memories yet.'
+                                          : 'No milestones match your filter.',
+                                      style: TextStyle(
+                                        color: Colors.grey.shade500,
+                                      ),
+                                    ),
+                                    TextButton(
+                                      onPressed: () => setState(() {
+                                        _searchQuery = '';
+                                        _selectedAges = {};
+                                        _selectedTags = {};
+                                        _showSearch = false;
+                                        _showFavoritesOnly = false;
+                                        _searchController.clear();
+                                      }),
+                                      child: const Text('Clear filters'),
+                                    ),
+                                  ],
+                                ),
                               ),
-                              TextButton(
-                                onPressed: () => setState(() {
-                                  _searchQuery = '';
-                                  _selectedAges = {};
-                                  _selectedTags = {};
-                                  _showSearch = false;
-                                  _showFavoritesOnly = false;
-                                  _searchController.clear();
-                                }),
-                                child: const Text('Clear filters'),
-                              ),
-                            ],
+                            ),
                           ),
                         )
                       : ValueListenableBuilder<double>(
