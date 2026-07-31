@@ -35,23 +35,38 @@ class EmptyState extends StatelessWidget {
                 color: pTheme.soft,
                 shape: BoxShape.circle,
                 boxShadow: [
-                  BoxShadow(color: pTheme.accent.withAlpha(50), blurRadius: 20, spreadRadius: 4),
+                  BoxShadow(
+                    color: pTheme.accent.withAlpha(50),
+                    blurRadius: 20,
+                    spreadRadius: 4,
+                  ),
                 ],
               ),
               child: Center(
-                child: Text(pTheme.decalEmoji, style: const TextStyle(fontSize: 40)),
+                child: Text(
+                  pTheme.decalEmoji,
+                  style: const TextStyle(fontSize: 40),
+                ),
               ),
             ),
             const SizedBox(height: 20),
             const Text(
               'No milestones yet',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Color(0xFF2D2D2D)),
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF2D2D2D),
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 14, height: 1.5),
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontSize: 14,
+                height: 1.5,
+              ),
             ),
           ],
         ),

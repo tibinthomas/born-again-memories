@@ -8,8 +8,10 @@ import 'profile_mutations.dart';
 mixin FuturePlansOps on StateNotifier<List<KidProfile>?>, ProfileMutations {
   Future<void> addFuturePlan(int profileIndex, FuturePlan plan) async {
     final profile = (state ?? <KidProfile>[])[profileIndex];
-    setProfile(profileIndex,
-        profile.copyWith(futurePlans: [plan, ...profile.futurePlans]));
+    setProfile(
+      profileIndex,
+      profile.copyWith(futurePlans: [plan, ...profile.futurePlans]),
+    );
     await FirestoreService.saveFuturePlan(uid, profile.id, plan);
   }
 
@@ -24,10 +26,12 @@ mixin FuturePlansOps on StateNotifier<List<KidProfile>?>, ProfileMutations {
 
   Future<void> deleteFuturePlan(int profileIndex, String planId) async {
     final profile = (state ?? <KidProfile>[])[profileIndex];
-    setProfile(profileIndex,
-        profile.copyWith(
-          futurePlans: profile.futurePlans.where((p) => p.id != planId).toList(),
-        ));
+    setProfile(
+      profileIndex,
+      profile.copyWith(
+        futurePlans: profile.futurePlans.where((p) => p.id != planId).toList(),
+      ),
+    );
     await FirestoreService.deleteFuturePlan(uid, profile.id, planId);
   }
 }

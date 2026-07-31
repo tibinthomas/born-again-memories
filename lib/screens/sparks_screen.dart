@@ -52,8 +52,10 @@ class _SparksScreenState extends ConsumerState<SparksScreen> {
                 children: [
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                        size: 20),
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      size: 20,
+                    ),
                     tooltip: 'Back',
                     color: const Color(0xFF1A1A2E),
                   ),
@@ -73,7 +75,9 @@ class _SparksScreenState extends ConsumerState<SparksScreen> {
                         Text(
                           'Activity ideas to spark a new memory',
                           style: TextStyle(
-                              fontSize: 12, color: Colors.grey.shade500),
+                            fontSize: 12,
+                            color: Color(0xFF616161),
+                          ),
                         ),
                       ],
                     ),
@@ -96,14 +100,16 @@ class _SparksScreenState extends ConsumerState<SparksScreen> {
                     accent: theme.accent,
                     onTap: () => setState(() => _filter = null),
                   ),
-                  ...SparkCategory.values.map((c) => _FilterChip(
-                        label: c.label,
-                        emoji: c.emoji,
-                        selected: _filter == c,
-                        accent: theme.accent,
-                        onTap: () =>
-                            setState(() => _filter = _filter == c ? null : c),
-                      )),
+                  ...SparkCategory.values.map(
+                    (c) => _FilterChip(
+                      label: c.label,
+                      emoji: c.emoji,
+                      selected: _filter == c,
+                      accent: theme.accent,
+                      onTap: () =>
+                          setState(() => _filter = _filter == c ? null : c),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -127,9 +133,10 @@ class _SparksScreenState extends ConsumerState<SparksScreen> {
                       child: Text(
                         'Ideas for ${profile.ageText}',
                         style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey.shade500),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF616161),
+                        ),
                       ),
                     ),
                   ],
@@ -137,16 +144,18 @@ class _SparksScreenState extends ConsumerState<SparksScreen> {
                   // Age-appropriate built-in sparks
                   ...ageSparks
                       .where((s) => _filter == null || s.id != todaySpark.id)
-                      .map((s) => Padding(
-                            padding: const EdgeInsets.only(bottom: 10),
-                            child: _SparkCard(
-                              title: s.title,
-                              description: s.description,
-                              category: s.category,
-                              accent: theme.accent,
-                              onUse: () => _useSpark(s),
-                            ),
-                          )),
+                      .map(
+                        (s) => Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: _SparkCard(
+                            title: s.title,
+                            description: s.description,
+                            category: s.category,
+                            accent: theme.accent,
+                            onUse: () => _useSpark(s),
+                          ),
+                        ),
+                      ),
 
                   if (ageSparks.isEmpty && _filter != null)
                     _EmptyFilter(accent: theme.accent),
@@ -158,23 +167,26 @@ class _SparksScreenState extends ConsumerState<SparksScreen> {
                       child: Text(
                         'Your ideas',
                         style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey.shade500),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF616161),
+                        ),
                       ),
                     ),
-                    ...allCustom.map((s) => Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: _SparkCard(
-                            title: s.title,
-                            description: s.description,
-                            category: s.category,
-                            accent: theme.accent,
-                            isCustom: true,
-                            onUse: () => _useCustomSpark(s),
-                            onDelete: () => _deleteCustomSpark(s.id),
-                          ),
-                        )),
+                    ...allCustom.map(
+                      (s) => Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: _SparkCard(
+                          title: s.title,
+                          description: s.description,
+                          category: s.category,
+                          accent: theme.accent,
+                          isCustom: true,
+                          onUse: () => _useCustomSpark(s),
+                          onDelete: () => _deleteCustomSpark(s.id),
+                        ),
+                      ),
+                    ),
                   ],
                 ],
               ),
@@ -266,9 +278,12 @@ class _SparksScreenState extends ConsumerState<SparksScreen> {
       builder: (_) => _AddCustomSparkSheet(
         onSave: (spark) {
           final settings = ref.read(appSettingsProvider);
-          ref.read(appSettingsProvider.notifier).update(
+          ref
+              .read(appSettingsProvider.notifier)
+              .update(
                 settings.copyWith(
-                    customSparks: [...settings.customSparks, spark]),
+                  customSparks: [...settings.customSparks, spark],
+                ),
               );
         },
       ),
@@ -277,10 +292,13 @@ class _SparksScreenState extends ConsumerState<SparksScreen> {
 
   void _deleteCustomSpark(String id) {
     final settings = ref.read(appSettingsProvider);
-    ref.read(appSettingsProvider.notifier).update(
+    ref
+        .read(appSettingsProvider.notifier)
+        .update(
           settings.copyWith(
-            customSparks:
-                settings.customSparks.where((s) => s.id != id).toList(),
+            customSparks: settings.customSparks
+                .where((s) => s.id != id)
+                .toList(),
           ),
         );
   }
@@ -313,9 +331,10 @@ class _SparkOfDayCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-              color: accent.withAlpha(60),
-              blurRadius: 16,
-              offset: const Offset(0, 6)),
+            color: accent.withAlpha(60),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
         ],
       ),
       child: Padding(
@@ -326,8 +345,10 @@ class _SparkOfDayCard extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white.withAlpha(40),
                     borderRadius: BorderRadius.circular(8),
@@ -335,15 +356,19 @@ class _SparkOfDayCard extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.bolt_rounded,
-                          size: 12, color: Colors.white),
+                      const Icon(
+                        Icons.bolt_rounded,
+                        size: 12,
+                        color: Colors.white,
+                      ),
                       const SizedBox(width: 3),
                       const Text(
                         'Spark of the day',
                         style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
                       ),
                     ],
                   ),
@@ -379,7 +404,9 @@ class _SparkOfDayCard extends StatelessWidget {
               onTap: onUse,
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 9),
+                  horizontal: 16,
+                  vertical: 9,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
@@ -387,8 +414,11 @@ class _SparkOfDayCard extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.add_photo_alternate_outlined,
-                        size: 16, color: accent),
+                    Icon(
+                      Icons.add_photo_alternate_outlined,
+                      size: 16,
+                      color: accent,
+                    ),
                     const SizedBox(width: 6),
                     Text(
                       'Make a memory from this',
@@ -438,9 +468,10 @@ class _SparkCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withAlpha(6),
-              blurRadius: 8,
-              offset: const Offset(0, 2)),
+            color: Colors.black.withAlpha(6),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
       clipBehavior: Clip.antiAlias,
@@ -461,8 +492,10 @@ class _SparkCard extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: Center(
-                  child: Text(category.emoji,
-                      style: const TextStyle(fontSize: 20)),
+                  child: Text(
+                    category.emoji,
+                    style: const TextStyle(fontSize: 20),
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -486,8 +519,11 @@ class _SparkCard extends StatelessWidget {
                           const SizedBox(width: 4),
                           GestureDetector(
                             onTap: onDelete,
-                            child: Icon(Icons.delete_outline_rounded,
-                                size: 17, color: Colors.grey.shade400),
+                            child: Icon(
+                              Icons.delete_outline_rounded,
+                              size: 17,
+                              color: Color(0xFF616161),
+                            ),
                           ),
                         ],
                       ],
@@ -496,9 +532,10 @@ class _SparkCard extends StatelessWidget {
                     Text(
                       description,
                       style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade600,
-                          height: 1.4),
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                        height: 1.4,
+                      ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -507,7 +544,9 @@ class _SparkCard extends StatelessWidget {
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 7, vertical: 3),
+                            horizontal: 7,
+                            vertical: 3,
+                          ),
                           decoration: BoxDecoration(
                             color: Color.lerp(Colors.white, accent, 0.10),
                             borderRadius: BorderRadius.circular(6),
@@ -515,18 +554,20 @@ class _SparkCard extends StatelessWidget {
                           child: Text(
                             category.label,
                             style: TextStyle(
-                                fontSize: 10,
-                                color: accent,
-                                fontWeight: FontWeight.w600),
+                              fontSize: 10,
+                              color: accent,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                         const Spacer(),
                         Text(
                           'Tap to use →',
                           style: TextStyle(
-                              fontSize: 11,
-                              color: Colors.grey.shade400,
-                              fontWeight: FontWeight.w500),
+                            fontSize: 11,
+                            color: Color(0xFF616161),
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ],
                     ),
@@ -569,15 +610,14 @@ class _FilterChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected ? accent : Colors.white,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: selected ? accent : Colors.grey.shade200,
-          ),
+          border: Border.all(color: selected ? accent : Colors.grey.shade200),
           boxShadow: selected
               ? [
                   BoxShadow(
-                      color: accent.withAlpha(40),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2))
+                    color: accent.withAlpha(40),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
                 ]
               : [],
         ),
@@ -618,15 +658,16 @@ class _EmptyFilter extends StatelessWidget {
           Text(
             'No ideas in this category yet\nfor this age group.',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+            style: TextStyle(fontSize: 13, color: Color(0xFF616161)),
           ),
           const SizedBox(height: 12),
           Text(
             'Tap + to add your own idea',
             style: TextStyle(
-                fontSize: 12,
-                color: accent,
-                fontWeight: FontWeight.w600),
+              fontSize: 12,
+              color: accent,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),
@@ -664,8 +705,9 @@ class _SparkActionSheet extends StatelessWidget {
               height: 4,
               margin: const EdgeInsets.only(bottom: 16),
               decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2)),
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
           ),
           const Icon(Icons.bolt_rounded, size: 28, color: Color(0xFFFBBF24)),
@@ -674,9 +716,10 @@ class _SparkActionSheet extends StatelessWidget {
             title,
             textAlign: TextAlign.center,
             style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF1A1A2E)),
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF1A1A2E),
+            ),
           ),
           const SizedBox(height: 20),
           GestureDetector(
@@ -692,15 +735,19 @@ class _SparkActionSheet extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.add_photo_alternate_outlined,
-                      size: 18, color: accent),
+                  Icon(
+                    Icons.add_photo_alternate_outlined,
+                    size: 18,
+                    color: accent,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     'Create a memory from this spark',
                     style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: accent),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: accent,
+                    ),
                   ),
                 ],
               ),
@@ -738,12 +785,14 @@ class _AddCustomSparkSheetState extends ConsumerState<_AddCustomSparkSheet> {
   void _save() {
     final title = _titleCtrl.text.trim();
     if (title.isEmpty) return;
-    widget.onSave(CustomSpark(
-      id: 'custom_${DateTime.now().microsecondsSinceEpoch}',
-      title: title,
-      description: _descCtrl.text.trim(),
-      category: _category,
-    ));
+    widget.onSave(
+      CustomSpark(
+        id: 'custom_${DateTime.now().microsecondsSinceEpoch}',
+        title: title,
+        description: _descCtrl.text.trim(),
+        category: _category,
+      ),
+    );
     Navigator.pop(context);
   }
 
@@ -761,7 +810,11 @@ class _AddCustomSparkSheetState extends ConsumerState<_AddCustomSparkSheet> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       padding: EdgeInsets.fromLTRB(
-          20, 16, 20, MediaQuery.viewInsetsOf(context).bottom + 32),
+        20,
+        16,
+        20,
+        MediaQuery.viewInsetsOf(context).bottom + 32,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -772,18 +825,24 @@ class _AddCustomSparkSheetState extends ConsumerState<_AddCustomSparkSheet> {
               height: 4,
               margin: const EdgeInsets.only(bottom: 20),
               decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2)),
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
           ),
-          const Text('Add your own idea',
-              style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF1A1A2E))),
+          const Text(
+            'Add your own idea',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF1A1A2E),
+            ),
+          ),
           const SizedBox(height: 4),
-          Text('It will appear in your personal Sparks list.',
-              style: TextStyle(fontSize: 13, color: Colors.grey.shade500)),
+          Text(
+            'It will appear in your personal Sparks list.',
+            style: TextStyle(fontSize: 13, color: Color(0xFF616161)),
+          ),
           const SizedBox(height: 18),
 
           // Title
@@ -793,11 +852,13 @@ class _AddCustomSparkSheetState extends ConsumerState<_AddCustomSparkSheet> {
             decoration: InputDecoration(
               labelText: 'Activity title',
               border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide(color: Colors.grey.shade200)),
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(color: Colors.grey.shade200),
+              ),
               focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide(color: accent, width: 1.5)),
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(color: accent, width: 1.5),
+              ),
               filled: true,
               fillColor: Colors.white,
             ),
@@ -812,11 +873,13 @@ class _AddCustomSparkSheetState extends ConsumerState<_AddCustomSparkSheet> {
             decoration: InputDecoration(
               labelText: 'Description (optional)',
               border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide(color: Colors.grey.shade200)),
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(color: Colors.grey.shade200),
+              ),
               focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide(color: accent, width: 1.5)),
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(color: accent, width: 1.5),
+              ),
               filled: true,
               fillColor: Colors.white,
             ),
@@ -825,8 +888,7 @@ class _AddCustomSparkSheetState extends ConsumerState<_AddCustomSparkSheet> {
 
           // Category picker
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(14),
@@ -837,18 +899,18 @@ class _AddCustomSparkSheetState extends ConsumerState<_AddCustomSparkSheet> {
                 value: _category,
                 isExpanded: true,
                 items: SparkCategory.values
-                    .map((c) => DropdownMenuItem(
-                          value: c,
-                          child: Row(
-                            children: [
-                              Text(c.emoji,
-                                  style: const TextStyle(fontSize: 16)),
-                              const SizedBox(width: 8),
-                              Text(c.label,
-                                  style: const TextStyle(fontSize: 14)),
-                            ],
-                          ),
-                        ))
+                    .map(
+                      (c) => DropdownMenuItem(
+                        value: c,
+                        child: Row(
+                          children: [
+                            Text(c.emoji, style: const TextStyle(fontSize: 16)),
+                            const SizedBox(width: 8),
+                            Text(c.label, style: const TextStyle(fontSize: 14)),
+                          ],
+                        ),
+                      ),
+                    )
                     .toList(),
                 onChanged: (v) {
                   if (v != null) setState(() => _category = v);
@@ -867,15 +929,18 @@ class _AddCustomSparkSheetState extends ConsumerState<_AddCustomSparkSheet> {
                     : accent,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14)),
+                  borderRadius: BorderRadius.circular(14),
+                ),
               ),
-              onPressed:
-                  _titleCtrl.text.trim().isEmpty ? null : _save,
-              child: const Text('Add idea',
-                  style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white)),
+              onPressed: _titleCtrl.text.trim().isEmpty ? null : _save,
+              child: const Text(
+                'Add idea',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
             ),
           ),
         ],

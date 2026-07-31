@@ -105,76 +105,83 @@ class KidProfile {
     List<FuturePlan>? futurePlans,
     Set<String>? checkedMilestones,
     Map<String, String>? devMilestoneLinks,
-  }) =>
-      KidProfile(
-        id: id ?? this.id,
-        name: name ?? this.name,
-        nickname: clearNickname ? null : (nickname ?? this.nickname),
-        dateOfBirth: dateOfBirth ?? this.dateOfBirth,
-        timeOfBirth: clearTimeOfBirth ? null : (timeOfBirth ?? this.timeOfBirth),
-        color: color ?? this.color,
-        gender: gender ?? this.gender,
-        avatarImagePath: clearAvatar ? null : (avatarImagePath ?? this.avatarImagePath),
-        backgroundImagePath:
-            clearBackground ? null : (backgroundImagePath ?? this.backgroundImagePath),
-        themePresetId: clearThemePreset ? null : (themePresetId ?? this.themePresetId),
-        milestones: milestones ?? this.milestones,
-        reminders: reminders ?? this.reminders,
-        documents: documents ?? this.documents,
-        links: links ?? this.links,
-        growthEntries: growthEntries ?? this.growthEntries,
-        futurePlans: futurePlans ?? this.futurePlans,
-        checkedMilestones: checkedMilestones ?? this.checkedMilestones,
-        devMilestoneLinks: devMilestoneLinks ?? this.devMilestoneLinks,
-      );
+  }) => KidProfile(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    nickname: clearNickname ? null : (nickname ?? this.nickname),
+    dateOfBirth: dateOfBirth ?? this.dateOfBirth,
+    timeOfBirth: clearTimeOfBirth ? null : (timeOfBirth ?? this.timeOfBirth),
+    color: color ?? this.color,
+    gender: gender ?? this.gender,
+    avatarImagePath: clearAvatar
+        ? null
+        : (avatarImagePath ?? this.avatarImagePath),
+    backgroundImagePath: clearBackground
+        ? null
+        : (backgroundImagePath ?? this.backgroundImagePath),
+    themePresetId: clearThemePreset
+        ? null
+        : (themePresetId ?? this.themePresetId),
+    milestones: milestones ?? this.milestones,
+    reminders: reminders ?? this.reminders,
+    documents: documents ?? this.documents,
+    links: links ?? this.links,
+    growthEntries: growthEntries ?? this.growthEntries,
+    futurePlans: futurePlans ?? this.futurePlans,
+    checkedMilestones: checkedMilestones ?? this.checkedMilestones,
+    devMilestoneLinks: devMilestoneLinks ?? this.devMilestoneLinks,
+  );
 
   // Milestones and reminders are stored in subcollections. Web images use
   // Drive URLs; native images keep their app-storage path for the same device.
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'nickname': nickname,
-        'dateOfBirth': dateOfBirth.toIso8601String(),
-        'timeOfBirth': timeOfBirth?.toIso8601String(),
-        'color': color.toARGB32(),
-        'gender': gender.name,
-        if (themePresetId != null) 'themePresetId': themePresetId,
-        if (avatarImagePath != null && avatarImagePath!.startsWith('http'))
-          'avatarUrl': avatarImagePath,
-        if (avatarImagePath != null && !avatarImagePath!.startsWith('http'))
-          'avatarLocalPath': avatarImagePath,
-        if (backgroundImagePath != null && backgroundImagePath!.startsWith('http'))
-          'backgroundUrl': backgroundImagePath,
-        if (backgroundImagePath != null && !backgroundImagePath!.startsWith('http'))
-          'backgroundLocalPath': backgroundImagePath,
-        if (checkedMilestones.isNotEmpty)
-          'checkedMilestones': checkedMilestones.toList(),
-        if (devMilestoneLinks.isNotEmpty)
-          'devMilestoneLinks': devMilestoneLinks,
-      };
+    'id': id,
+    'name': name,
+    'nickname': nickname,
+    'dateOfBirth': dateOfBirth.toIso8601String(),
+    'timeOfBirth': timeOfBirth?.toIso8601String(),
+    'color': color.toARGB32(),
+    'gender': gender.name,
+    if (themePresetId != null) 'themePresetId': themePresetId,
+    if (avatarImagePath != null && avatarImagePath!.startsWith('http'))
+      'avatarUrl': avatarImagePath,
+    if (avatarImagePath != null && !avatarImagePath!.startsWith('http'))
+      'avatarLocalPath': avatarImagePath,
+    if (backgroundImagePath != null && backgroundImagePath!.startsWith('http'))
+      'backgroundUrl': backgroundImagePath,
+    if (backgroundImagePath != null && !backgroundImagePath!.startsWith('http'))
+      'backgroundLocalPath': backgroundImagePath,
+    if (checkedMilestones.isNotEmpty)
+      'checkedMilestones': checkedMilestones.toList(),
+    if (devMilestoneLinks.isNotEmpty) 'devMilestoneLinks': devMilestoneLinks,
+  };
 
   factory KidProfile.fromJson(Map<String, dynamic> j) => KidProfile(
-        id: j['id'] as String,
-        name: j['name'] as String,
-        nickname: j['nickname'] as String?,
-        dateOfBirth: DateTime.parse(j['dateOfBirth'] as String),
-        timeOfBirth: j['timeOfBirth'] != null ? DateTime.parse(j['timeOfBirth'] as String) : null,
-        color: Color(j['color'] as int),
-        gender: Gender.values.firstWhere(
-          (g) => g.name == (j['gender'] as String? ?? 'neutral'),
-          orElse: () => Gender.neutral,
-        ),
-        themePresetId: j['themePresetId'] as String?,
-        avatarImagePath:
-            (j['avatarUrl'] ?? j['avatarLocalPath']) as String?,
-        backgroundImagePath:
-            (j['backgroundUrl'] ?? j['backgroundLocalPath']) as String?,
-        checkedMilestones: (j['checkedMilestones'] as List<dynamic>?)
-                ?.map((e) => e as String)
-                .toSet() ??
-            {},
-        devMilestoneLinks: (j['devMilestoneLinks'] as Map<String, dynamic>?)
-                ?.map((k, v) => MapEntry(k, v as String)) ??
-            {},
-      );
+    id: j['id'] as String,
+    name: j['name'] as String,
+    nickname: j['nickname'] as String?,
+    dateOfBirth: DateTime.parse(j['dateOfBirth'] as String),
+    timeOfBirth: j['timeOfBirth'] != null
+        ? DateTime.parse(j['timeOfBirth'] as String)
+        : null,
+    color: Color(j['color'] as int),
+    gender: Gender.values.firstWhere(
+      (g) => g.name == (j['gender'] as String? ?? 'neutral'),
+      orElse: () => Gender.neutral,
+    ),
+    themePresetId: j['themePresetId'] as String?,
+    avatarImagePath: (j['avatarUrl'] ?? j['avatarLocalPath']) as String?,
+    backgroundImagePath:
+        (j['backgroundUrl'] ?? j['backgroundLocalPath']) as String?,
+    checkedMilestones:
+        (j['checkedMilestones'] as List<dynamic>?)
+            ?.map((e) => e as String)
+            .toSet() ??
+        {},
+    devMilestoneLinks:
+        (j['devMilestoneLinks'] as Map<String, dynamic>?)?.map(
+          (k, v) => MapEntry(k, v as String),
+        ) ??
+        {},
+  );
 }

@@ -64,18 +64,15 @@ class GooglePhotosService {
       gs.requestScopes([photosScope]);
 
   static Future<http.Client> _client(GoogleSignIn gs) async {
-    final client =
-        await gs.authenticatedClient().timeout(const Duration(seconds: 20));
+    final client = await gs.authenticatedClient().timeout(
+      const Duration(seconds: 20),
+    );
     if (client == null) throw Exception('Not signed in with Google');
     return client;
   }
 
   static Future<({List<GooglePhotoItem> items, String? nextPageToken})>
-      listMediaItems(
-    GoogleSignIn gs, {
-    String? pageToken,
-    String? albumId,
-  }) async {
+  listMediaItems(GoogleSignIn gs, {String? pageToken, String? albumId}) async {
     final client = await _client(gs);
     http.Response response;
     if (albumId != null) {
@@ -90,12 +87,9 @@ class GooglePhotosService {
         }),
       );
     } else {
-      final uri = Uri.parse('$_baseUrl/mediaItems').replace(
-        queryParameters: {
-          'pageSize': '50',
-          'pageToken': ?pageToken,
-        },
-      );
+      final uri = Uri.parse(
+        '$_baseUrl/mediaItems',
+      ).replace(queryParameters: {'pageSize': '50', 'pageToken': ?pageToken});
       response = await client.get(uri);
     }
 
@@ -107,17 +101,14 @@ class GooglePhotosService {
     final items = (data['mediaItems'] as List? ?? [])
         .map((e) => GooglePhotoItem.fromJson(e as Map<String, dynamic>))
         .toList();
-    return (
-      items: items,
-      nextPageToken: data['nextPageToken'] as String?,
-    );
+    return (items: items, nextPageToken: data['nextPageToken'] as String?);
   }
 
   static Future<List<GooglePhotoAlbum>> listAlbums(GoogleSignIn gs) async {
     final client = await _client(gs);
-    final uri = Uri.parse('$_baseUrl/albums').replace(
-      queryParameters: {'pageSize': '50'},
-    );
+    final uri = Uri.parse(
+      '$_baseUrl/albums',
+    ).replace(queryParameters: {'pageSize': '50'});
     final response = await client.get(uri);
     if (response.statusCode != 200) return [];
     final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -131,8 +122,9 @@ class GooglePhotosService {
     GooglePhotoItem item,
   ) async {
     final client = await _client(gs);
-    final downloadUrl =
-        item.isVideo ? '${item.baseUrl}=dv' : '${item.baseUrl}=d';
+    final downloadUrl = item.isVideo
+        ? '${item.baseUrl}=dv'
+        : '${item.baseUrl}=d';
     final response = await client.get(Uri.parse(downloadUrl));
     if (response.statusCode != 200) {
       throw Exception('Download failed: ${response.statusCode}');

@@ -33,12 +33,14 @@ bool _isDriveAuthError(Object e) {
 }
 
 class DriveService {
-  static const _appFolderName = '⚠️ Born Again Memories — App Data (Do Not Delete)';
+  static const _appFolderName = '⚠️ First Moments — App Data (Do Not Delete)';
+  static const _legacyAppFolderName =
+      '⚠️ Born Again Memories — App Data (Do Not Delete)';
 
   static Future<drive.DriveApi> _api(GoogleSignIn gs) async {
-    final client = await gs
-        .authenticatedClient()
-        .timeout(const Duration(seconds: 20));
+    final client = await gs.authenticatedClient().timeout(
+      const Duration(seconds: 20),
+    );
     if (client == null) throw DriveNotAuthorizedException();
     return drive.DriveApi(client);
   }
@@ -51,8 +53,11 @@ class DriveService {
     var q =
         "name='$name' and mimeType='application/vnd.google-apps.folder' and trashed=false";
     if (parentId != null) q += " and '$parentId' in parents";
-    final list =
-        await api.files.list(q: q, spaces: 'drive', $fields: 'files(id)');
+    final list = await api.files.list(
+      q: q,
+      spaces: 'drive',
+      $fields: 'files(id)',
+    );
     if (list.files?.isNotEmpty == true) return list.files!.first.id!;
     final meta = drive.File()
       ..name = name
@@ -62,12 +67,26 @@ class DriveService {
     return created.id!;
   }
 
+  static Future<String> _ensureAppFolder(drive.DriveApi api) async {
+    for (final name in [_appFolderName, _legacyAppFolderName]) {
+      final q =
+          "name='$name' and mimeType='application/vnd.google-apps.folder' and trashed=false";
+      final list = await api.files.list(
+        q: q,
+        spaces: 'drive',
+        $fields: 'files(id)',
+      );
+      if (list.files?.isNotEmpty == true) return list.files!.first.id!;
+    }
+    return _ensureFolder(api, _appFolderName);
+  }
+
   static String _contentType(AttachmentType type) => switch (type) {
-        AttachmentType.image => 'image/jpeg',
-        AttachmentType.video => 'video/mp4',
-        AttachmentType.audio => 'audio/mp4',
-        _ => 'application/octet-stream',
-      };
+    AttachmentType.image => 'image/jpeg',
+    AttachmentType.video => 'video/mp4',
+    AttachmentType.audio => 'audio/mp4',
+    _ => 'application/octet-stream',
+  };
 
   static Future<String> uploadFile({
     required GoogleSignIn googleSignIn,
@@ -79,11 +98,17 @@ class DriveService {
   }) async {
     try {
       final api = await _api(googleSignIn);
-      final root = await _ensureFolder(api, _appFolderName);
-      final profileFolder =
-          await _ensureFolder(api, profileName, parentId: root);
-      final msFolder =
-          await _ensureFolder(api, milestoneId, parentId: profileFolder);
+      final root = await _ensureAppFolder(api);
+      final profileFolder = await _ensureFolder(
+        api,
+        profileName,
+        parentId: root,
+      );
+      final msFolder = await _ensureFolder(
+        api,
+        milestoneId,
+        parentId: profileFolder,
+      );
 
       final file = File(localPath);
       final meta = drive.File()
@@ -125,10 +150,12 @@ class DriveService {
   }) async {
     try {
       final api = await _api(googleSignIn);
-      final media = await api.files.get(
-        driveFileId,
-        downloadOptions: drive.DownloadOptions.fullMedia,
-      ) as drive.Media;
+      final media =
+          await api.files.get(
+                driveFileId,
+                downloadOptions: drive.DownloadOptions.fullMedia,
+              )
+              as drive.Media;
       final bytes = BytesBuilder(copy: false);
       await for (final chunk in media.stream) {
         bytes.add(chunk);
@@ -145,8 +172,7 @@ class DriveService {
   static Future<DriveQuota?> getQuota(GoogleSignIn googleSignIn) async {
     try {
       final api = await _api(googleSignIn);
-      final about =
-          await api.about.get($fields: 'storageQuota');
+      final about = await api.about.get($fields: 'storageQuota');
       final used = int.tryParse(about.storageQuota?.usage ?? '');
       if (used == null) return null;
       final limit = int.tryParse(about.storageQuota?.limit ?? '');
@@ -163,12 +189,17 @@ class DriveService {
   static Future<void> deleteAllBackups(GoogleSignIn googleSignIn) async {
     try {
       final api = await _api(googleSignIn);
-      final q =
-          "name='$_appFolderName' and mimeType='application/vnd.google-apps.folder' and trashed=false";
-      final list =
-          await api.files.list(q: q, spaces: 'drive', $fields: 'files(id)');
-      for (final f in list.files ?? []) {
-        await api.files.delete(f.id!);
+      for (final name in [_appFolderName, _legacyAppFolderName]) {
+        final q =
+            "name='$name' and mimeType='application/vnd.google-apps.folder' and trashed=false";
+        final list = await api.files.list(
+          q: q,
+          spaces: 'drive',
+          $fields: 'files(id)',
+        );
+        for (final f in list.files ?? []) {
+          await api.files.delete(f.id!);
+        }
       }
     } catch (_) {}
   }
@@ -176,7 +207,9 @@ class DriveService {
   // Makes a Drive file viewable by anyone with the link.
   // Returns the thumbnail URL suitable for Image.network display.
   static Future<String> makeShareable(
-      GoogleSignIn googleSignIn, String fileId) async {
+    GoogleSignIn googleSignIn,
+    String fileId,
+  ) async {
     final api = await _api(googleSignIn);
     await api.permissions.create(
       drive.Permission()
@@ -197,9 +230,12 @@ class DriveService {
   }) async {
     try {
       final api = await _api(googleSignIn);
-      final root = await _ensureFolder(api, _appFolderName);
-      final imagesFolder =
-          await _ensureFolder(api, 'Profile Images', parentId: root);
+      final root = await _ensureAppFolder(api);
+      final imagesFolder = await _ensureFolder(
+        api,
+        'Profile Images',
+        parentId: root,
+      );
       final meta = drive.File()
         ..name = filename
         ..parents = [imagesFolder];

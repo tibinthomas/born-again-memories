@@ -26,6 +26,6 @@ class AppSettingsNotifier extends StateNotifier<AppSettings> {
 
 final appSettingsProvider =
     StateNotifierProvider<AppSettingsNotifier, AppSettings>((ref) {
-  final uid = ref.watch(authStateProvider).value?.uid ?? '';
-  return AppSettingsNotifier(uid);
-});
+      final uid = ref.watch(authStateProvider).value?.uid ?? '';
+      return AppSettingsNotifier(uid);
+    });

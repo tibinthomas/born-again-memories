@@ -39,7 +39,8 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>?>
   final Ref ref;
 
   // null = initial load in progress, [] = loaded/empty, [...] = loaded with data
-  ProfilesNotifier(this.uid, this.ref) : super(uid.isNotEmpty ? null : <KidProfile>[]) {
+  ProfilesNotifier(this.uid, this.ref)
+    : super(uid.isNotEmpty ? null : <KidProfile>[]) {
     if (uid.isNotEmpty) _load();
   }
 
@@ -106,8 +107,9 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>?>
     final remaining = state?.length ?? 0;
     final selected = ref.read(selectedProfileIndexProvider);
     if (selected >= remaining) {
-      ref.read(selectedProfileIndexProvider.notifier).state =
-          remaining == 0 ? 0 : remaining - 1;
+      ref.read(selectedProfileIndexProvider.notifier).state = remaining == 0
+          ? 0
+          : remaining - 1;
     }
     await FirestoreService.deleteProfile(uid, profile.id);
   }
@@ -115,9 +117,9 @@ class ProfilesNotifier extends StateNotifier<List<KidProfile>?>
 
 final profilesProvider =
     StateNotifierProvider<ProfilesNotifier, List<KidProfile>?>((ref) {
-  final uid = ref.watch(authStateProvider).value?.uid ?? '';
-  return ProfilesNotifier(uid, ref);
-});
+      final uid = ref.watch(authStateProvider).value?.uid ?? '';
+      return ProfilesNotifier(uid, ref);
+    });
 
 final selectedProfileIndexProvider = StateProvider<int>((ref) {
   // Reset to the first profile whenever the signed-in user changes, so a
@@ -149,27 +151,34 @@ class AddProfileFormState {
     bool clearAvatar = false,
     String? backgroundImagePath,
     bool clearBackground = false,
-  }) =>
-      AddProfileFormState(
-        dob: dob ?? this.dob,
-        color: color ?? this.color,
-        gender: gender ?? this.gender,
-        avatarImagePath:
-            clearAvatar ? null : (avatarImagePath ?? this.avatarImagePath),
-        backgroundImagePath: clearBackground ? null : (backgroundImagePath ?? this.backgroundImagePath),
-      );
+  }) => AddProfileFormState(
+    dob: dob ?? this.dob,
+    color: color ?? this.color,
+    gender: gender ?? this.gender,
+    avatarImagePath: clearAvatar
+        ? null
+        : (avatarImagePath ?? this.avatarImagePath),
+    backgroundImagePath: clearBackground
+        ? null
+        : (backgroundImagePath ?? this.backgroundImagePath),
+  );
 }
 
 class AddProfileFormNotifier extends StateNotifier<AddProfileFormState> {
   AddProfileFormNotifier()
-      : super(AddProfileFormState(dob: DateTime.now(), color: ProfileTheme.forGender(Gender.neutral).accent));
+    : super(
+        AddProfileFormState(
+          dob: DateTime.now(),
+          color: ProfileTheme.forGender(Gender.neutral).accent,
+        ),
+      );
 
   void setDob(DateTime dob) => state = state.copyWith(dob: dob);
   void setColor(Color color) => state = state.copyWith(color: color);
   void setGender(Gender gender) => state = state.copyWith(
-        gender: gender,
-        color: ProfileTheme.forGender(gender).accent,
-      );
+    gender: gender,
+    color: ProfileTheme.forGender(gender).accent,
+  );
   void setAvatarImagePath(String? path) => state = path == null
       ? state.copyWith(clearAvatar: true)
       : state.copyWith(avatarImagePath: path);
@@ -178,10 +187,11 @@ class AddProfileFormNotifier extends StateNotifier<AddProfileFormState> {
       : state.copyWith(backgroundImagePath: path);
 }
 
-final addProfileFormProvider = StateNotifierProvider.autoDispose<
-    AddProfileFormNotifier, AddProfileFormState>(
-  (ref) => AddProfileFormNotifier(),
-);
+final addProfileFormProvider =
+    StateNotifierProvider.autoDispose<
+      AddProfileFormNotifier,
+      AddProfileFormState
+    >((ref) => AddProfileFormNotifier());
 
 /// Form state for the "edit profile" sheet, keyed by the [KidProfile] being
 /// edited. Holds only the fields that can change through async pickers
@@ -221,31 +231,36 @@ class EditProfileFormState {
     bool clearBackground = false,
     bool? isUploadingAvatar,
     bool? isUploadingBackground,
-  }) =>
-      EditProfileFormState(
-        dob: dob ?? this.dob,
-        timeOfBirth: clearTimeOfBirth ? null : (timeOfBirth ?? this.timeOfBirth),
-        gender: gender ?? this.gender,
-        themePresetId: themePresetId ?? this.themePresetId,
-        avatarImagePath: clearAvatar ? null : (avatarImagePath ?? this.avatarImagePath),
-        backgroundImagePath:
-            clearBackground ? null : (backgroundImagePath ?? this.backgroundImagePath),
-        isUploadingAvatar: isUploadingAvatar ?? this.isUploadingAvatar,
-        isUploadingBackground: isUploadingBackground ?? this.isUploadingBackground,
-      );
+  }) => EditProfileFormState(
+    dob: dob ?? this.dob,
+    timeOfBirth: clearTimeOfBirth ? null : (timeOfBirth ?? this.timeOfBirth),
+    gender: gender ?? this.gender,
+    themePresetId: themePresetId ?? this.themePresetId,
+    avatarImagePath: clearAvatar
+        ? null
+        : (avatarImagePath ?? this.avatarImagePath),
+    backgroundImagePath: clearBackground
+        ? null
+        : (backgroundImagePath ?? this.backgroundImagePath),
+    isUploadingAvatar: isUploadingAvatar ?? this.isUploadingAvatar,
+    isUploadingBackground: isUploadingBackground ?? this.isUploadingBackground,
+  );
 }
 
 class EditProfileFormNotifier extends StateNotifier<EditProfileFormState> {
   EditProfileFormNotifier(KidProfile profile)
-      : super(EditProfileFormState(
+    : super(
+        EditProfileFormState(
           dob: profile.dateOfBirth,
           timeOfBirth: profile.timeOfBirth,
           gender: profile.gender,
-          themePresetId: profile.themePresetId ??
+          themePresetId:
+              profile.themePresetId ??
               ThemePreset.defaultIdForGender(profile.gender.name),
           avatarImagePath: profile.avatarImagePath,
           backgroundImagePath: profile.backgroundImagePath,
-        ));
+        ),
+      );
 
   void setDob(DateTime dob) => state = state.copyWith(dob: dob);
   void setTimeOfBirth(DateTime? time) => time == null
@@ -260,11 +275,13 @@ class EditProfileFormNotifier extends StateNotifier<EditProfileFormState> {
   void setBackgroundPath(String? path) => path == null
       ? state = state.copyWith(clearBackground: true)
       : state = state.copyWith(backgroundImagePath: path);
-  void setUploadingAvatar(bool value) => state = state.copyWith(isUploadingAvatar: value);
-  void setUploadingBackground(bool value) => state = state.copyWith(isUploadingBackground: value);
+  void setUploadingAvatar(bool value) =>
+      state = state.copyWith(isUploadingAvatar: value);
+  void setUploadingBackground(bool value) =>
+      state = state.copyWith(isUploadingBackground: value);
 }
 
 final editProfileFormProvider = StateNotifierProvider.autoDispose
     .family<EditProfileFormNotifier, EditProfileFormState, KidProfile>(
-  (ref, profile) => EditProfileFormNotifier(profile),
-);
+      (ref, profile) => EditProfileFormNotifier(profile),
+    );

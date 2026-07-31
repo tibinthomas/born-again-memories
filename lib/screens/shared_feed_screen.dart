@@ -12,9 +12,9 @@ class SharedFeedScreen extends ConsumerStatefulWidget {
   const SharedFeedScreen({super.key});
 
   static Future<void> push(BuildContext context) => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const SharedFeedScreen()),
-      );
+    context,
+    MaterialPageRoute(builder: (_) => const SharedFeedScreen()),
+  );
 
   @override
   ConsumerState<SharedFeedScreen> createState() => _SharedFeedScreenState();
@@ -50,13 +50,15 @@ class _SharedFeedScreenState extends ConsumerState<SharedFeedScreen> {
       for (final g in groups) {
         senders.add(_Sender(uid: g.uid, name: g.displayName));
         for (final e in g.milestones) {
-          entries.add(_FeedEntry(
-            milestone: e.milestone,
-            babyName: e.babyName,
-            babyGender: e.babyGender,
-            senderName: g.displayName,
-            senderUid: g.uid,
-          ));
+          entries.add(
+            _FeedEntry(
+              milestone: e.milestone,
+              babyName: e.babyName,
+              babyGender: e.babyGender,
+              senderName: g.displayName,
+              senderUid: g.uid,
+            ),
+          );
         }
       }
       entries.sort((a, b) => b.milestone.date.compareTo(a.milestone.date));
@@ -115,7 +117,14 @@ class _SharedFeedScreenState extends ConsumerState<SharedFeedScreen> {
             title: const Row(
               children: [
                 Text('🌟 ', style: TextStyle(fontSize: 18)),
-                Text('Shared with me', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white)),
+                Text(
+                  'Shared with me',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
               ],
             ),
           ),
@@ -144,15 +153,23 @@ class _SharedFeedScreenState extends ConsumerState<SharedFeedScreen> {
                         selected: _selectedUid == null,
                         onTap: () => setState(() => _selectedUid = null),
                       ),
-                      ..._senders.map((s) => Padding(
-                            padding: const EdgeInsets.only(left: 8),
-                            child: _SenderChip(
-                              label: s.name,
-                              avatar: s.name.isNotEmpty ? s.name[0].toUpperCase() : '?',
-                              selected: _selectedUid == s.uid,
-                              onTap: () => setState(() => _selectedUid = _selectedUid == s.uid ? null : s.uid),
+                      ..._senders.map(
+                        (s) => Padding(
+                          padding: const EdgeInsets.only(left: 8),
+                          child: _SenderChip(
+                            label: s.name,
+                            avatar: s.name.isNotEmpty
+                                ? s.name[0].toUpperCase()
+                                : '?',
+                            selected: _selectedUid == s.uid,
+                            onTap: () => setState(
+                              () => _selectedUid = _selectedUid == s.uid
+                                  ? null
+                                  : s.uid,
                             ),
-                          )),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -173,7 +190,11 @@ class _SharedFeedScreenState extends ConsumerState<SharedFeedScreen> {
                   itemCount: filtered.length,
                   itemBuilder: (context, index) {
                     final entry = filtered[index];
-                    return _FeedItem(entry: entry, animIndex: index, showSender: _selectedUid == null);
+                    return _FeedItem(
+                      entry: entry,
+                      animIndex: index,
+                      showSender: _selectedUid == null,
+                    );
                   },
                 ),
               ),
@@ -233,8 +254,11 @@ class _FeedItem extends StatelessWidget {
           child: Row(
             children: [
               if (showSender) ...[
-                Icon(Icons.person_outline_rounded,
-                    size: 13, color: theme.accent.withAlpha(180)),
+                Icon(
+                  Icons.person_outline_rounded,
+                  size: 13,
+                  color: theme.accent.withAlpha(180),
+                ),
                 const SizedBox(width: 4),
                 Text(
                   entry.senderName,
@@ -246,20 +270,23 @@ class _FeedItem extends StatelessWidget {
                 ),
                 Text(
                   '  ·  ',
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade400),
+                  style: TextStyle(fontSize: 12, color: Color(0xFF616161)),
                 ),
               ],
-              Icon(Icons.child_care_rounded,
-                  size: 13, color: Colors.grey.shade400),
+              Icon(
+                Icons.child_care_rounded,
+                size: 13,
+                color: Color(0xFF616161),
+              ),
               const SizedBox(width: 4),
               Text(
                 entry.babyName,
-                style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                style: TextStyle(fontSize: 12, color: Color(0xFF616161)),
               ),
               const SizedBox(width: 6),
               Text(
                 formatDate(entry.milestone.date),
-                style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
+                style: TextStyle(fontSize: 11, color: Color(0xFF616161)),
               ),
             ],
           ),
@@ -301,13 +328,16 @@ class _SenderChip extends StatelessWidget {
           color: selected ? accent : Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-              color: selected ? accent : Colors.grey.shade300, width: 1),
+            color: selected ? accent : Colors.grey.shade300,
+            width: 1,
+          ),
           boxShadow: selected
               ? [
                   BoxShadow(
-                      color: accent.withAlpha(50),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2))
+                    color: accent.withAlpha(50),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
                 ]
               : [],
         ),
@@ -372,22 +402,30 @@ class _EmptyState extends StatelessWidget {
                 shape: BoxShape.circle,
                 color: Colors.blue.shade50,
               ),
-              child: Icon(Icons.people_outline_rounded,
-                  size: 40, color: Colors.blue.shade200),
+              child: Icon(
+                Icons.people_outline_rounded,
+                size: 40,
+                color: Colors.blue.shade200,
+              ),
             ),
             const SizedBox(height: 20),
             const Text(
               'Nothing shared yet',
               style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF2D2D2D)),
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF2D2D2D),
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               'When someone shares their memories\nwith your email, they will appear here.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade500, height: 1.5),
+              style: TextStyle(
+                fontSize: 14,
+                color: Color(0xFF616161),
+                height: 1.5,
+              ),
             ),
           ],
         ),
@@ -410,16 +448,25 @@ class _ErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.cloud_off_rounded, size: 48, color: Colors.grey.shade300),
+            Icon(
+              Icons.cloud_off_rounded,
+              size: 48,
+              color: Colors.grey.shade300,
+            ),
             const SizedBox(height: 16),
             Text(
               'Could not load shared memories',
-              style: TextStyle(fontWeight: FontWeight.w600, color: Colors.grey.shade700),
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade700,
+              ),
             ),
             const SizedBox(height: 8),
-            Text(error,
-                style: TextStyle(fontSize: 12, color: Colors.grey.shade400),
-                textAlign: TextAlign.center),
+            Text(
+              error,
+              style: TextStyle(fontSize: 12, color: Color(0xFF616161)),
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: onRetry,

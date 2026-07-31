@@ -25,10 +25,12 @@ class MemoryShareCard extends StatelessWidget {
     final theme = ProfileTheme.forGender(gender);
 
     final photo = milestone.attachments
-        .where((a) =>
-            a.type == AttachmentType.image &&
-            !kIsWeb &&
-            File(a.localPath).existsSync())
+        .where(
+          (a) =>
+              a.type == AttachmentType.image &&
+              !kIsWeb &&
+              File(a.localPath).existsSync(),
+        )
         .firstOrNull;
 
     return Container(
@@ -89,10 +91,7 @@ class _PhotoCard extends StatelessWidget {
         SizedBox(
           width: 320,
           height: 420,
-          child: Image.file(
-            _photoFile(),
-            fit: BoxFit.cover,
-          ),
+          child: Image.file(_photoFile(), fit: BoxFit.cover),
         ),
 
         // Dark gradient overlay (bottom two-thirds)
@@ -114,11 +113,7 @@ class _PhotoCard extends StatelessWidget {
         ),
 
         // Top branding pill
-        Positioned(
-          top: 16,
-          left: 16,
-          child: _BrandingPill(theme: theme),
-        ),
+        Positioned(top: 16, left: 16, child: _BrandingPill(theme: theme)),
 
         // Bottom content
         Positioned(
@@ -138,23 +133,27 @@ class _PhotoCard extends StatelessWidget {
                     runSpacing: 4,
                     children: milestone.tags
                         .take(3)
-                        .map((t) => Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: theme.accent.withAlpha(200),
-                                borderRadius: BorderRadius.circular(20),
+                        .map(
+                          (t) => Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: theme.accent.withAlpha(200),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              '#$t',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.3,
                               ),
-                              child: Text(
-                                '#$t',
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.3,
-                                ),
-                              ),
-                            ))
+                            ),
+                          ),
+                        )
                         .toList(),
                   ),
                   const SizedBox(height: 10),
@@ -261,7 +260,9 @@ class _GradientCard extends StatelessWidget {
                     color: Colors.white.withAlpha(30),
                     shape: BoxShape.circle,
                     border: Border.all(
-                        color: Colors.white.withAlpha(60), width: 1.5),
+                      color: Colors.white.withAlpha(60),
+                      width: 1.5,
+                    ),
                   ),
                   child: Center(
                     child: Text(
@@ -289,8 +290,11 @@ class _GradientCard extends StatelessWidget {
                 // Baby + date
                 Row(
                   children: [
-                    Icon(Icons.child_care,
-                        size: 13, color: Colors.white.withAlpha(200)),
+                    Icon(
+                      Icons.child_care,
+                      size: 13,
+                      color: Colors.white.withAlpha(200),
+                    ),
                     const SizedBox(width: 5),
                     Text(
                       '$babyName · ${formatDate(milestone.date)}',
@@ -311,7 +315,9 @@ class _GradientCard extends StatelessWidget {
                       color: Colors.white.withAlpha(20),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                          color: Colors.white.withAlpha(30), width: 1),
+                        color: Colors.white.withAlpha(30),
+                        width: 1,
+                      ),
                     ),
                     child: Text(
                       milestone.description,
@@ -333,25 +339,30 @@ class _GradientCard extends StatelessWidget {
                     runSpacing: 6,
                     children: milestone.tags
                         .take(4)
-                        .map((t) => Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 5),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withAlpha(25),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                    color: Colors.white.withAlpha(50),
-                                    width: 1),
+                        .map(
+                          (t) => Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withAlpha(25),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: Colors.white.withAlpha(50),
+                                width: 1,
                               ),
-                              child: Text(
-                                '#$t',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                            ),
+                            child: Text(
+                              '#$t',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
                               ),
-                            ))
+                            ),
+                          ),
+                        )
                         .toList(),
                   ),
                 ],
@@ -404,9 +415,7 @@ class _BrandingPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = dark
-        ? Colors.black.withAlpha(100)
-        : Colors.white.withAlpha(35);
+    final bg = dark ? Colors.black.withAlpha(100) : Colors.white.withAlpha(35);
     final border = dark
         ? Colors.white.withAlpha(40)
         : Colors.white.withAlpha(60);
@@ -426,7 +435,7 @@ class _BrandingPill extends StatelessWidget {
             Text(theme.decalEmoji, style: const TextStyle(fontSize: 13)),
             const SizedBox(width: 6),
             const Text(
-              'Born Again Memories',
+              'First Moments',
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w700,
@@ -452,9 +461,7 @@ class _Footer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = onGradient ? Colors.white.withAlpha(180) : theme.accent;
-    final bg = onGradient
-        ? Colors.white.withAlpha(20)
-        : theme.soft;
+    final bg = onGradient ? Colors.white.withAlpha(20) : theme.soft;
     final border = onGradient
         ? Colors.white.withAlpha(30)
         : theme.accent.withAlpha(30);

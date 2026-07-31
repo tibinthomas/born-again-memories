@@ -27,31 +27,30 @@ class GrowthEntry {
     bool clearWeight = false,
     bool clearHeight = false,
     bool clearHead = false,
-  }) =>
-      GrowthEntry(
-        id: id,
-        date: date ?? this.date,
-        weightKg: clearWeight ? null : weightKg ?? this.weightKg,
-        heightCm: clearHeight ? null : heightCm ?? this.heightCm,
-        headCm: clearHead ? null : headCm ?? this.headCm,
-        note: clearNote ? null : note ?? this.note,
-      );
+  }) => GrowthEntry(
+    id: id,
+    date: date ?? this.date,
+    weightKg: clearWeight ? null : weightKg ?? this.weightKg,
+    heightCm: clearHeight ? null : heightCm ?? this.heightCm,
+    headCm: clearHead ? null : headCm ?? this.headCm,
+    note: clearNote ? null : note ?? this.note,
+  );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'date': date.toIso8601String(),
-        if (weightKg != null) 'weightKg': weightKg,
-        if (heightCm != null) 'heightCm': heightCm,
-        if (headCm != null) 'headCm': headCm,
-        if (note != null) 'note': note,
-      };
+    'id': id,
+    'date': date.toIso8601String(),
+    if (weightKg != null) 'weightKg': weightKg,
+    if (heightCm != null) 'heightCm': heightCm,
+    if (headCm != null) 'headCm': headCm,
+    if (note != null) 'note': note,
+  };
 
   factory GrowthEntry.fromJson(Map<String, dynamic> j) => GrowthEntry(
-        id: j['id'] as String,
-        date: DateTime.parse(j['date'] as String),
-        weightKg: (j['weightKg'] as num?)?.toDouble(),
-        heightCm: (j['heightCm'] as num?)?.toDouble(),
-        headCm: (j['headCm'] as num?)?.toDouble(),
-        note: j['note'] as String?,
-      );
+    id: j['id'] as String,
+    date: DateTime.parse(j['date'] as String),
+    weightKg: (j['weightKg'] as num?)?.toDouble(),
+    heightCm: (j['heightCm'] as num?)?.toDouble(),
+    headCm: (j['headCm'] as num?)?.toDouble(),
+    note: j['note'] as String?,
+  );
 }

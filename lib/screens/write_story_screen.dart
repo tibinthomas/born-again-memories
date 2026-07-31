@@ -270,7 +270,7 @@ class _WriteStoryScreenState extends ConsumerState<WriteStoryScreen> {
                       'Share a tip, trick, or story about raising your little one…',
                   hintStyle: TextStyle(
                     fontSize: 15,
-                    color: Colors.grey.shade400,
+                    color: Color(0xFF616161),
                     height: 1.65,
                   ),
                   border: InputBorder.none,
@@ -284,9 +284,7 @@ class _WriteStoryScreenState extends ConsumerState<WriteStoryScreen> {
                   '$_wordCount / $_maxWords words',
                   style: TextStyle(
                     fontSize: 11,
-                    color: _overLimit
-                        ? Colors.red.shade400
-                        : Colors.grey.shade400,
+                    color: _overLimit ? Colors.red.shade400 : Color(0xFF616161),
                     fontWeight: _overLimit
                         ? FontWeight.w600
                         : FontWeight.normal,
@@ -319,7 +317,7 @@ class _WriteStoryScreenState extends ConsumerState<WriteStoryScreen> {
                         Icon(
                           Icons.tag_rounded,
                           size: 16,
-                          color: Colors.grey.shade500,
+                          color: Color(0xFF616161),
                         ),
                         const SizedBox(width: 6),
                         Text(
@@ -327,7 +325,7 @@ class _WriteStoryScreenState extends ConsumerState<WriteStoryScreen> {
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: Colors.grey.shade500,
+                            color: Color(0xFF616161),
                           ),
                         ),
                       ],
@@ -389,7 +387,7 @@ class _WriteStoryScreenState extends ConsumerState<WriteStoryScreen> {
                         hintText: 'Add a tag and press Enter',
                         hintStyle: TextStyle(
                           fontSize: 13,
-                          color: Colors.grey.shade400,
+                          color: Color(0xFF616161),
                         ),
                         border: InputBorder.none,
                         isDense: true,
@@ -421,7 +419,7 @@ class _WriteStoryScreenState extends ConsumerState<WriteStoryScreen> {
                                   '+ $t',
                                   style: TextStyle(
                                     fontSize: 11,
-                                    color: Colors.grey.shade500,
+                                    color: Color(0xFF616161),
                                   ),
                                 ),
                               ),
@@ -435,7 +433,7 @@ class _WriteStoryScreenState extends ConsumerState<WriteStoryScreen> {
               const SizedBox(height: 12),
               Text(
                 'Tags help other parents discover your story.',
-                style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
+                style: TextStyle(fontSize: 11, color: Color(0xFF616161)),
               ),
             ],
           ),

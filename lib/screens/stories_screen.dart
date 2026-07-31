@@ -69,7 +69,7 @@ class StoriesScreen extends ConsumerWidget {
                           'Tips, tricks & tales from parents',
                           style: TextStyle(
                             fontSize: 12,
-                            color: Color(0xFF888888),
+                            color: Color(0xFF616161),
                           ),
                         ),
                       ],
@@ -88,7 +88,7 @@ class StoriesScreen extends ConsumerWidget {
                 error: (e, _) => Center(
                   child: Text(
                     'Could not load stories.',
-                    style: TextStyle(color: Colors.grey.shade500),
+                    style: TextStyle(color: Color(0xFF616161)),
                   ),
                 ),
                 data: (list) {
@@ -264,7 +264,7 @@ class _StoryCard extends StatelessWidget {
                           _timeAgo(post.createdAt),
                           style: TextStyle(
                             fontSize: 11,
-                            color: Colors.grey.shade400,
+                            color: Color(0xFF616161),
                           ),
                         ),
                       ],
@@ -389,7 +389,7 @@ class _StoryCard extends StatelessWidget {
                             size: 20,
                             color: liked
                                 ? Colors.red.shade400
-                                : Colors.grey.shade400,
+                                : Color(0xFF616161),
                           ),
                         ),
                         const SizedBox(width: 4),
@@ -400,7 +400,7 @@ class _StoryCard extends StatelessWidget {
                             fontWeight: FontWeight.w600,
                             color: liked
                                 ? Colors.red.shade400
-                                : Colors.grey.shade400,
+                                : Color(0xFF616161),
                           ),
                         ),
                       ],
@@ -512,7 +512,7 @@ class _EmptyState extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,
-                color: Colors.grey.shade500,
+                color: Color(0xFF616161),
                 height: 1.5,
               ),
             ),

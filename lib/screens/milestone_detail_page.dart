@@ -1036,14 +1036,14 @@ class _PhotoThumbnail extends StatelessWidget {
             Icon(
               Icons.image_not_supported_outlined,
               size: 32,
-              color: Colors.grey.shade400,
+              color: Color(0xFF616161),
             ),
             const SizedBox(height: 8),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Text(
                 attachment.name,
-                style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
+                style: TextStyle(fontSize: 10, color: Color(0xFF616161)),
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -1352,9 +1352,7 @@ class _VideoTile extends StatelessWidget {
                     exists ? 'Tap to play' : 'File not available',
                     style: TextStyle(
                       fontSize: 12,
-                      color: exists
-                          ? Colors.grey.shade500
-                          : Colors.red.shade400,
+                      color: exists ? Color(0xFF616161) : Colors.red.shade400,
                     ),
                   ),
                 ],

@@ -39,8 +39,16 @@ class AppSettings {
     this.forumEnabled = true,
     this.futurePlansEnabled = true,
     this.menuOrder = const [
-      'growth', 'checklist', 'sparks', 'stories', 'forum',
-      'documents', 'links', 'feed', 'reminders', 'future_plans',
+      'growth',
+      'checklist',
+      'sparks',
+      'stories',
+      'forum',
+      'documents',
+      'links',
+      'feed',
+      'reminders',
+      'future_plans',
     ],
     this.customSparks = const [],
   });
@@ -64,77 +72,86 @@ class AppSettings {
     List<String>? menuOrder,
     List<CustomSpark>? customSparks,
     bool clearCustomIcon = false,
-  }) =>
-      AppSettings(
-        customIcon: clearCustomIcon ? null : customIcon ?? this.customIcon,
-        soundEnabled: soundEnabled ?? this.soundEnabled,
-        soundVolume: soundVolume ?? this.soundVolume,
-        hapticEnabled: hapticEnabled ?? this.hapticEnabled,
-        animationsEnabled: animationsEnabled ?? this.animationsEnabled,
-        themeColor: themeColor ?? this.themeColor,
-        growthTrackingEnabled: growthTrackingEnabled ?? this.growthTrackingEnabled,
-        checklistEnabled: checklistEnabled ?? this.checklistEnabled,
-        sparksEnabled: sparksEnabled ?? this.sparksEnabled,
-        remindersEnabled: remindersEnabled ?? this.remindersEnabled,
-        documentsEnabled: documentsEnabled ?? this.documentsEnabled,
-        linksEnabled: linksEnabled ?? this.linksEnabled,
-        storiesEnabled: storiesEnabled ?? this.storiesEnabled,
-        forumEnabled: forumEnabled ?? this.forumEnabled,
-        futurePlansEnabled: futurePlansEnabled ?? this.futurePlansEnabled,
-        menuOrder: menuOrder ?? this.menuOrder,
-        customSparks: customSparks ?? this.customSparks,
-      );
+  }) => AppSettings(
+    customIcon: clearCustomIcon ? null : customIcon ?? this.customIcon,
+    soundEnabled: soundEnabled ?? this.soundEnabled,
+    soundVolume: soundVolume ?? this.soundVolume,
+    hapticEnabled: hapticEnabled ?? this.hapticEnabled,
+    animationsEnabled: animationsEnabled ?? this.animationsEnabled,
+    themeColor: themeColor ?? this.themeColor,
+    growthTrackingEnabled: growthTrackingEnabled ?? this.growthTrackingEnabled,
+    checklistEnabled: checklistEnabled ?? this.checklistEnabled,
+    sparksEnabled: sparksEnabled ?? this.sparksEnabled,
+    remindersEnabled: remindersEnabled ?? this.remindersEnabled,
+    documentsEnabled: documentsEnabled ?? this.documentsEnabled,
+    linksEnabled: linksEnabled ?? this.linksEnabled,
+    storiesEnabled: storiesEnabled ?? this.storiesEnabled,
+    forumEnabled: forumEnabled ?? this.forumEnabled,
+    futurePlansEnabled: futurePlansEnabled ?? this.futurePlansEnabled,
+    menuOrder: menuOrder ?? this.menuOrder,
+    customSparks: customSparks ?? this.customSparks,
+  );
 
   Map<String, dynamic> toJson() => {
-        'soundEnabled': soundEnabled,
-        'soundVolume': soundVolume,
-        'hapticEnabled': hapticEnabled,
-        'animationsEnabled': animationsEnabled,
-        'themeColor': themeColor.toARGB32(),
-        'growthTrackingEnabled': growthTrackingEnabled,
-        'checklistEnabled': checklistEnabled,
-        'sparksEnabled': sparksEnabled,
-        'remindersEnabled': remindersEnabled,
-        'documentsEnabled': documentsEnabled,
-        'linksEnabled': linksEnabled,
-        'storiesEnabled': storiesEnabled,
-        'forumEnabled': forumEnabled,
-        'futurePlansEnabled': futurePlansEnabled,
-        'menuOrder': menuOrder,
-        if (customSparks.isNotEmpty)
-          'customSparks': customSparks.map((s) => s.toJson()).toList(),
-      };
+    'soundEnabled': soundEnabled,
+    'soundVolume': soundVolume,
+    'hapticEnabled': hapticEnabled,
+    'animationsEnabled': animationsEnabled,
+    'themeColor': themeColor.toARGB32(),
+    'growthTrackingEnabled': growthTrackingEnabled,
+    'checklistEnabled': checklistEnabled,
+    'sparksEnabled': sparksEnabled,
+    'remindersEnabled': remindersEnabled,
+    'documentsEnabled': documentsEnabled,
+    'linksEnabled': linksEnabled,
+    'storiesEnabled': storiesEnabled,
+    'forumEnabled': forumEnabled,
+    'futurePlansEnabled': futurePlansEnabled,
+    'menuOrder': menuOrder,
+    if (customSparks.isNotEmpty)
+      'customSparks': customSparks.map((s) => s.toJson()).toList(),
+  };
 
   factory AppSettings.fromJson(Map<String, dynamic> j) => AppSettings(
-        soundEnabled: j['soundEnabled'] as bool? ?? true,
-        soundVolume: (j['soundVolume'] as num?)?.toDouble() ?? 0.7,
-        hapticEnabled: j['hapticEnabled'] as bool? ?? true,
-        animationsEnabled: j['animationsEnabled'] as bool? ?? true,
-        themeColor:
-            Color(j['themeColor'] as int? ?? Colors.pinkAccent.toARGB32()),
-        growthTrackingEnabled: j['growthTrackingEnabled'] as bool? ?? true,
-        checklistEnabled: j['checklistEnabled'] as bool? ?? true,
-        sparksEnabled: j['sparksEnabled'] as bool? ?? true,
-        remindersEnabled: j['remindersEnabled'] as bool? ?? true,
-        documentsEnabled: j['documentsEnabled'] as bool? ?? true,
-        linksEnabled: j['linksEnabled'] as bool? ?? true,
-        storiesEnabled: j['storiesEnabled'] as bool? ?? true,
-        forumEnabled: j['forumEnabled'] as bool? ?? true,
-        futurePlansEnabled: j['futurePlansEnabled'] as bool? ?? true,
-        menuOrder: () {
-          const def = [
-            'growth', 'checklist', 'sparks', 'stories', 'forum',
-            'documents', 'links', 'feed', 'reminders', 'future_plans',
-          ];
-          final stored = (j['menuOrder'] as List<dynamic>?)?.cast<String>() ?? [];
-          if (stored.isEmpty) return def;
-          // append any keys added in newer versions
-          final missing = def.where((k) => !stored.contains(k)).toList();
-          return [...stored, ...missing];
-        }(),
-        customSparks: (j['customSparks'] as List<dynamic>?)
-                ?.map((e) => CustomSpark.fromJson(Map<String, dynamic>.from(e as Map)))
-                .toList() ??
-            [],
-      );
+    soundEnabled: j['soundEnabled'] as bool? ?? true,
+    soundVolume: (j['soundVolume'] as num?)?.toDouble() ?? 0.7,
+    hapticEnabled: j['hapticEnabled'] as bool? ?? true,
+    animationsEnabled: j['animationsEnabled'] as bool? ?? true,
+    themeColor: Color(j['themeColor'] as int? ?? Colors.pinkAccent.toARGB32()),
+    growthTrackingEnabled: j['growthTrackingEnabled'] as bool? ?? true,
+    checklistEnabled: j['checklistEnabled'] as bool? ?? true,
+    sparksEnabled: j['sparksEnabled'] as bool? ?? true,
+    remindersEnabled: j['remindersEnabled'] as bool? ?? true,
+    documentsEnabled: j['documentsEnabled'] as bool? ?? true,
+    linksEnabled: j['linksEnabled'] as bool? ?? true,
+    storiesEnabled: j['storiesEnabled'] as bool? ?? true,
+    forumEnabled: j['forumEnabled'] as bool? ?? true,
+    futurePlansEnabled: j['futurePlansEnabled'] as bool? ?? true,
+    menuOrder: () {
+      const def = [
+        'growth',
+        'checklist',
+        'sparks',
+        'stories',
+        'forum',
+        'documents',
+        'links',
+        'feed',
+        'reminders',
+        'future_plans',
+      ];
+      final stored = (j['menuOrder'] as List<dynamic>?)?.cast<String>() ?? [];
+      if (stored.isEmpty) return def;
+      // append any keys added in newer versions
+      final missing = def.where((k) => !stored.contains(k)).toList();
+      return [...stored, ...missing];
+    }(),
+    customSparks:
+        (j['customSparks'] as List<dynamic>?)
+            ?.map(
+              (e) => CustomSpark.fromJson(Map<String, dynamic>.from(e as Map)),
+            )
+            .toList() ??
+        [],
+  );
 }

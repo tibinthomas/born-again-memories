@@ -201,7 +201,7 @@ class _ForumDetailScreenState extends ConsumerState<ForumDetailScreen> {
                                   _formatDate(q.createdAt),
                                   style: TextStyle(
                                     fontSize: 11,
-                                    color: Colors.grey.shade400,
+                                    color: Color(0xFF616161),
                                   ),
                                 ),
                               ],
@@ -237,7 +237,7 @@ class _ForumDetailScreenState extends ConsumerState<ForumDetailScreen> {
                             'edited',
                             style: TextStyle(
                               fontSize: 10,
-                              color: Colors.grey.shade400,
+                              color: Color(0xFF616161),
                               fontStyle: FontStyle.italic,
                             ),
                           ),
@@ -292,7 +292,7 @@ class _ForumDetailScreenState extends ConsumerState<ForumDetailScreen> {
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: Colors.grey.shade500,
+                          color: Color(0xFF616161),
                         ),
                       ),
                     ),
@@ -313,7 +313,7 @@ class _ForumDetailScreenState extends ConsumerState<ForumDetailScreen> {
                     child: Center(
                       child: Text(
                         'Could not load answers.',
-                        style: TextStyle(color: Colors.grey.shade500),
+                        style: TextStyle(color: Color(0xFF616161)),
                       ),
                     ),
                   ),
@@ -475,10 +475,7 @@ class _AnswerCard extends StatelessWidget {
                     ),
                     Text(
                       _timeAgo(answer.createdAt),
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey.shade400,
-                      ),
+                      style: TextStyle(fontSize: 11, color: Color(0xFF616161)),
                     ),
                   ],
                 ),
@@ -501,7 +498,7 @@ class _AnswerCard extends StatelessWidget {
               'edited',
               style: TextStyle(
                 fontSize: 10,
-                color: Colors.grey.shade400,
+                color: Color(0xFF616161),
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -595,7 +592,7 @@ class _AnswerInputBar extends StatelessWidget {
                   onTap: onCancelEdit,
                   child: Text(
                     'Cancel',
-                    style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                    style: TextStyle(fontSize: 12, color: Color(0xFF616161)),
                   ),
                 ),
               ],
@@ -626,7 +623,7 @@ class _AnswerInputBar extends StatelessWidget {
                             : null,
                         hintStyle: TextStyle(
                           fontSize: 14,
-                          color: Colors.grey.shade400,
+                          color: Color(0xFF616161),
                         ),
                         filled: true,
                         fillColor: const Color(0xFFF2F2F7),
@@ -871,11 +868,7 @@ class _OwnerMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PopupMenuButton<String>(
-      icon: Icon(
-        Icons.more_horiz_rounded,
-        size: 20,
-        color: Colors.grey.shade400,
-      ),
+      icon: Icon(Icons.more_horiz_rounded, size: 20, color: Color(0xFF616161)),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       onSelected: (v) => v == 'edit' ? onEdit() : onDelete(),
       itemBuilder: (_) => const [

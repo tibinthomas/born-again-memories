@@ -24,14 +24,19 @@ class _GlassButton extends StatelessWidget {
       onTap: onTap,
       child: Container(
         padding: EdgeInsets.symmetric(
-            horizontal: label != null ? 12 : 10, vertical: 8),
+          horizontal: label != null ? 12 : 10,
+          vertical: 8,
+        ),
         decoration: BoxDecoration(
           color: Colors.black.withAlpha(60),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: Colors.white.withAlpha(50)),
           boxShadow: [
             BoxShadow(
-                color: Colors.black.withAlpha(40), blurRadius: 8, spreadRadius: 1)
+              color: Colors.black.withAlpha(40),
+              blurRadius: 8,
+              spreadRadius: 1,
+            ),
           ],
         ),
         child: Row(
@@ -40,11 +45,14 @@ class _GlassButton extends StatelessWidget {
             Icon(icon, color: Colors.white, size: 18),
             if (label != null) ...[
               const SizedBox(width: 6),
-              Text(label!,
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600)),
+              Text(
+                label!,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           ],
         ),
@@ -81,8 +89,11 @@ class _PageDots extends StatelessWidget {
   final int currentIndex;
   final Color accent;
 
-  const _PageDots(
-      {required this.count, required this.currentIndex, required this.accent});
+  const _PageDots({
+    required this.count,
+    required this.currentIndex,
+    required this.accent,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -124,7 +135,11 @@ class MediaSection extends StatelessWidget {
   final Milestone milestone;
   final ProfileTheme pTheme;
 
-  const MediaSection({super.key, required this.milestone, required this.pTheme});
+  const MediaSection({
+    super.key,
+    required this.milestone,
+    required this.pTheme,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -165,20 +180,24 @@ class MediaSection extends StatelessWidget {
         if (videos.isNotEmpty) ...[
           const SizedBox(height: 24),
           _sectionLabel('Videos', pTheme.accent),
-          ...videos.map((v) => Padding(
-                padding: const EdgeInsets.fromLTRB(24, 10, 24, 0),
-                child: VideoTile(attachment: v, accent: pTheme.accent),
-              )),
+          ...videos.map(
+            (v) => Padding(
+              padding: const EdgeInsets.fromLTRB(24, 10, 24, 0),
+              child: VideoTile(attachment: v, accent: pTheme.accent),
+            ),
+          ),
         ],
 
         // Audio
         if (audios.isNotEmpty) ...[
           const SizedBox(height: 24),
           _sectionLabel('Voice Memos', pTheme.accent),
-          ...audios.map((a) => Padding(
-                padding: const EdgeInsets.fromLTRB(24, 10, 24, 0),
-                child: AudioTile(attachment: a, accent: pTheme.accent),
-              )),
+          ...audios.map(
+            (a) => Padding(
+              padding: const EdgeInsets.fromLTRB(24, 10, 24, 0),
+              child: AudioTile(attachment: a, accent: pTheme.accent),
+            ),
+          ),
         ],
       ],
     );
@@ -186,26 +205,30 @@ class MediaSection extends StatelessWidget {
 }
 
 Widget _sectionLabel(String text, Color accent) => Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Row(
-        children: [
-          Container(
-              width: 3,
-              height: 14,
-              decoration: BoxDecoration(
-                  color: accent, borderRadius: BorderRadius.circular(2))),
-          const SizedBox(width: 8),
-          Text(
-            text,
-            style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: accent,
-                letterSpacing: 0.8),
-          ),
-        ],
+  padding: const EdgeInsets.symmetric(horizontal: 24),
+  child: Row(
+    children: [
+      Container(
+        width: 3,
+        height: 14,
+        decoration: BoxDecoration(
+          color: accent,
+          borderRadius: BorderRadius.circular(2),
+        ),
       ),
-    );
+      const SizedBox(width: 8),
+      Text(
+        text,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          color: accent,
+          letterSpacing: 0.8,
+        ),
+      ),
+    ],
+  ),
+);
 
 // ── Photo thumbnail ────────────────────────────────────────────────────────────
 
@@ -238,14 +261,17 @@ class PhotoThumbnail extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.image_not_supported_outlined,
-                size: 32, color: Colors.grey.shade400),
+            Icon(
+              Icons.image_not_supported_outlined,
+              size: 32,
+              color: Color(0xFF616161),
+            ),
             const SizedBox(height: 8),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Text(
                 attachment.name,
-                style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
+                style: TextStyle(fontSize: 10, color: Color(0xFF616161)),
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -259,10 +285,8 @@ class PhotoThumbnail extends StatelessWidget {
       onTap: () => showDialog(
         context: context,
         barrierColor: Colors.black87,
-        builder: (_) => PhotoDialog(
-          photos: allPhotos,
-          initialIndex: initialIndex,
-        ),
+        builder: (_) =>
+            PhotoDialog(photos: allPhotos, initialIndex: initialIndex),
       ),
       child: Hero(
         tag: 'photo_${attachment.id}',
@@ -278,7 +302,10 @@ class PhotoThumbnail extends StatelessWidget {
                   left: 0,
                   right: 0,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 6,
+                    ),
                     decoration: const BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.bottomCenter,
@@ -289,9 +316,10 @@ class PhotoThumbnail extends StatelessWidget {
                     child: Text(
                       attachment.label!,
                       style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500),
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -308,8 +336,11 @@ class PhotoThumbnail extends StatelessWidget {
                     color: Colors.black.withAlpha(100),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.open_in_full,
-                      size: 14, color: Colors.white),
+                  child: const Icon(
+                    Icons.open_in_full,
+                    size: 14,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ],
@@ -325,7 +356,11 @@ class PhotoThumbnail extends StatelessWidget {
 class PhotoDialog extends StatefulWidget {
   final List<Attachment> photos;
   final int initialIndex;
-  const PhotoDialog({super.key, required this.photos, required this.initialIndex});
+  const PhotoDialog({
+    super.key,
+    required this.photos,
+    required this.initialIndex,
+  });
 
   @override
   State<PhotoDialog> createState() => _PhotoDialogState();
@@ -371,7 +406,8 @@ class _PhotoDialogState extends State<PhotoDialog> {
                     a.driveFileId == null &&
                     a.iCloudFileId == null) {
                   return const Center(
-                      child: Icon(Icons.broken_image, color: Colors.white54));
+                    child: Icon(Icons.broken_image, color: Colors.white54),
+                  );
                 }
                 return InteractiveViewer(
                   minScale: 0.5,
@@ -394,8 +430,9 @@ class _PhotoDialogState extends State<PhotoDialog> {
               child: Row(
                 children: [
                   _GlassButton(
-                      icon: Icons.close,
-                      onTap: () => Navigator.pop(context)),
+                    icon: Icons.close,
+                    onTap: () => Navigator.pop(context),
+                  ),
                   const Spacer(),
                   if (widget.photos.length > 1)
                     _GlassButton(
@@ -416,12 +453,14 @@ class _PhotoDialogState extends State<PhotoDialog> {
                   bottom: 0,
                   child: Center(
                     child: _NavArrow(
-                        icon: Icons.chevron_left_rounded,
-                        onTap: () {
-                          _ctrl.previousPage(
-                              duration: const Duration(milliseconds: 250),
-                              curve: Curves.easeOut);
-                        }),
+                      icon: Icons.chevron_left_rounded,
+                      onTap: () {
+                        _ctrl.previousPage(
+                          duration: const Duration(milliseconds: 250),
+                          curve: Curves.easeOut,
+                        );
+                      },
+                    ),
                   ),
                 ),
               if (_index < widget.photos.length - 1)
@@ -431,12 +470,14 @@ class _PhotoDialogState extends State<PhotoDialog> {
                   bottom: 0,
                   child: Center(
                     child: _NavArrow(
-                        icon: Icons.chevron_right_rounded,
-                        onTap: () {
-                          _ctrl.nextPage(
-                              duration: const Duration(milliseconds: 250),
-                              curve: Curves.easeOut);
-                        }),
+                      icon: Icons.chevron_right_rounded,
+                      onTap: () {
+                        _ctrl.nextPage(
+                          duration: const Duration(milliseconds: 250),
+                          curve: Curves.easeOut,
+                        );
+                      },
+                    ),
                   ),
                 ),
             ],
@@ -494,10 +535,10 @@ class VideoTile extends StatelessWidget {
     return GestureDetector(
       onTap: exists
           ? () => showDialog(
-                context: context,
-                barrierColor: Colors.black87,
-                builder: (_) => VideoDialog(attachment: attachment),
-              )
+              context: context,
+              barrierColor: Colors.black87,
+              builder: (_) => VideoDialog(attachment: attachment),
+            )
           : null,
       child: Container(
         padding: const EdgeInsets.all(14),
@@ -515,8 +556,11 @@ class VideoTile extends StatelessWidget {
                 color: accent.withAlpha(30),
                 shape: BoxShape.circle,
               ),
-              child: Icon(exists ? Icons.play_arrow_rounded : Icons.videocam_off,
-                  size: 28, color: accent),
+              child: Icon(
+                exists ? Icons.play_arrow_rounded : Icons.videocam_off,
+                size: 28,
+                color: accent,
+              ),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -528,9 +572,10 @@ class VideoTile extends StatelessWidget {
                         ? attachment.label!
                         : attachment.name,
                     style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                        color: Color(0xFF1A1A1A)),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                      color: Color(0xFF1A1A1A),
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -538,14 +583,19 @@ class VideoTile extends StatelessWidget {
                   Text(
                     exists ? 'Tap to play' : 'File not available',
                     style: TextStyle(
-                        fontSize: 12,
-                        color: exists ? Colors.grey.shade500 : Colors.red.shade400),
+                      fontSize: 12,
+                      color: exists ? Color(0xFF616161) : Colors.red.shade400,
+                    ),
                   ),
                 ],
               ),
             ),
             if (exists)
-              Icon(Icons.fullscreen_rounded, color: accent.withAlpha(150), size: 22),
+              Icon(
+                Icons.fullscreen_rounded,
+                color: accent.withAlpha(150),
+                size: 22,
+              ),
           ],
         ),
       ),
@@ -577,11 +627,19 @@ class _VideoDialogState extends State<VideoDialog> {
 
   Future<void> _initVideo() async {
     try {
-      final ctrl = VideoPlayerController.file(File(widget.attachment.localPath));
+      final ctrl = VideoPlayerController.file(
+        File(widget.attachment.localPath),
+      );
       await ctrl.initialize();
-      ctrl.addListener(() { if (mounted) setState(() {}); });
+      ctrl.addListener(() {
+        if (mounted) setState(() {});
+      });
       await ctrl.play();
-      if (mounted) setState(() { _ctrl = ctrl; _initialized = true; });
+      if (mounted)
+        setState(() {
+          _ctrl = ctrl;
+          _initialized = true;
+        });
     } catch (_) {}
   }
 
@@ -596,8 +654,9 @@ class _VideoDialogState extends State<VideoDialog> {
     setState(() => _showControls = !_showControls);
     if (_showControls) {
       _hideTimer?.cancel();
-      _hideTimer = Timer(const Duration(seconds: 3),
-          () { if (mounted) setState(() => _showControls = false); });
+      _hideTimer = Timer(const Duration(seconds: 3), () {
+        if (mounted) setState(() => _showControls = false);
+      });
     }
   }
 
@@ -629,7 +688,9 @@ class _VideoDialogState extends State<VideoDialog> {
                   ),
                 )
               else
-                const Center(child: CircularProgressIndicator(color: Colors.white)),
+                const Center(
+                  child: CircularProgressIndicator(color: Colors.white),
+                ),
 
               AnimatedOpacity(
                 opacity: _showControls ? 1.0 : 0.0,
@@ -643,7 +704,11 @@ class _VideoDialogState extends State<VideoDialog> {
                           gradient: LinearGradient(
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
-                            colors: [Colors.black54, Colors.transparent, Colors.black54],
+                            colors: [
+                              Colors.black54,
+                              Colors.transparent,
+                              Colors.black54,
+                            ],
                             stops: [0.0, 0.45, 1.0],
                           ),
                         ),
@@ -655,8 +720,9 @@ class _VideoDialogState extends State<VideoDialog> {
                       top: MediaQuery.paddingOf(context).top + 8,
                       left: 12,
                       child: _GlassButton(
-                          icon: Icons.close,
-                          onTap: () => Navigator.pop(context)),
+                        icon: Icons.close,
+                        onTap: () => Navigator.pop(context),
+                      ),
                     ),
 
                     // Play/pause
@@ -673,7 +739,9 @@ class _VideoDialogState extends State<VideoDialog> {
                               color: Colors.white.withAlpha(40),
                               shape: BoxShape.circle,
                               border: Border.all(
-                                  color: Colors.white.withAlpha(100), width: 1.5),
+                                color: Colors.white.withAlpha(100),
+                                width: 1.5,
+                              ),
                             ),
                             child: Icon(
                               _ctrl!.value.isPlaying
@@ -708,10 +776,20 @@ class _VideoDialogState extends State<VideoDialog> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(_fmt(_ctrl!.value.position),
-                                    style: const TextStyle(color: Colors.white70, fontSize: 12)),
-                                Text(_fmt(_ctrl!.value.duration),
-                                    style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                                Text(
+                                  _fmt(_ctrl!.value.position),
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                Text(
+                                  _fmt(_ctrl!.value.duration),
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 12,
+                                  ),
+                                ),
                               ],
                             ),
                           ],

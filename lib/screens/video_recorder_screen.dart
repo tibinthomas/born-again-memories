@@ -9,12 +9,12 @@ class VideoRecorderScreen extends StatefulWidget {
   const VideoRecorderScreen({super.key});
 
   static Future<String?> open(BuildContext context) => Navigator.push<String?>(
-        context,
-        MaterialPageRoute(
-          fullscreenDialog: true,
-          builder: (_) => const VideoRecorderScreen(),
-        ),
-      );
+    context,
+    MaterialPageRoute(
+      fullscreenDialog: true,
+      builder: (_) => const VideoRecorderScreen(),
+    ),
+  );
 
   @override
   State<VideoRecorderScreen> createState() => _VideoRecorderScreenState();
@@ -69,12 +69,14 @@ class _VideoRecorderScreenState extends State<VideoRecorderScreen>
     try {
       _cameras = await availableCameras();
       if (_cameras.isEmpty) {
-        if (mounted) setState(() => _initError = 'No cameras found on this device.');
+        if (mounted)
+          setState(() => _initError = 'No cameras found on this device.');
         return;
       }
       // Prefer back camera as default
       final backIdx = _cameras.indexWhere(
-          (c) => c.lensDirection == CameraLensDirection.back);
+        (c) => c.lensDirection == CameraLensDirection.back,
+      );
       _cameraIndex = backIdx >= 0 ? backIdx : 0;
       await _startController(_cameras[_cameraIndex]);
     } on CameraException catch (e) {
@@ -92,9 +94,14 @@ class _VideoRecorderScreenState extends State<VideoRecorderScreen>
     _controller = ctrl;
     try {
       await ctrl.initialize();
-      if (mounted) setState(() { _initialized = true; _initError = null; });
+      if (mounted)
+        setState(() {
+          _initialized = true;
+          _initError = null;
+        });
     } on CameraException catch (e) {
-      if (mounted) setState(() => _initError = e.description ?? 'Camera init failed');
+      if (mounted)
+        setState(() => _initError = e.description ?? 'Camera init failed');
     }
   }
 
@@ -147,7 +154,9 @@ class _VideoRecorderScreenState extends State<VideoRecorderScreen>
 
   Future<void> _flipCamera() async {
     if (_cameras.length < 2 || _isRecording) return;
-    setState(() { _initialized = false; });
+    setState(() {
+      _initialized = false;
+    });
     await _controller?.dispose();
     _cameraIndex = (_cameraIndex + 1) % _cameras.length;
     await _startController(_cameras[_cameraIndex]);
@@ -164,8 +173,7 @@ class _VideoRecorderScreenState extends State<VideoRecorderScreen>
 
   void _showError(String msg) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(msg)));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
   String _formatElapsed(Duration d) {
@@ -189,19 +197,23 @@ class _VideoRecorderScreenState extends State<VideoRecorderScreen>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.videocam_off_outlined,
-                        color: Colors.white54, size: 64),
+                    const Icon(
+                      Icons.videocam_off_outlined,
+                      color: Colors.white54,
+                      size: 64,
+                    ),
                     const SizedBox(height: 16),
-                    Text(_initError!,
-                        style: const TextStyle(color: Colors.white70),
-                        textAlign: TextAlign.center),
+                    Text(
+                      _initError!,
+                      style: const TextStyle(color: Colors.white70),
+                      textAlign: TextAlign.center,
+                    ),
                   ],
                 ),
               ),
             )
           else if (!_initialized)
-            const Center(
-                child: CircularProgressIndicator(color: Colors.white))
+            const Center(child: CircularProgressIndicator(color: Colors.white))
           else
             Center(child: CameraPreview(_controller!)),
 
@@ -226,7 +238,9 @@ class _VideoRecorderScreenState extends State<VideoRecorderScreen>
                   if (_isRecording)
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.red,
                         borderRadius: BorderRadius.circular(20),
@@ -234,15 +248,19 @@ class _VideoRecorderScreenState extends State<VideoRecorderScreen>
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.circle,
-                              color: Colors.white, size: 8),
+                          const Icon(
+                            Icons.circle,
+                            color: Colors.white,
+                            size: 8,
+                          ),
                           const SizedBox(width: 6),
                           Text(
                             _formatElapsed(_elapsed),
                             style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 14),
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                            ),
                           ),
                         ],
                       ),
@@ -346,8 +364,7 @@ class _RecordButton extends StatelessWidget {
             height: isRecording ? 30 : 56,
             decoration: BoxDecoration(
               color: Colors.red,
-              borderRadius:
-                  BorderRadius.circular(isRecording ? 8 : 28),
+              borderRadius: BorderRadius.circular(isRecording ? 8 : 28),
             ),
           ),
         ],
@@ -384,15 +401,19 @@ class _CircleBtn extends StatelessWidget {
               ? Colors.amber.withAlpha(200)
               : Colors.black.withAlpha(100),
           border: Border.all(
-              color: Colors.white.withAlpha(highlighted ? 255 : 80), width: 1),
+            color: Colors.white.withAlpha(highlighted ? 255 : 80),
+            width: 1,
+          ),
         ),
-        child: Icon(icon,
-            color: onTap == null
-                ? Colors.white30
-                : highlighted
-                    ? Colors.black
-                    : Colors.white,
-            size: size * 0.5),
+        child: Icon(
+          icon,
+          color: onTap == null
+              ? Colors.white30
+              : highlighted
+              ? Colors.black
+              : Colors.white,
+          size: size * 0.5,
+        ),
       ),
     );
   }

@@ -108,7 +108,7 @@ class _GrowthScreenState extends ConsumerState<GrowthScreen>
                           profile.ageText,
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey.shade500,
+                            color: Color(0xFF616161),
                           ),
                         ),
                       ],
@@ -137,7 +137,7 @@ class _GrowthScreenState extends ConsumerState<GrowthScreen>
                 child: TabBar(
                   controller: _tab,
                   labelColor: Colors.white,
-                  unselectedLabelColor: Colors.grey.shade500,
+                  unselectedLabelColor: Color(0xFF616161),
                   labelStyle: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -321,7 +321,7 @@ class _GrowthTab extends ConsumerWidget {
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 13,
-                            color: Colors.grey.shade400,
+                            color: Color(0xFF616161),
                           ),
                         ),
                       ],
@@ -351,7 +351,7 @@ class _GrowthTab extends ConsumerWidget {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: Colors.grey.shade500,
+                color: Color(0xFF616161),
               ),
             ),
           ),
@@ -478,7 +478,7 @@ class _GrowthTab extends ConsumerWidget {
                                       _formatDate(entry.date),
                                       style: TextStyle(
                                         fontSize: 12,
-                                        color: Colors.grey.shade500,
+                                        color: Color(0xFF616161),
                                       ),
                                     ),
                                   ],
@@ -790,7 +790,7 @@ class _ChartPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     final linePaintP50 = Paint()
-      ..color = Colors.grey.shade400
+      ..color = Color(0xFF616161)
       ..strokeWidth = 1.0
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
@@ -935,7 +935,7 @@ class _ChartPainter extends CustomPainter {
 
     final labelStyle = TextStyle(
       fontSize: 9,
-      color: Colors.grey.shade400,
+      color: Color(0xFF616161),
       fontFeatures: const [FontFeature.tabularFigures()],
     );
 
@@ -998,9 +998,9 @@ class _ChartPainter extends CustomPainter {
       ageMonths: maxAge,
     );
     if (lastPcts != null) {
-      drawLabel('P97', lastPcts[2], Colors.grey.shade400);
-      drawLabel('P50', lastPcts[1], Colors.grey.shade500);
-      drawLabel('P3', lastPcts[0], Colors.grey.shade400);
+      drawLabel('P97', lastPcts[2], Color(0xFF616161));
+      drawLabel('P50', lastPcts[1], Color(0xFF616161));
+      drawLabel('P3', lastPcts[0], Color(0xFF616161));
     }
   }
 
@@ -1165,7 +1165,7 @@ class _EntrySheetState extends ConsumerState<_EntrySheet> {
               const SizedBox(height: 4),
               Text(
                 'Enter the $_measurementName for this date.',
-                style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
+                style: TextStyle(fontSize: 13, color: Color(0xFF616161)),
               ),
               const SizedBox(height: 20),
 

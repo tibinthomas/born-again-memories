@@ -13,11 +13,17 @@ mixin LinksOps on StateNotifier<List<KidProfile>?>, ProfileMutations {
     await FirestoreService.saveLink(uid, profile.id, link);
   }
 
-  Future<void> addLinkToProfiles(List<int> profileIndices, SavedLink link) async {
+  Future<void> addLinkToProfiles(
+    List<int> profileIndices,
+    SavedLink link,
+  ) async {
     for (final profileIndex in profileIndices) {
       final list = state ?? <KidProfile>[];
       final profile = list[profileIndex];
-      setProfile(profileIndex, profile.copyWith(links: [link, ...profile.links]));
+      setProfile(
+        profileIndex,
+        profile.copyWith(links: [link, ...profile.links]),
+      );
       await FirestoreService.saveLink(uid, profile.id, link);
     }
   }
@@ -25,7 +31,9 @@ mixin LinksOps on StateNotifier<List<KidProfile>?>, ProfileMutations {
   Future<void> updateLink(int profileIndex, SavedLink link) async {
     final list = state ?? <KidProfile>[];
     final profile = list[profileIndex];
-    final links = profile.links.map((item) => item.id == link.id ? link : item).toList();
+    final links = profile.links
+        .map((item) => item.id == link.id ? link : item)
+        .toList();
     setProfile(profileIndex, profile.copyWith(links: links));
     await FirestoreService.saveLink(uid, profile.id, link);
   }

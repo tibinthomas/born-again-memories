@@ -58,8 +58,13 @@ class _GooglePhotosPickerState extends ConsumerState<GooglePhotosPicker> {
     });
     try {
       final gs = ref.read(authServiceProvider).googleSignIn;
-      final (items: items, nextPageToken: token) =
-          await GooglePhotosService.listMediaItems(gs, albumId: _selectedAlbumId);
+      final (
+        items: items,
+        nextPageToken: token,
+      ) = await GooglePhotosService.listMediaItems(
+        gs,
+        albumId: _selectedAlbumId,
+      );
       final albums = _albums.isEmpty
           ? await GooglePhotosService.listAlbums(gs)
           : _albums;
@@ -86,8 +91,10 @@ class _GooglePhotosPickerState extends ConsumerState<GooglePhotosPicker> {
     setState(() => _loadingMore = true);
     try {
       final gs = ref.read(authServiceProvider).googleSignIn;
-      final (items: more, nextPageToken: token) =
-          await GooglePhotosService.listMediaItems(
+      final (
+        items: more,
+        nextPageToken: token,
+      ) = await GooglePhotosService.listMediaItems(
         gs,
         pageToken: _nextPageToken,
         albumId: _selectedAlbumId,
@@ -140,7 +147,10 @@ class _GooglePhotosPickerState extends ConsumerState<GooglePhotosPicker> {
           children: [
             const Icon(Icons.photo_library_rounded, size: 20),
             const SizedBox(width: 8),
-            const Text('Google Photos', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
+            const Text(
+              'Google Photos',
+              style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+            ),
           ],
         ),
         actions: [
@@ -183,12 +193,14 @@ class _GooglePhotosPickerState extends ConsumerState<GooglePhotosPicker> {
             theme: theme,
             onTap: () => _selectAlbum(null),
           ),
-          ..._albums.map((a) => _AlbumChip(
-                label: a.title,
-                isSelected: _selectedAlbumId == a.id,
-                theme: theme,
-                onTap: () => _selectAlbum(a.id),
-              )),
+          ..._albums.map(
+            (a) => _AlbumChip(
+              label: a.title,
+              isSelected: _selectedAlbumId == a.id,
+              theme: theme,
+              onTap: () => _selectAlbum(a.id),
+            ),
+          ),
         ],
       ),
     );
@@ -206,28 +218,28 @@ class _GooglePhotosPickerState extends ConsumerState<GooglePhotosPicker> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.cloud_off_outlined,
-                  size: 52, color: Colors.grey.shade400),
+              Icon(
+                Icons.cloud_off_outlined,
+                size: 52,
+                color: Color(0xFF616161),
+              ),
               const SizedBox(height: 16),
               Text(
                 'Could not load photos',
                 style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey.shade700),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey.shade700,
+                ),
               ),
               const SizedBox(height: 8),
               Text(
                 'Make sure you granted access to Google Photos.',
                 textAlign: TextAlign.center,
-                style:
-                    TextStyle(fontSize: 13, color: Colors.grey.shade500),
+                style: TextStyle(fontSize: 13, color: Color(0xFF616161)),
               ),
               const SizedBox(height: 20),
-              OutlinedButton(
-                onPressed: _load,
-                child: const Text('Try Again'),
-              ),
+              OutlinedButton(onPressed: _load, child: const Text('Try Again')),
             ],
           ),
         ),
@@ -236,8 +248,10 @@ class _GooglePhotosPickerState extends ConsumerState<GooglePhotosPicker> {
 
     if (_items.isEmpty) {
       return Center(
-        child: Text('No photos found',
-            style: TextStyle(color: Colors.grey.shade500)),
+        child: Text(
+          'No photos found',
+          style: TextStyle(color: Color(0xFF616161)),
+        ),
       );
     }
 
@@ -269,17 +283,22 @@ class _GooglePhotosPickerState extends ConsumerState<GooglePhotosPicker> {
                     : Container(color: Colors.grey.shade200),
                 errorBuilder: (_, _, _) => Container(
                   color: Colors.grey.shade200,
-                  child: Icon(Icons.broken_image_outlined,
-                      color: Colors.grey.shade400),
+                  child: Icon(
+                    Icons.broken_image_outlined,
+                    color: Color(0xFF616161),
+                  ),
                 ),
               ),
               if (item.isVideo)
                 const Positioned(
                   bottom: 4,
                   left: 4,
-                  child: Icon(Icons.play_circle_fill,
-                      color: Colors.white, size: 22,
-                      shadows: [Shadow(blurRadius: 4)]),
+                  child: Icon(
+                    Icons.play_circle_fill,
+                    color: Colors.white,
+                    size: 22,
+                    shadows: [Shadow(blurRadius: 4)],
+                  ),
                 ),
               AnimatedContainer(
                 duration: const Duration(milliseconds: 120),
@@ -297,8 +316,11 @@ class _GooglePhotosPickerState extends ConsumerState<GooglePhotosPicker> {
                           key: const ValueKey(true),
                           radius: 12,
                           backgroundColor: theme.colorScheme.primary,
-                          child: const Icon(Icons.check,
-                              size: 14, color: Colors.white),
+                          child: const Icon(
+                            Icons.check,
+                            size: 14,
+                            color: Colors.white,
+                          ),
                         )
                       : Container(
                           key: const ValueKey(false),
@@ -306,8 +328,7 @@ class _GooglePhotosPickerState extends ConsumerState<GooglePhotosPicker> {
                           height: 24,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            border:
-                                Border.all(color: Colors.white, width: 2),
+                            border: Border.all(color: Colors.white, width: 2),
                             color: Colors.black26,
                           ),
                         ),
@@ -354,9 +375,7 @@ class _AlbumChip extends StatelessWidget {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: isSelected
-                  ? Colors.white
-                  : theme.colorScheme.primary,
+              color: isSelected ? Colors.white : theme.colorScheme.primary,
             ),
           ),
         ),

@@ -8,8 +8,12 @@ class TitleBubbleLayer extends StatefulWidget {
   final Color accent;
   final Color secondary;
   final String seed;
-  const TitleBubbleLayer(
-      {super.key, required this.accent, required this.secondary, required this.seed});
+  const TitleBubbleLayer({
+    super.key,
+    required this.accent,
+    required this.secondary,
+    required this.seed,
+  });
 
   @override
   State<TitleBubbleLayer> createState() => _TitleBubbleLayerState();
@@ -114,8 +118,8 @@ class _BubbleLayerState extends State<BubbleLayer>
     super.initState();
     final rng = math.Random(widget.seed.hashCode);
     _phases = List.generate(6, (_) => rng.nextDouble() * 2 * math.pi);
-    _amps   = List.generate(6, (_) => 0.7 + rng.nextDouble() * 0.6);
-    _signs  = List.generate(6, (_) => rng.nextBool() ? 1.0 : -1.0);
+    _amps = List.generate(6, (_) => 0.7 + rng.nextDouble() * 0.6);
+    _signs = List.generate(6, (_) => rng.nextBool() ? 1.0 : -1.0);
     _ctrl = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 22),
@@ -153,7 +157,9 @@ class _BubbleLayerState extends State<BubbleLayer>
                 ),
                 // Large secondary — opposite sweep near bottom
                 Positioned(
-                  left: (c(_signs[1] * t + _phases[1]) * 0.5 + 0.5) * (w + 100) - 50,
+                  left:
+                      (c(_signs[1] * t + _phases[1]) * 0.5 + 0.5) * (w + 100) -
+                      50,
                   top: h * 0.68 + s(t * 3 + _phases[1]) * h * 0.05 * _amps[1],
                   child: DetailBubble(100, secondary, 28),
                 ),
@@ -165,13 +171,17 @@ class _BubbleLayerState extends State<BubbleLayer>
                 ),
                 // Medium accent — wide circular orbit
                 Positioned(
-                  left: w * 0.5 + c(_signs[3] * t + _phases[3]) * w * 0.44 * _amps[3],
+                  left:
+                      w * 0.5 +
+                      c(_signs[3] * t + _phases[3]) * w * 0.44 * _amps[3],
                   top: h * 0.38 + s(t + _phases[3]) * h * 0.32 * _amps[3],
                   child: DetailBubble(75, accent, 22),
                 ),
                 // Small accent — fast small orbit
                 Positioned(
-                  left: w * 0.3 + c(_signs[4] * t * 3 + _phases[4]) * w * 0.22 * _amps[4],
+                  left:
+                      w * 0.3 +
+                      c(_signs[4] * t * 3 + _phases[4]) * w * 0.22 * _amps[4],
                   top: h * 0.22 + s(t * 3 + _phases[4]) * h * 0.16 * _amps[4],
                   child: DetailBubble(32, accent, 20),
                 ),

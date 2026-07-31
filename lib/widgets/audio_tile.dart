@@ -198,7 +198,7 @@ class _AudioTileState extends ConsumerState<AudioTile> {
                         ? Icons.pause_rounded
                         : Icons.play_arrow_rounded,
                     color: !exists
-                        ? Colors.grey.shade400
+                        ? Color(0xFF616161)
                         : isPlaying
                         ? Colors.white
                         : accent,
@@ -229,7 +229,7 @@ class _AudioTileState extends ConsumerState<AudioTile> {
                         'Not available on this device',
                         style: TextStyle(
                           fontSize: 11,
-                          color: Colors.grey.shade400,
+                          color: Color(0xFF616161),
                         ),
                       )
                     else
@@ -240,7 +240,7 @@ class _AudioTileState extends ConsumerState<AudioTile> {
               const SizedBox(width: 8),
               Text(
                 _duration > Duration.zero ? _fmt(_duration) : '--:--',
-                style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                style: TextStyle(fontSize: 11, color: Color(0xFF616161)),
               ),
             ],
           ),
@@ -269,11 +269,11 @@ class _AudioTileState extends ConsumerState<AudioTile> {
                 children: [
                   Text(
                     _fmt(_position),
-                    style: TextStyle(fontSize: 10, color: Colors.grey.shade400),
+                    style: TextStyle(fontSize: 10, color: Color(0xFF616161)),
                   ),
                   Text(
                     _fmt(_duration),
-                    style: TextStyle(fontSize: 10, color: Colors.grey.shade400),
+                    style: TextStyle(fontSize: 10, color: Color(0xFF616161)),
                   ),
                 ],
               ),

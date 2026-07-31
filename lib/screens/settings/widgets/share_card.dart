@@ -20,15 +20,19 @@ class ShareCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SettingsCard(children: [
-      if (invites.isEmpty)
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
-          child: Text('Not shared with anyone yet.',
-              style: TextStyle(fontSize: 13, color: Colors.grey.shade400)),
-        )
-      else
-        ...invites.map((invite) => Column(
+    return SettingsCard(
+      children: [
+        if (invites.isEmpty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+            child: Text(
+              'Not shared with anyone yet.',
+              style: TextStyle(fontSize: 13, color: Color(0xFF616161)),
+            ),
+          )
+        else
+          ...invites.map(
+            (invite) => Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 InviteRow(
@@ -39,26 +43,31 @@ class ShareCard extends StatelessWidget {
                 ),
                 settingsDivider(),
               ],
-            )),
-      // Add button
-      GestureDetector(
-        onTap: onAdd,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-          child: Row(
-            children: [
-              Icon(Icons.add_circle_outline, size: 18, color: accent),
-              const SizedBox(width: 10),
-              Text(
-                'Add Gmail address',
-                style: TextStyle(
-                    fontSize: 13, color: accent, fontWeight: FontWeight.w600),
-              ),
-            ],
+            ),
+          ),
+        // Add button
+        GestureDetector(
+          onTap: onAdd,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+            child: Row(
+              children: [
+                Icon(Icons.add_circle_outline, size: 18, color: accent),
+                const SizedBox(width: 10),
+                Text(
+                  'Add Gmail address',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: accent,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
-    ]);
+      ],
+    );
   }
 }
 
@@ -78,25 +87,30 @@ class InviteRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (badgeColor, badgeBg, badgeIcon, badgeLabel) = switch (invite.status) {
+    final (
+      badgeColor,
+      badgeBg,
+      badgeIcon,
+      badgeLabel,
+    ) = switch (invite.status) {
       ShareInviteStatus.active => (
-          const Color(0xFF27AE60),
-          const Color(0xFFEAF7EF),
-          Icons.check_circle_rounded,
-          'Active',
-        ),
+        const Color(0xFF27AE60),
+        const Color(0xFFEAF7EF),
+        Icons.check_circle_rounded,
+        'Active',
+      ),
       ShareInviteStatus.pending => (
-          const Color(0xFFE67E22),
-          const Color(0xFFFEF3E2),
-          Icons.schedule_rounded,
-          'Pending',
-        ),
+        const Color(0xFFE67E22),
+        const Color(0xFFFEF3E2),
+        Icons.schedule_rounded,
+        'Pending',
+      ),
       ShareInviteStatus.expired => (
-          Colors.red.shade400,
-          Colors.red.shade50,
-          Icons.error_outline_rounded,
-          'Expired',
-        ),
+        Colors.red.shade400,
+        Colors.red.shade50,
+        Icons.error_outline_rounded,
+        'Expired',
+      ),
     };
 
     return Padding(
@@ -113,7 +127,10 @@ class InviteRow extends StatelessWidget {
                 child: Text(
                   invite.email[0].toUpperCase(),
                   style: TextStyle(
-                      fontSize: 13, fontWeight: FontWeight.w700, color: accent),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: accent,
+                  ),
                 ),
               ),
               const SizedBox(width: 10),
@@ -124,9 +141,10 @@ class InviteRow extends StatelessWidget {
                     Text(
                       invite.email,
                       style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: Color(0xFF1A1A2E)),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF1A1A2E),
+                      ),
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 3),
@@ -135,7 +153,9 @@ class InviteRow extends StatelessWidget {
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 7, vertical: 2),
+                            horizontal: 7,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: badgeBg,
                             borderRadius: BorderRadius.circular(6),
@@ -148,9 +168,10 @@ class InviteRow extends StatelessWidget {
                               Text(
                                 badgeLabel,
                                 style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: badgeColor),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: badgeColor,
+                                ),
                               ),
                             ],
                           ),
@@ -160,14 +181,18 @@ class InviteRow extends StatelessWidget {
                           Text(
                             'Viewing your memories',
                             style: TextStyle(
-                                fontSize: 11, color: Colors.grey.shade500),
+                              fontSize: 11,
+                              color: Color(0xFF616161),
+                            ),
                           ),
                         ] else if (invite.isPending) ...[
                           const SizedBox(width: 6),
                           Text(
                             'Waiting for them to sign up',
                             style: TextStyle(
-                                fontSize: 11, color: Colors.grey.shade400),
+                              fontSize: 11,
+                              color: Color(0xFF616161),
+                            ),
                           ),
                         ],
                       ],
@@ -180,8 +205,10 @@ class InviteRow extends StatelessWidget {
                 GestureDetector(
                   onTap: onResend,
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
                     decoration: BoxDecoration(
                       color: Color.lerp(Colors.white, accent, 0.10),
                       borderRadius: BorderRadius.circular(8),
@@ -190,17 +217,21 @@ class InviteRow extends StatelessWidget {
                     child: Text(
                       'Resend',
                       style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: accent),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: accent,
+                      ),
                     ),
                   ),
                 ),
               const SizedBox(width: 8),
               GestureDetector(
                 onTap: onRemove,
-                child: Icon(Icons.remove_circle_outline_rounded,
-                    size: 20, color: Colors.grey.shade400),
+                child: Icon(
+                  Icons.remove_circle_outline_rounded,
+                  size: 20,
+                  color: Color(0xFF616161),
+                ),
               ),
             ],
           ),
@@ -216,16 +247,20 @@ class InviteRow extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.info_outline_rounded,
-                      size: 14, color: Colors.red.shade300),
+                  Icon(
+                    Icons.info_outline_rounded,
+                    size: 14,
+                    color: Colors.red.shade300,
+                  ),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       'This invite expired after 30 days. Tap Resend to refresh it.',
                       style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.red.shade400,
-                          height: 1.4),
+                        fontSize: 11,
+                        color: Colors.red.shade400,
+                        height: 1.4,
+                      ),
                     ),
                   ),
                 ],

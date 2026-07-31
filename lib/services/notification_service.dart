@@ -37,24 +37,45 @@ class NotificationService {
   static Future<bool> requestPermissions() async {
     if (kIsWeb) return false;
     bool granted = false;
-    final android = _plugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
-    final darwin = _plugin.resolvePlatformSpecificImplementation<
-        IOSFlutterLocalNotificationsPlugin>();
-    final macos = _plugin.resolvePlatformSpecificImplementation<
-        MacOSFlutterLocalNotificationsPlugin>();
+    final android = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+    final darwin = _plugin
+        .resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin
+        >();
+    final macos = _plugin
+        .resolvePlatformSpecificImplementation<
+          MacOSFlutterLocalNotificationsPlugin
+        >();
     if (android != null) {
       granted = await android.requestNotificationsPermission() ?? false;
       await android.requestExactAlarmsPermission();
     } else if (darwin != null) {
-      granted = await darwin.requestPermissions(alert: true, badge: true, sound: true) ?? false;
+      granted =
+          await darwin.requestPermissions(
+            alert: true,
+            badge: true,
+            sound: true,
+          ) ??
+          false;
     } else if (macos != null) {
-      granted = await macos.requestPermissions(alert: true, badge: true, sound: true) ?? false;
+      granted =
+          await macos.requestPermissions(
+            alert: true,
+            badge: true,
+            sound: true,
+          ) ??
+          false;
     }
     return granted;
   }
 
-  static Future<void> scheduleReminder(Reminder reminder, String kidName) async {
+  static Future<void> scheduleReminder(
+    Reminder reminder,
+    String kidName,
+  ) async {
     if (kIsWeb || !_initialized) return;
     if (reminder.isMuted) return;
 
@@ -79,7 +100,11 @@ class NotificationService {
       presentBadge: true,
       presentSound: true,
     );
-    final details = NotificationDetails(android: androidDetails, iOS: iosDetails, macOS: const DarwinNotificationDetails());
+    final details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+      macOS: const DarwinNotificationDetails(),
+    );
 
     final RepeatInterval? repeatInterval = switch (reminder.repeat) {
       ReminderRepeat.daily => RepeatInterval.daily,
@@ -110,8 +135,8 @@ class NotificationService {
         matchDateTimeComponents: reminder.repeat == ReminderRepeat.monthly
             ? DateTimeComponents.dayOfMonthAndTime
             : reminder.repeat == ReminderRepeat.yearly
-                ? DateTimeComponents.dateAndTime
-                : null,
+            ? DateTimeComponents.dateAndTime
+            : null,
       );
 
       // Follow-up pings every 30 min (up to 12 hours) for one-time reminders.

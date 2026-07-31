@@ -35,8 +35,7 @@ class ICloudService {
     required String profileName,
     required String milestoneId,
     required String fileName,
-  }) =>
-      '$_backupRoot/$profileName/$milestoneId/$fileName';
+  }) => '$_backupRoot/$profileName/$milestoneId/$fileName';
 
   static Future<String> uploadFile({
     required String localPath,

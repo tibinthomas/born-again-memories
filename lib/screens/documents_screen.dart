@@ -51,10 +51,12 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
       ..sort((a, b) => b.dateAdded.compareTo(a.dateAdded));
     final q = _searchQuery.toLowerCase();
     final filtered = docs.where((d) {
-      final matchesSearch = q.isEmpty ||
+      final matchesSearch =
+          q.isEmpty ||
           d.name.toLowerCase().contains(q) ||
           d.notes?.toLowerCase().contains(q) == true;
-      final matchesCategory = _selectedCategory == null || d.category == _selectedCategory;
+      final matchesCategory =
+          _selectedCategory == null || d.category == _selectedCategory;
       final matchesFavorite = !_showFavoritesOnly || d.isFavorite;
       return matchesSearch && matchesCategory && matchesFavorite;
     }).toList();
@@ -75,8 +77,10 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
                   _searchQuery = '';
                   _searchFocus.unfocus();
                 } else {
-                  Future.delayed(const Duration(milliseconds: 180),
-                      () => _searchFocus.requestFocus());
+                  Future.delayed(
+                    const Duration(milliseconds: 180),
+                    () => _searchFocus.requestFocus(),
+                  );
                 }
               });
             },
@@ -100,17 +104,25 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
                           decoration: InputDecoration(
                             hintText: 'Search name or notes…',
                             hintStyle: TextStyle(
-                                color: Colors.grey.shade400, fontSize: 13),
-                            prefixIcon: Icon(Icons.search_rounded,
-                                color: Colors.grey.shade400, size: 18),
+                              color: Color(0xFF616161),
+                              fontSize: 13,
+                            ),
+                            prefixIcon: Icon(
+                              Icons.search_rounded,
+                              color: Color(0xFF616161),
+                              size: 18,
+                            ),
                             suffixIcon: _searchQuery.isNotEmpty
                                 ? GestureDetector(
                                     onTap: () {
                                       _searchController.clear();
                                       setState(() => _searchQuery = '');
                                     },
-                                    child: Icon(Icons.cancel_rounded,
-                                        color: Colors.grey.shade400, size: 16),
+                                    child: Icon(
+                                      Icons.cancel_rounded,
+                                      color: Color(0xFF616161),
+                                      size: 16,
+                                    ),
                                   )
                                 : null,
                             filled: true,
@@ -126,8 +138,10 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide:
-                                  BorderSide(color: theme.accent, width: 1.5),
+                              borderSide: BorderSide(
+                                color: theme.accent,
+                                width: 1.5,
+                              ),
                             ),
                           ),
                         ),
@@ -148,7 +162,8 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
                   children: [
                     _CategoryChip(
                       label: 'All',
-                      selected: _selectedCategory == null && !_showFavoritesOnly,
+                      selected:
+                          _selectedCategory == null && !_showFavoritesOnly,
                       color: theme.accent,
                       onTap: () => setState(() {
                         _selectedCategory = null;
@@ -161,20 +176,26 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
                         label: '★ Favourites',
                         selected: _showFavoritesOnly,
                         color: const Color(0xFFFBBF24),
-                        onTap: () => setState(() => _showFavoritesOnly = !_showFavoritesOnly),
+                        onTap: () => setState(
+                          () => _showFavoritesOnly = !_showFavoritesOnly,
+                        ),
                       ),
                     ),
-                    ...DocumentCategory.values.map((cat) => Padding(
-                          padding: const EdgeInsets.only(left: 8),
-                          child: _CategoryChip(
-                            label: '${cat.emoji} ${cat.label}',
-                            selected: _selectedCategory == cat,
-                            color: cat.color,
-                            onTap: () => setState(() =>
-                                _selectedCategory =
-                                    _selectedCategory == cat ? null : cat),
+                    ...DocumentCategory.values.map(
+                      (cat) => Padding(
+                        padding: const EdgeInsets.only(left: 8),
+                        child: _CategoryChip(
+                          label: '${cat.emoji} ${cat.label}',
+                          selected: _selectedCategory == cat,
+                          color: cat.color,
+                          onTap: () => setState(
+                            () => _selectedCategory = _selectedCategory == cat
+                                ? null
+                                : cat,
                           ),
-                        )),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -190,14 +211,17 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.filter_list_off,
-                        size: 48, color: Colors.grey.shade300),
+                    Icon(
+                      Icons.filter_list_off,
+                      size: 48,
+                      color: Colors.grey.shade300,
+                    ),
                     const SizedBox(height: 12),
                     Text(
                       _showFavoritesOnly
                           ? 'No favourite documents yet'
                           : 'No ${_selectedCategory?.label ?? ''} documents yet',
-                      style: TextStyle(color: Colors.grey.shade500),
+                      style: TextStyle(color: Color(0xFF616161)),
                     ),
                     TextButton(
                       onPressed: () => setState(() {
@@ -250,13 +274,20 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.upload_file_outlined, color: Colors.white, size: 18),
+                  Icon(
+                    Icons.upload_file_outlined,
+                    color: Colors.white,
+                    size: 18,
+                  ),
                   SizedBox(width: 8),
-                  Text('Add Document',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 14)),
+                  Text(
+                    'Add Document',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -267,14 +298,16 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
   }
 
   static void _showAddSheet(
-      BuildContext context, ProfileTheme theme, int profileIndex) {
+    BuildContext context,
+    ProfileTheme theme,
+    int profileIndex,
+  ) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
-      builder: (_) =>
-          _DocumentSheet(profileIndex: profileIndex, theme: theme),
+      builder: (_) => _DocumentSheet(profileIndex: profileIndex, theme: theme),
     );
   }
 }
@@ -374,7 +407,9 @@ class _CategoryChip extends StatelessWidget {
           color: selected ? color : Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-              color: selected ? color : color.withAlpha(50), width: 1),
+            color: selected ? color : color.withAlpha(50),
+            width: 1,
+          ),
           boxShadow: [
             BoxShadow(
               color: selected ? color.withAlpha(50) : Colors.black.withAlpha(8),
@@ -419,7 +454,8 @@ class _DocumentCard extends ConsumerWidget {
       }
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text('File viewing is not supported on web after reload.')),
+          content: Text('File viewing is not supported on web after reload.'),
+        ),
       );
       return;
     }
@@ -427,8 +463,10 @@ class _DocumentCard extends ConsumerWidget {
     if (doc.localPath.isEmpty || !File(doc.localPath).existsSync()) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text(
-                'File not found on this device. It may have been added on another device.')),
+          content: Text(
+            'File not found on this device. It may have been added on another device.',
+          ),
+        ),
       );
       return;
     }
@@ -440,20 +478,24 @@ class _DocumentCard extends ConsumerWidget {
 
     try {
       final uri = Uri.file(doc.localPath);
-      final launched =
-          await launchUrl(uri, mode: LaunchMode.externalApplication);
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
       if (!launched && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text(
-                  'No app found to open ${doc.name}. File is saved at: ${doc.localPath}')),
+            content: Text(
+              'No app found to open ${doc.name}. File is saved at: ${doc.localPath}',
+            ),
+          ),
         );
       }
     } catch (_) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Cannot open ${doc.name}.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Cannot open ${doc.name}.')));
       }
     }
   }
@@ -467,8 +509,10 @@ class _DocumentCard extends ConsumerWidget {
           appBar: AppBar(
             backgroundColor: Colors.black,
             foregroundColor: Colors.white,
-            title: Text(doc.name,
-                style: const TextStyle(color: Colors.white, fontSize: 14)),
+            title: Text(
+              doc.name,
+              style: const TextStyle(color: Colors.white, fontSize: 14),
+            ),
           ),
           body: InteractiveViewer(
             child: Center(
@@ -504,11 +548,14 @@ class _DocumentCard extends ConsumerWidget {
         context: context,
         builder: (ctx) => AlertDialog(
           title: const Text('Delete document?'),
-          content: Text('Remove "${doc.name}"? The local file will also be deleted.'),
+          content: Text(
+            'Remove "${doc.name}"? The local file will also be deleted.',
+          ),
           actions: [
             TextButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Cancel')),
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel'),
+            ),
             FilledButton(
               style: FilledButton.styleFrom(backgroundColor: Colors.red),
               onPressed: () => Navigator.pop(ctx, true),
@@ -527,8 +574,7 @@ class _DocumentCard extends ConsumerWidget {
             .deleteDocument(profileIndex, doc.id);
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(
-              SnackBar(content: Text('"${doc.name}" deleted')));
+          ..showSnackBar(SnackBar(content: Text('"${doc.name}" deleted')));
       },
       child: GestureDetector(
         onTap: () => _open(context),
@@ -587,7 +633,9 @@ class _DocumentCard extends ConsumerWidget {
                         ),
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                            color: _catColor.withAlpha(50), width: 0.8),
+                          color: _catColor.withAlpha(50),
+                          width: 0.8,
+                        ),
                       ),
                       child: Icon(doc.typeIcon, color: _catColor, size: 22),
                     ),
@@ -612,7 +660,9 @@ class _DocumentCard extends ConsumerWidget {
                             children: [
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 7, vertical: 2),
+                                  horizontal: 7,
+                                  vertical: 2,
+                                ),
                                 decoration: BoxDecoration(
                                   color: _catColor.withAlpha(18),
                                   borderRadius: BorderRadius.circular(8),
@@ -620,40 +670,52 @@ class _DocumentCard extends ConsumerWidget {
                                 child: Text(
                                   '${doc.category.emoji} ${doc.category.label}',
                                   style: TextStyle(
-                                      fontSize: 11,
-                                      color: _catColor,
-                                      fontWeight: FontWeight.w600),
+                                    fontSize: 11,
+                                    color: _catColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 8),
                               Text(
                                 doc.formattedSize,
                                 style: TextStyle(
-                                    fontSize: 11, color: Colors.grey.shade500),
+                                  fontSize: 11,
+                                  color: Color(0xFF616161),
+                                ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 4),
                           Row(
                             children: [
-                              Icon(Icons.calendar_today_outlined,
-                                  size: 11, color: Colors.grey.shade400),
+                              Icon(
+                                Icons.calendar_today_outlined,
+                                size: 11,
+                                color: Color(0xFF616161),
+                              ),
                               const SizedBox(width: 4),
                               Text(
                                 formatDate(doc.dateAdded),
                                 style: TextStyle(
-                                    fontSize: 11, color: Colors.grey.shade500),
+                                  fontSize: 11,
+                                  color: Color(0xFF616161),
+                                ),
                               ),
                               if (!isAvailable) ...[
                                 const SizedBox(width: 8),
-                                Icon(Icons.cloud_off_outlined,
-                                    size: 11, color: Colors.orange.shade400),
+                                Icon(
+                                  Icons.cloud_off_outlined,
+                                  size: 11,
+                                  color: Colors.orange.shade400,
+                                ),
                                 const SizedBox(width: 3),
                                 Text(
                                   'Not on this device',
                                   style: TextStyle(
-                                      fontSize: 11,
-                                      color: Colors.orange.shade400),
+                                    fontSize: 11,
+                                    color: Colors.orange.shade400,
+                                  ),
                                 ),
                               ],
                             ],
@@ -663,9 +725,10 @@ class _DocumentCard extends ConsumerWidget {
                             Text(
                               doc.notes!,
                               style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey.shade500,
-                                  height: 1.4),
+                                fontSize: 12,
+                                color: Color(0xFF616161),
+                                height: 1.4,
+                              ),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -684,9 +747,13 @@ class _DocumentCard extends ConsumerWidget {
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
                           visualDensity: VisualDensity.compact,
-                          tooltip: doc.isFavorite ? 'Remove from favorites' : 'Add to favorites',
+                          tooltip: doc.isFavorite
+                              ? 'Remove from favorites'
+                              : 'Add to favorites',
                           icon: Icon(
-                            doc.isFavorite ? Icons.star_rounded : Icons.star_outline_rounded,
+                            doc.isFavorite
+                                ? Icons.star_rounded
+                                : Icons.star_outline_rounded,
                             size: 22,
                             color: doc.isFavorite
                                 ? const Color(0xFFFBBF24)
@@ -695,8 +762,11 @@ class _DocumentCard extends ConsumerWidget {
                         ),
                         if (isAvailable) ...[
                           const SizedBox(height: 8),
-                          Icon(Icons.open_in_new_outlined,
-                              size: 18, color: _catColor.withAlpha(180)),
+                          Icon(
+                            Icons.open_in_new_outlined,
+                            size: 18,
+                            color: _catColor.withAlpha(180),
+                          ),
                         ],
                       ],
                     ),
@@ -735,28 +805,34 @@ class _EmptyState extends StatelessWidget {
                 color: theme.soft,
                 boxShadow: [
                   BoxShadow(
-                      color: theme.accent.withAlpha(40),
-                      blurRadius: 24,
-                      spreadRadius: 4)
+                    color: theme.accent.withAlpha(40),
+                    blurRadius: 24,
+                    spreadRadius: 4,
+                  ),
                 ],
               ),
               child: const Center(
-                  child: Text('🗂️', style: TextStyle(fontSize: 42))),
+                child: Text('🗂️', style: TextStyle(fontSize: 42)),
+              ),
             ),
             const SizedBox(height: 24),
             Text(
               'No documents yet',
               style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.grey.shade800),
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: Colors.grey.shade800,
+              ),
             ),
             const SizedBox(height: 10),
             Text(
               'Store ${kidName.split(' ').first}\'s birth certificate,\nvaccination records, insurance cards\nand more — all in one place.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                  fontSize: 14, color: Colors.grey.shade500, height: 1.5),
+                fontSize: 14,
+                color: Color(0xFF616161),
+                height: 1.5,
+              ),
             ),
           ],
         ),
@@ -789,7 +865,9 @@ class _DocumentSheetState extends ConsumerState<_DocumentSheet> {
   @override
   void initState() {
     super.initState();
-    _selectedProfileIndices = [widget.profileIndex]; // Default to current profile
+    _selectedProfileIndices = [
+      widget.profileIndex,
+    ]; // Default to current profile
   }
 
   @override
@@ -811,20 +889,27 @@ class _DocumentSheetState extends ConsumerState<_DocumentSheet> {
       _error = null;
       if (_nameCtrl.text.isEmpty) {
         final dot = file.name.lastIndexOf('.');
-        _nameCtrl.text =
-            dot > 0 ? file.name.substring(0, dot) : file.name;
+        _nameCtrl.text = dot > 0 ? file.name.substring(0, dot) : file.name;
       }
       // Auto-detect category from filename keywords
       final lower = file.name.toLowerCase();
-      if (lower.contains('vaccine') || lower.contains('vaccination') || lower.contains('immuniz')) {
+      if (lower.contains('vaccine') ||
+          lower.contains('vaccination') ||
+          lower.contains('immuniz')) {
         _category = DocumentCategory.vaccination;
       } else if (lower.contains('insurance')) {
         _category = DocumentCategory.insurance;
-      } else if (lower.contains('birth') || lower.contains('certificate') || lower.contains('passport')) {
+      } else if (lower.contains('birth') ||
+          lower.contains('certificate') ||
+          lower.contains('passport')) {
         _category = DocumentCategory.legal;
-      } else if (lower.contains('school') || lower.contains('daycare') || lower.contains('edu')) {
+      } else if (lower.contains('school') ||
+          lower.contains('daycare') ||
+          lower.contains('edu')) {
         _category = DocumentCategory.education;
-      } else if (lower.contains('medical') || lower.contains('hospital') || lower.contains('report')) {
+      } else if (lower.contains('medical') ||
+          lower.contains('hospital') ||
+          lower.contains('report')) {
         _category = DocumentCategory.medical;
       }
     });
@@ -858,7 +943,10 @@ class _DocumentSheetState extends ConsumerState<_DocumentSheet> {
       setState(() => _error = 'Name is required');
       return;
     }
-    setState(() { _saving = true; _error = null; });
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
 
     String localPath = '';
     Uint8List? webBytes;
@@ -891,9 +979,13 @@ class _DocumentSheetState extends ConsumerState<_DocumentSheet> {
     );
 
     if (_selectedProfileIndices.length == 1) {
-      await ref.read(profilesProvider.notifier).addDocument(_selectedProfileIndices.first, doc);
+      await ref
+          .read(profilesProvider.notifier)
+          .addDocument(_selectedProfileIndices.first, doc);
     } else {
-      await ref.read(profilesProvider.notifier).addDocumentToProfiles(_selectedProfileIndices, doc);
+      await ref
+          .read(profilesProvider.notifier)
+          .addDocumentToProfiles(_selectedProfileIndices, doc);
     }
 
     if (mounted) Navigator.pop(context);
@@ -906,16 +998,18 @@ class _DocumentSheetState extends ConsumerState<_DocumentSheet> {
       filled: true,
       fillColor: Colors.grey.shade50,
       border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.grey.shade200)),
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: Colors.grey.shade200),
+      ),
       enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.grey.shade200)),
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: Colors.grey.shade200),
+      ),
       focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: pTheme.accent, width: 1.5)),
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: pTheme.accent, width: 1.5),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     );
 
     return Container(
@@ -941,8 +1035,9 @@ class _DocumentSheetState extends ConsumerState<_DocumentSheet> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(16)),
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(16),
+                ),
               ),
             ),
 
@@ -952,17 +1047,25 @@ class _DocumentSheetState extends ConsumerState<_DocumentSheet> {
                 Container(
                   width: 40,
                   height: 40,
-                  decoration:
-                      BoxDecoration(shape: BoxShape.circle, color: pTheme.soft),
-                  child: Icon(Icons.upload_file_outlined,
-                      color: pTheme.accent, size: 22),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: pTheme.soft,
+                  ),
+                  child: Icon(
+                    Icons.upload_file_outlined,
+                    color: pTheme.accent,
+                    size: 22,
+                  ),
                 ),
                 const SizedBox(width: 12),
-                const Text('Add Document',
-                    style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF1F2937))),
+                const Text(
+                  'Add Document',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1F2937),
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 22),
@@ -972,7 +1075,8 @@ class _DocumentSheetState extends ConsumerState<_DocumentSheet> {
             const SizedBox(height: 8),
             _ProfileSelector(
               selectedIndices: _selectedProfileIndices,
-              onSelectionChanged: (indices) => setState(() => _selectedProfileIndices = indices),
+              onSelectionChanged: (indices) =>
+                  setState(() => _selectedProfileIndices = indices),
               theme: pTheme,
             ),
             const SizedBox(height: 18),
@@ -999,18 +1103,28 @@ class _DocumentSheetState extends ConsumerState<_DocumentSheet> {
                 child: _pickedFile == null
                     ? Column(
                         children: [
-                          Icon(Icons.cloud_upload_outlined,
-                              size: 36, color: Colors.grey.shade400),
+                          Icon(
+                            Icons.cloud_upload_outlined,
+                            size: 36,
+                            color: Color(0xFF616161),
+                          ),
                           const SizedBox(height: 8),
-                          Text('Tap to select a file',
-                              style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.grey.shade600)),
+                          Text(
+                            'Tap to select a file',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
                           const SizedBox(height: 4),
-                          Text('PDF, images, Word, or any file',
-                              style: TextStyle(
-                                  fontSize: 12, color: Colors.grey.shade400)),
+                          Text(
+                            'PDF, images, Word, or any file',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF616161),
+                            ),
+                          ),
                         ],
                       )
                     : Row(
@@ -1036,26 +1150,32 @@ class _DocumentSheetState extends ConsumerState<_DocumentSheet> {
                                 Text(
                                   _pickedFile!.name,
                                   style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                      color: pTheme.accent),
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: pTheme.accent,
+                                  ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 Text(
                                   _formatBytes(_pickedFile!.size),
                                   style: TextStyle(
-                                      fontSize: 11,
-                                      color: Colors.grey.shade500),
+                                    fontSize: 11,
+                                    color: Color(0xFF616161),
+                                  ),
                                 ),
                               ],
                             ),
                           ),
                           TextButton(
                             onPressed: _pickFile,
-                            child: Text('Change',
-                                style: TextStyle(
-                                    color: pTheme.accent, fontSize: 12)),
+                            child: Text(
+                              'Change',
+                              style: TextStyle(
+                                color: pTheme.accent,
+                                fontSize: 12,
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -1064,8 +1184,10 @@ class _DocumentSheetState extends ConsumerState<_DocumentSheet> {
 
             if (_error != null) ...[
               const SizedBox(height: 8),
-              Text(_error!,
-                  style: const TextStyle(color: Colors.red, fontSize: 12)),
+              Text(
+                _error!,
+                style: const TextStyle(color: Colors.red, fontSize: 12),
+              ),
             ],
             const SizedBox(height: 18),
 
@@ -1074,7 +1196,9 @@ class _DocumentSheetState extends ConsumerState<_DocumentSheet> {
             const SizedBox(height: 8),
             TextField(
               controller: _nameCtrl,
-              decoration: inputDeco.copyWith(hintText: 'e.g. Vaccination Record 2024'),
+              decoration: inputDeco.copyWith(
+                hintText: 'e.g. Vaccination Record 2024',
+              ),
             ),
             const SizedBox(height: 18),
 
@@ -1091,18 +1215,20 @@ class _DocumentSheetState extends ConsumerState<_DocumentSheet> {
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 160),
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 8),
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: sel ? cat.color : cat.color.withAlpha(15),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                          color: sel ? cat.color : cat.color.withAlpha(60)),
+                        color: sel ? cat.color : cat.color.withAlpha(60),
+                      ),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(cat.emoji,
-                            style: const TextStyle(fontSize: 14)),
+                        Text(cat.emoji, style: const TextStyle(fontSize: 14)),
                         const SizedBox(width: 6),
                         Text(
                           cat.label,
@@ -1127,7 +1253,8 @@ class _DocumentSheetState extends ConsumerState<_DocumentSheet> {
               controller: _notesCtrl,
               maxLines: 2,
               decoration: inputDeco.copyWith(
-                  hintText: 'e.g. 6-month checkup, Dr. Smith'),
+                hintText: 'e.g. 6-month checkup, Dr. Smith',
+              ),
             ),
             const SizedBox(height: 28),
 
@@ -1138,17 +1265,25 @@ class _DocumentSheetState extends ConsumerState<_DocumentSheet> {
                 backgroundColor: pTheme.accent,
                 minimumSize: const Size.fromHeight(52),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16)),
+                  borderRadius: BorderRadius.circular(16),
+                ),
               ),
               child: _saving
                   ? const SizedBox(
                       width: 22,
                       height: 22,
                       child: CircularProgressIndicator(
-                          color: Colors.white, strokeWidth: 2))
-                  : const Text('Save Document',
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const Text(
+                      'Save Document',
                       style: TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.w700)),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
             ),
           ],
         ),
@@ -1157,12 +1292,13 @@ class _DocumentSheetState extends ConsumerState<_DocumentSheet> {
   }
 
   Widget _label(String text) => Text(
-        text,
-        style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: Colors.grey.shade700),
-      );
+    text,
+    style: TextStyle(
+      fontSize: 13,
+      fontWeight: FontWeight.w600,
+      color: Colors.grey.shade700,
+    ),
+  );
 
   String _formatBytes(int bytes) {
     if (bytes < 1024) return '$bytes B';
@@ -1202,10 +1338,14 @@ class _ProfileSelector extends ConsumerWidget {
             duration: const Duration(milliseconds: 160),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: selectedIndices.length == profiles.length ? theme.accent : Colors.grey.shade100,
+              color: selectedIndices.length == profiles.length
+                  ? theme.accent
+                  : Colors.grey.shade100,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: selectedIndices.length == profiles.length ? theme.accent : Colors.grey.shade200,
+                color: selectedIndices.length == profiles.length
+                    ? theme.accent
+                    : Colors.grey.shade200,
               ),
             ),
             child: Text(
@@ -1213,7 +1353,9 @@ class _ProfileSelector extends ConsumerWidget {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: selectedIndices.length == profiles.length ? Colors.white : Colors.grey.shade700,
+                color: selectedIndices.length == profiles.length
+                    ? Colors.white
+                    : Colors.grey.shade700,
               ),
             ),
           ),
@@ -1228,7 +1370,8 @@ class _ProfileSelector extends ConsumerWidget {
               final newSelection = List<int>.from(selectedIndices);
               if (selected) {
                 newSelection.remove(index);
-                if (newSelection.isEmpty) newSelection.add(index); // Keep at least one
+                if (newSelection.isEmpty)
+                  newSelection.add(index); // Keep at least one
               } else {
                 newSelection.add(index);
               }
@@ -1238,10 +1381,14 @@ class _ProfileSelector extends ConsumerWidget {
               duration: const Duration(milliseconds: 160),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: selected ? ProfileTheme.forProfile(profile).accent : Colors.grey.shade100,
+                color: selected
+                    ? ProfileTheme.forProfile(profile).accent
+                    : Colors.grey.shade100,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: selected ? ProfileTheme.forProfile(profile).accent : Colors.grey.shade200,
+                  color: selected
+                      ? ProfileTheme.forProfile(profile).accent
+                      : Colors.grey.shade200,
                 ),
               ),
               child: Row(

@@ -32,7 +32,7 @@ class PdfExportService {
 
     final doc = pw.Document(
       title: '${profile.name}\'s Memory Book',
-      author: 'M 4 Memories',
+      author: 'First Moments',
       theme: emojiFont == null
           ? null
           : pw.ThemeData.withFont(fontFallback: [emojiFont]),
@@ -207,7 +207,7 @@ class PdfExportService {
                     ),
                     pw.SizedBox(height: 40),
                     pw.Text(
-                      'M 4 Memories',
+                      'First Moments',
                       style: const pw.TextStyle(
                         fontSize: 11,
                         color: PdfColors.grey400,

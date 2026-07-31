@@ -4,7 +4,7 @@ import 'package:permission_handler/permission_handler.dart';
 
 class BackupPermissionsStatus {
   final bool notifications;
-  final bool batteryExempt;    // Android: exempted from battery optimization
+  final bool batteryExempt; // Android: exempted from battery optimization
   final bool backgroundRefresh; // iOS: Background App Refresh is enabled
 
   const BackupPermissionsStatus({
@@ -13,7 +13,8 @@ class BackupPermissionsStatus {
     this.backgroundRefresh = true,
   });
 
-  bool get needsAction => !notifications || (Platform.isAndroid && !batteryExempt);
+  bool get needsAction =>
+      !notifications || (Platform.isAndroid && !batteryExempt);
 }
 
 class BackupPermissionsService {

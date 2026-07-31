@@ -70,7 +70,7 @@ class ForumScreen extends ConsumerWidget {
                           'Ask the parenting community',
                           style: TextStyle(
                             fontSize: 12,
-                            color: Color(0xFF888888),
+                            color: Color(0xFF616161),
                           ),
                         ),
                       ],
@@ -266,7 +266,7 @@ class _QuestionCard extends StatelessWidget {
                           _timeAgo(question.createdAt),
                           style: TextStyle(
                             fontSize: 11,
-                            color: Colors.grey.shade400,
+                            color: Color(0xFF616161),
                           ),
                         ),
                       ],
@@ -306,7 +306,7 @@ class _QuestionCard extends StatelessWidget {
                   'edited',
                   style: TextStyle(
                     fontSize: 10,
-                    color: Colors.grey.shade400,
+                    color: Color(0xFF616161),
                     fontStyle: FontStyle.italic,
                   ),
                 ),
@@ -348,7 +348,7 @@ class _QuestionCard extends StatelessWidget {
                   Icon(
                     Icons.chat_bubble_outline_rounded,
                     size: 15,
-                    color: Colors.grey.shade400,
+                    color: Color(0xFF616161),
                   ),
                   const SizedBox(width: 5),
                   Text(
@@ -357,7 +357,7 @@ class _QuestionCard extends StatelessWidget {
                         : '${question.answerCount} answers',
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.grey.shade500,
+                      color: Color(0xFF616161),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -539,7 +539,7 @@ class _AskQuestionSheetState extends State<_AskQuestionSheet> {
           const SizedBox(height: 4),
           Text(
             'Text only · be specific · be kind',
-            style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+            style: TextStyle(fontSize: 12, color: Color(0xFF616161)),
           ),
           const SizedBox(height: 14),
           TextField(
@@ -560,7 +560,7 @@ class _AskQuestionSheetState extends State<_AskQuestionSheet> {
                   : questionLength > _maxQuestionCharacters
                   ? 'Question cannot exceed $_maxQuestionCharacters characters'
                   : null,
-              hintStyle: TextStyle(fontSize: 15, color: Colors.grey.shade400),
+              hintStyle: TextStyle(fontSize: 15, color: Color(0xFF616161)),
               filled: true,
               fillColor: const Color(0xFFF2F2F7),
               border: OutlineInputBorder(
@@ -612,7 +612,7 @@ class _AskQuestionSheetState extends State<_AskQuestionSheet> {
                       hintText: '+ add tag',
                       hintStyle: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey.shade400,
+                        color: Color(0xFF616161),
                       ),
                       border: InputBorder.none,
                       isDense: true,
@@ -700,11 +700,7 @@ class _OwnerMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PopupMenuButton<String>(
-      icon: Icon(
-        Icons.more_horiz_rounded,
-        size: 20,
-        color: Colors.grey.shade400,
-      ),
+      icon: Icon(Icons.more_horiz_rounded, size: 20, color: Color(0xFF616161)),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       onSelected: (v) => v == 'edit' ? onEdit() : onDelete(),
       itemBuilder: (_) => const [
@@ -766,7 +762,7 @@ class _EmptyState extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,
-                color: Colors.grey.shade500,
+                color: Color(0xFF616161),
                 height: 1.5,
               ),
             ),

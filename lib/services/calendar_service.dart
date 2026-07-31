@@ -45,7 +45,12 @@ class CalendarService {
     try {
       if (kIsWeb) {
         if (googleSignIn == null) return;
-        await _googleCalUpdate(calendarEventId, reminder, kidName, googleSignIn);
+        await _googleCalUpdate(
+          calendarEventId,
+          reminder,
+          kidName,
+          googleSignIn,
+        );
       } else {
         await _deviceCalUpdate(calendarEventId, reminder, kidName);
       }
@@ -74,24 +79,32 @@ class CalendarService {
 
   // ── device_calendar (iOS / Android) ──────────────────────────────────────
 
-  static Future<String?> _deviceCalAdd(Reminder reminder, String kidName) async {
+  static Future<String?> _deviceCalAdd(
+    Reminder reminder,
+    String kidName,
+  ) async {
     final perms = await _plugin.requestPermissions();
     if (perms.data != true) return null;
     final calId = await _defaultCalendarId();
     if (calId == null) return null;
     final result = await _plugin.createOrUpdateEvent(
-        _buildDeviceEvent(calId, reminder, kidName));
+      _buildDeviceEvent(calId, reminder, kidName),
+    );
     return (result?.isSuccess == true) ? result!.data : null;
   }
 
   static Future<void> _deviceCalUpdate(
-      String eventId, Reminder reminder, String kidName) async {
+    String eventId,
+    Reminder reminder,
+    String kidName,
+  ) async {
     final perms = await _plugin.requestPermissions();
     if (perms.data != true) return;
     final calId = await _defaultCalendarId();
     if (calId == null) return;
     await _plugin.createOrUpdateEvent(
-        _buildDeviceEvent(calId, reminder, kidName, existingId: eventId));
+      _buildDeviceEvent(calId, reminder, kidName, existingId: eventId),
+    );
   }
 
   static Future<void> _deviceCalDelete(String eventId) async {
@@ -106,9 +119,10 @@ class CalendarService {
     final result = await _plugin.retrieveCalendars();
     final calendars = result.data ?? [];
     return (calendars
-            .where((c) => !(c.isReadOnly ?? true) && (c.isDefault ?? false))
-            .firstOrNull ??
-        calendars.where((c) => !(c.isReadOnly ?? true)).firstOrNull)?.id;
+                .where((c) => !(c.isReadOnly ?? true) && (c.isDefault ?? false))
+                .firstOrNull ??
+            calendars.where((c) => !(c.isReadOnly ?? true)).firstOrNull)
+        ?.id;
   }
 
   static Event _buildDeviceEvent(
@@ -122,15 +136,13 @@ class CalendarService {
 
     RecurrenceRule? recurrence;
     if (reminder.repeat != ReminderRepeat.none) {
-      recurrence = RecurrenceRule(
-        switch (reminder.repeat) {
-          ReminderRepeat.daily => RecurrenceFrequency.Daily,
-          ReminderRepeat.weekly => RecurrenceFrequency.Weekly,
-          ReminderRepeat.monthly => RecurrenceFrequency.Monthly,
-          ReminderRepeat.yearly => RecurrenceFrequency.Yearly,
-          ReminderRepeat.none => RecurrenceFrequency.Daily,
-        },
-      );
+      recurrence = RecurrenceRule(switch (reminder.repeat) {
+        ReminderRepeat.daily => RecurrenceFrequency.Daily,
+        ReminderRepeat.weekly => RecurrenceFrequency.Weekly,
+        ReminderRepeat.monthly => RecurrenceFrequency.Monthly,
+        ReminderRepeat.yearly => RecurrenceFrequency.Yearly,
+        ReminderRepeat.none => RecurrenceFrequency.Daily,
+      });
     }
 
     return Event(
@@ -158,18 +170,32 @@ class CalendarService {
   }
 
   static Future<String?> _googleCalAdd(
-      Reminder reminder, String kidName, GoogleSignIn gs) async {
+    Reminder reminder,
+    String kidName,
+    GoogleSignIn gs,
+  ) async {
     final api = await _gcalApi(gs);
     if (api == null) return null;
-    final created = await api.events.insert(_buildGoogleEvent(reminder, kidName), 'primary');
+    final created = await api.events.insert(
+      _buildGoogleEvent(reminder, kidName),
+      'primary',
+    );
     return created.id;
   }
 
   static Future<void> _googleCalUpdate(
-      String eventId, Reminder reminder, String kidName, GoogleSignIn gs) async {
+    String eventId,
+    Reminder reminder,
+    String kidName,
+    GoogleSignIn gs,
+  ) async {
     final api = await _gcalApi(gs);
     if (api == null) return;
-    await api.events.update(_buildGoogleEvent(reminder, kidName), 'primary', eventId);
+    await api.events.update(
+      _buildGoogleEvent(reminder, kidName),
+      'primary',
+      eventId,
+    );
   }
 
   static Future<void> _googleCalDelete(String eventId, GoogleSignIn gs) async {
@@ -191,7 +217,8 @@ class CalendarService {
       ..description = reminder.notes
       ..start = gcal.EventDateTime(dateTime: reminder.dateTime)
       ..end = gcal.EventDateTime(
-          dateTime: reminder.dateTime.add(const Duration(hours: 1)))
+        dateTime: reminder.dateTime.add(const Duration(hours: 1)),
+      )
       ..recurrence = rrule != null ? [rrule] : null;
   }
 }

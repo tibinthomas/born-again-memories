@@ -140,7 +140,7 @@ class _AddProfileSheetState extends ConsumerState<AddProfileSheet> {
               const SizedBox(height: 4),
               Text(
                 'Tell us about your baby.',
-                style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+                style: TextStyle(fontSize: 14, color: Color(0xFF616161)),
               ),
               const SizedBox(height: 20),
 

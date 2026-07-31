@@ -30,8 +30,8 @@ class ProfileTheme {
   static ProfileTheme forGender(Gender gender) {
     switch (gender) {
       case Gender.boy:
-        const accent = Color(0xFF4A90D9);
-        const secondary = Color(0xFFD4A235);
+        const accent = Color(0xFF1565C0);
+        const secondary = Color(0xFF806000);
         return ProfileTheme(
           accent: accent,
           secondary: secondary,
@@ -43,12 +43,12 @@ class ProfileTheme {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             stops: [0.0, 0.6, 1.0],
-            colors: [Color(0xFF4A90D9), Color(0xFF2F6DB5), Color(0xFF1E5A9C)],
+            colors: [Color(0xFF1565C0), Color(0xFF0D4F9C), Color(0xFF083B78)],
           ),
         );
       case Gender.girl:
-        const accent = Color(0xFFE070A8);
-        const secondary = Color(0xFF3DBFB0);
+        const accent = Color(0xFFAD1457);
+        const secondary = Color(0xFF00796B);
         return ProfileTheme(
           accent: accent,
           secondary: secondary,
@@ -60,12 +60,12 @@ class ProfileTheme {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             stops: [0.0, 0.6, 1.0],
-            colors: [Color(0xFFE070A8), Color(0xFFCC4F90), Color(0xFFB83A7A)],
+            colors: [Color(0xFFAD1457), Color(0xFF8E1048), Color(0xFF6D0C38)],
           ),
         );
       case Gender.neutral:
-        const accent = Color(0xFFFF9F2E);
-        const secondary = Color(0xFF8B6FD6);
+        const accent = Color(0xFFA64B00);
+        const secondary = Color(0xFF673AB7);
         return ProfileTheme(
           accent: accent,
           secondary: secondary,
@@ -77,14 +77,17 @@ class ProfileTheme {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             stops: [0.0, 0.6, 1.0],
-            colors: [Color(0xFFFF9F2E), Color(0xFFE07A10), Color(0xFFCC6000)],
+            colors: [Color(0xFFA64B00), Color(0xFF873D00), Color(0xFF682F00)],
           ),
         );
     }
   }
 
   // ── Build a theme from a ThemePreset ──────────────────────────────────────
-  static ProfileTheme fromPreset(ThemePreset preset, {String decalEmoji = '⭐'}) {
+  static ProfileTheme fromPreset(
+    ThemePreset preset, {
+    String decalEmoji = '⭐',
+  }) {
     final accent = preset.accent;
     final secondary = preset.secondary;
     final tertiary = preset.tertiary;

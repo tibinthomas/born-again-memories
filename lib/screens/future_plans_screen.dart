@@ -379,10 +379,7 @@ class _CategorySection extends StatelessWidget {
                     const SizedBox(height: 6),
                     Text(
                       'No ${category.label.toLowerCase()} plans yet',
-                      style: TextStyle(
-                        color: Colors.grey.shade500,
-                        fontSize: 13,
-                      ),
+                      style: TextStyle(color: Color(0xFF616161), fontSize: 13),
                     ),
                   ],
                 ),
@@ -502,14 +499,14 @@ class _PlanCard extends StatelessWidget {
                               Icon(
                                 Icons.calendar_today_outlined,
                                 size: 11,
-                                color: Colors.grey.shade400,
+                                color: Color(0xFF616161),
                               ),
                               const SizedBox(width: 3),
                               Text(
                                 formatMonthYear(plan.targetDate!),
                                 style: TextStyle(
                                   fontSize: 11,
-                                  color: Colors.grey.shade500,
+                                  color: Color(0xFF616161),
                                 ),
                               ),
                             ],
@@ -521,7 +518,7 @@ class _PlanCard extends StatelessWidget {
                   PopupMenuButton<String>(
                     icon: Icon(
                       Icons.more_vert,
-                      color: Colors.grey.shade400,
+                      color: Color(0xFF616161),
                       size: 18,
                     ),
                     shape: RoundedRectangleBorder(
@@ -603,7 +600,7 @@ class _PlanCard extends StatelessWidget {
                                 ' / ${_fmt(plan.targetAmount!, plan.currency)}',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: Colors.grey.shade500,
+                                  color: Color(0xFF616161),
                                 ),
                               ),
                             ],
@@ -1189,7 +1186,7 @@ class _PlanSheetState extends ConsumerState<_PlanSheet> {
   InputDecoration _inputDeco(String hint, IconData icon, ProfileTheme theme) =>
       InputDecoration(
         hintText: hint,
-        hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+        hintStyle: TextStyle(color: Color(0xFF616161), fontSize: 13),
         prefixIcon: Icon(icon, color: theme.accent, size: 18),
         filled: true,
         fillColor: Colors.white,

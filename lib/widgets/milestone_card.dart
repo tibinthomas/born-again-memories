@@ -499,7 +499,7 @@ class _CrystalCardState extends State<_CrystalCard>
                           icon: Icon(
                             Icons.more_vert,
                             size: 18,
-                            color: Colors.grey.shade500,
+                            color: Color(0xFF616161),
                           ),
                           padding: EdgeInsets.zero,
                           shape: RoundedRectangleBorder(

@@ -449,7 +449,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: Colors.grey.shade500,
+            color: Color(0xFF616161),
             letterSpacing: 0.2,
           ),
         ),
@@ -460,7 +460,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               description,
               style: const TextStyle(
                 fontSize: 12,
-                color: Color(0xFF888888),
+                color: Color(0xFF616161),
                 height: 1.4,
               ),
             ),
@@ -575,7 +575,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${pendingEmail!} hasn\'t joined Born Again Memories yet.',
+                    '${pendingEmail!} hasn\'t joined First Moments yet.',
                     style: const TextStyle(fontSize: 13),
                   ),
                   const SizedBox(height: 8),
@@ -692,7 +692,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     const appStore =
         'https://apps.apple.com/app/born-again-memories/id000000000';
     final text =
-        'Hey! I\'m using Born Again Memories to capture our little one\'s milestones. 📸👶\n\n'
+        'Hey! I\'m using First Moments to capture our little one\'s milestones. 📸👶\n\n'
         'Download the app and I\'ll share our memories with you!\n\n'
         '📱 iOS: $appStore\n'
         '🤖 Android: $playStore';
@@ -1051,7 +1051,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               TextButton(
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.red,
-                  disabledForegroundColor: Colors.grey.shade400,
+                  disabledForegroundColor: Color(0xFF616161),
                 ),
                 onPressed: confirmationValid
                     ? () async {
@@ -1209,10 +1209,7 @@ class _AccountCard extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       user?.email ?? '',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade500,
-                      ),
+                      style: TextStyle(fontSize: 12, color: Color(0xFF616161)),
                     ),
                   ],
                 ),
@@ -1273,7 +1270,7 @@ class _ShareCard extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
             child: Text(
               'Not shared with anyone yet.',
-              style: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+              style: TextStyle(fontSize: 13, color: Color(0xFF616161)),
             ),
           )
         else
@@ -1427,7 +1424,7 @@ class _InviteRow extends StatelessWidget {
                             'Viewing your memories',
                             style: TextStyle(
                               fontSize: 11,
-                              color: Colors.grey.shade500,
+                              color: Color(0xFF616161),
                             ),
                           ),
                         ] else if (invite.isPending) ...[
@@ -1436,7 +1433,7 @@ class _InviteRow extends StatelessWidget {
                             'Waiting for them to sign up',
                             style: TextStyle(
                               fontSize: 11,
-                              color: Colors.grey.shade400,
+                              color: Color(0xFF616161),
                             ),
                           ),
                         ],
@@ -1475,7 +1472,7 @@ class _InviteRow extends StatelessWidget {
                 child: Icon(
                   Icons.remove_circle_outline_rounded,
                   size: 20,
-                  color: Colors.grey.shade400,
+                  color: Color(0xFF616161),
                 ),
               ),
             ],
@@ -1608,7 +1605,7 @@ class _BackupCard extends StatelessWidget {
                             'Last backup: $lastSync',
                             style: TextStyle(
                               fontSize: 11,
-                              color: Colors.grey.shade500,
+                              color: Color(0xFF616161),
                             ),
                           ),
                       ],
@@ -1675,7 +1672,7 @@ class _BackupCard extends StatelessWidget {
                       child: Text(
                         isAppleUser
                             ? 'Files are stored in your iCloud account under the "BornAgainMemories" app folder. Disabling iCloud or removing the app from iCloud will break backup.'
-                            : 'Files are stored in "⚠️ Born Again Memories — App Data (Do Not Delete)" in your Google Drive. Do not rename or delete this folder — doing so will break backup and may cause data loss.',
+                            : 'Files are stored in the First Moments app data folder in your Google Drive. Do not rename or delete this folder — doing so will break backup and may cause data loss.',
                         style: TextStyle(
                           fontSize: 11,
                           color: Colors.amber.shade800,
@@ -1690,7 +1687,7 @@ class _BackupCard extends StatelessWidget {
                 const SizedBox(height: 12),
                 Text(
                   'Back up photos and videos to $providerLabel.',
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                  style: TextStyle(fontSize: 12, color: Color(0xFF616161)),
                 ),
                 if (sync.accessError != null) ...[
                   const SizedBox(height: 4),
@@ -1741,7 +1738,7 @@ class _BackupCard extends StatelessWidget {
                     Icon(
                       Icons.storage_rounded,
                       size: 12,
-                      color: Colors.grey.shade400,
+                      color: Color(0xFF616161),
                     ),
                     const SizedBox(width: 4),
                     Text(
@@ -1751,7 +1748,7 @@ class _BackupCard extends StatelessWidget {
                         fontSize: 11,
                         color: sync.quota!.isNearlyFull
                             ? Colors.orange
-                            : Colors.grey.shade400,
+                            : Color(0xFF616161),
                       ),
                     ),
                   ],
@@ -1878,7 +1875,7 @@ class _PreferencesCard extends StatelessWidget {
                 Icon(
                   Icons.volume_down_rounded,
                   size: 16,
-                  color: Colors.grey.shade400,
+                  color: Color(0xFF616161),
                 ),
                 Expanded(
                   child: Slider(
@@ -1893,7 +1890,7 @@ class _PreferencesCard extends StatelessWidget {
                 Icon(
                   Icons.volume_up_rounded,
                   size: 16,
-                  color: Colors.grey.shade400,
+                  color: Color(0xFF616161),
                 ),
                 const SizedBox(width: 6),
                 GestureDetector(
@@ -2074,7 +2071,7 @@ class _FeaturesCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   'Show, hide or drag to reorder.',
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade400),
+                  style: TextStyle(fontSize: 12, color: Color(0xFF616161)),
                 ),
               ),
               Icon(
@@ -2153,7 +2150,7 @@ class _FeaturesCard extends StatelessWidget {
                             'Always on',
                             style: TextStyle(
                               fontSize: 11,
-                              color: Colors.grey.shade400,
+                              color: Color(0xFF616161),
                             ),
                           ),
                         ),
@@ -2212,7 +2209,7 @@ class _MoreSectionState extends State<_MoreSection> {
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: Colors.grey.shade500,
+                    color: Color(0xFF616161),
                     letterSpacing: 0.2,
                   ),
                 ),
@@ -2223,7 +2220,7 @@ class _MoreSectionState extends State<_MoreSection> {
                   child: Icon(
                     Icons.keyboard_arrow_down_rounded,
                     size: 18,
-                    color: Colors.grey.shade400,
+                    color: Color(0xFF616161),
                   ),
                 ),
               ],
@@ -2289,7 +2286,7 @@ class _MoreSectionState extends State<_MoreSection> {
                               child: Icon(
                                 Icons.close_rounded,
                                 size: 18,
-                                color: Colors.grey.shade400,
+                                color: Color(0xFF616161),
                               ),
                             ),
                           const SizedBox(width: 8),
@@ -2318,7 +2315,7 @@ class _MoreSectionState extends State<_MoreSection> {
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
-                            color: Colors.grey.shade400,
+                            color: Color(0xFF616161),
                             letterSpacing: 0.3,
                           ),
                         ),
@@ -2467,7 +2464,7 @@ class _About extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           const Text(
-            'Born Again Memories',
+            'First Moments',
             style: TextStyle(
               fontWeight: FontWeight.w700,
               fontSize: 14,
@@ -2477,12 +2474,12 @@ class _About extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             'Version 1.0.0',
-            style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
+            style: TextStyle(fontSize: 11, color: Color(0xFF616161)),
           ),
           const SizedBox(height: 4),
           Text(
             'Cherish every precious moment.',
-            style: TextStyle(fontSize: 12, color: Colors.grey.shade400),
+            style: TextStyle(fontSize: 12, color: Color(0xFF616161)),
           ),
           const SizedBox(height: 8),
           TextButton.icon(
@@ -2647,7 +2644,7 @@ class _BackupPermissionsSheetState extends State<_BackupPermissionsSheet> {
             'A few quick steps help ensure your files upload without interruption.',
             style: TextStyle(
               fontSize: 13,
-              color: Colors.grey.shade500,
+              color: Color(0xFF616161),
               height: 1.4,
             ),
           ),

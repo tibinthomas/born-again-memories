@@ -28,5 +28,10 @@ class SettingsCard extends StatelessWidget {
   }
 }
 
-Widget settingsDivider() =>
-    Divider(height: 1, thickness: 1, indent: 16, endIndent: 16, color: Colors.grey.shade100);
+Widget settingsDivider() => Divider(
+  height: 1,
+  thickness: 1,
+  indent: 16,
+  endIndent: 16,
+  color: Colors.grey.shade100,
+);

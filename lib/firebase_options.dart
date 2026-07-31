@@ -64,7 +64,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '535814593524',
     projectId: 'born-again-memories',
     storageBucket: 'born-again-memories.firebasestorage.app',
-    iosClientId: '535814593524-2ivnq4cakusq84cd3c65la319getapt1.apps.googleusercontent.com',
+    iosClientId:
+        '535814593524-2ivnq4cakusq84cd3c65la319getapt1.apps.googleusercontent.com',
     iosBundleId: 'com.tibinthomas.bornAgainMemories',
   );
 
@@ -74,7 +75,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '535814593524',
     projectId: 'born-again-memories',
     storageBucket: 'born-again-memories.firebasestorage.app',
-    iosClientId: '535814593524-6dnrg7ake15fjh9lv6ioelfg03o9af6c.apps.googleusercontent.com',
+    iosClientId:
+        '535814593524-6dnrg7ake15fjh9lv6ioelfg03o9af6c.apps.googleusercontent.com',
     iosBundleId: 'com.tibinthomas.bornAgainMemories',
   );
 

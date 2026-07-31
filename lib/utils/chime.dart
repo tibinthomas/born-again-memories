@@ -52,11 +52,16 @@ Uint8List _buildChimeWav(double volume) {
     final attack = (t / 0.012).clamp(0.0, 1.0);
     final decay = exp(-t / 0.22);
     final env = attack * decay;
-    final v = sin(2 * pi * 880 * t) * 0.55 +
+    final v =
+        sin(2 * pi * 880 * t) * 0.55 +
         sin(2 * pi * 1760 * t) * 0.28 +
         sin(2 * pi * 2640 * t) * 0.12 +
         sin(2 * pi * 3520 * t) * 0.05;
-    bd.setInt16(44 + i * 2, (v * env * 29000 * volume).round().clamp(-32768, 32767), Endian.little);
+    bd.setInt16(
+      44 + i * 2,
+      (v * env * 29000 * volume).round().clamp(-32768, 32767),
+      Endian.little,
+    );
   }
   return out;
 }

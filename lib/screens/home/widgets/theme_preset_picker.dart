@@ -81,7 +81,10 @@ class _ThemePresetPickerState extends State<ThemePresetPicker> {
                 onTap: () => widget.onSelect(preset.id),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 160),
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 0,
+                  ),
                   decoration: BoxDecoration(
                     color: isSelected
                         ? Color.lerp(Colors.white, preset.accent, 0.10)
@@ -92,8 +95,19 @@ class _ThemePresetPickerState extends State<ThemePresetPicker> {
                       width: isSelected ? 1.5 : 1,
                     ),
                     boxShadow: isSelected
-                        ? [BoxShadow(color: preset.accent.withAlpha(40), blurRadius: 6, offset: const Offset(0, 2))]
-                        : [BoxShadow(color: Colors.black.withAlpha(6), blurRadius: 3)],
+                        ? [
+                            BoxShadow(
+                              color: preset.accent.withAlpha(40),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ]
+                        : [
+                            BoxShadow(
+                              color: Colors.black.withAlpha(6),
+                              blurRadius: 3,
+                            ),
+                          ],
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -111,12 +125,18 @@ class _ThemePresetPickerState extends State<ThemePresetPicker> {
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: isSelected ? preset.accent : const Color(0xFF444444),
+                          color: isSelected
+                              ? preset.accent
+                              : const Color(0xFF444444),
                         ),
                       ),
                       if (isSelected) ...[
                         const SizedBox(width: 4),
-                        Icon(Icons.check_rounded, size: 12, color: preset.accent),
+                        Icon(
+                          Icons.check_rounded,
+                          size: 12,
+                          color: preset.accent,
+                        ),
                       ],
                     ],
                   ),
@@ -135,7 +155,11 @@ class _MiniTab extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
 
-  const _MiniTab({required this.label, required this.selected, required this.onTap});
+  const _MiniTab({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -148,7 +172,13 @@ class _MiniTab extends StatelessWidget {
           color: selected ? Colors.white : Colors.transparent,
           borderRadius: BorderRadius.circular(6),
           boxShadow: selected
-              ? [BoxShadow(color: Colors.black.withAlpha(15), blurRadius: 4, offset: const Offset(0, 1))]
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withAlpha(15),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1),
+                  ),
+                ]
               : null,
         ),
         child: Text(
@@ -156,7 +186,7 @@ class _MiniTab extends StatelessWidget {
           style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w600,
-            color: selected ? const Color(0xFF1A1A2E) : Colors.grey.shade500,
+            color: selected ? const Color(0xFF1A1A2E) : Color(0xFF616161),
           ),
         ),
       ),

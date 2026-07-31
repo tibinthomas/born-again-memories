@@ -16,23 +16,25 @@ class SharedEmailsNotifier extends StateNotifier<List<ShareInvite>> {
     final emails = List<String>.from(data?['sharedWithEmails'] as List? ?? []);
     final metaRaw = data?['inviteMeta'] as Map<String, dynamic>? ?? {};
 
-    final invites = await Future.wait(emails.map((email) async {
-      final raw = metaRaw[email];
-      final sentAt = raw != null && raw['sentAt'] is Timestamp
-          ? (raw['sentAt'] as Timestamp).toDate()
-          : DateTime.now().subtract(const Duration(days: 1));
+    final invites = await Future.wait(
+      emails.map((email) async {
+        final raw = metaRaw[email];
+        final sentAt = raw != null && raw['sentAt'] is Timestamp
+            ? (raw['sentAt'] as Timestamp).toDate()
+            : DateTime.now().subtract(const Duration(days: 1));
 
-      final isRegistered = await FirestoreService.isEmailRegistered(email);
-      final daysSinceSent = DateTime.now().difference(sentAt).inDays;
+        final isRegistered = await FirestoreService.isEmailRegistered(email);
+        final daysSinceSent = DateTime.now().difference(sentAt).inDays;
 
-      final status = isRegistered
-          ? ShareInviteStatus.active
-          : daysSinceSent > 30
-              ? ShareInviteStatus.expired
-              : ShareInviteStatus.pending;
+        final status = isRegistered
+            ? ShareInviteStatus.active
+            : daysSinceSent > 30
+            ? ShareInviteStatus.expired
+            : ShareInviteStatus.pending;
 
-      return ShareInvite(email: email, sentAt: sentAt, status: status);
-    }));
+        return ShareInvite(email: email, sentAt: sentAt, status: status);
+      }),
+    );
 
     if (mounted) state = invites;
   }
@@ -57,9 +59,12 @@ class SharedEmailsNotifier extends StateNotifier<List<ShareInvite>> {
     final isRegistered = await FirestoreService.isEmailRegistered(e);
     if (!mounted) return;
     if (isRegistered) {
-      state = state.map((i) => i.email == e
-          ? i.copyWith(status: ShareInviteStatus.active)
-          : i).toList();
+      state = state
+          .map(
+            (i) =>
+                i.email == e ? i.copyWith(status: ShareInviteStatus.active) : i,
+          )
+          .toList();
     }
   }
 
@@ -75,18 +80,26 @@ class SharedEmailsNotifier extends StateNotifier<List<ShareInvite>> {
 
   Future<void> resend(String email) async {
     final now = DateTime.now();
-    state = state.map((i) => i.email == email
-        ? i.copyWith(status: ShareInviteStatus.pending, sentAt: now)
-        : i).toList();
+    state = state
+        .map(
+          (i) => i.email == email
+              ? i.copyWith(status: ShareInviteStatus.pending, sentAt: now)
+              : i,
+        )
+        .toList();
     await FirestoreService.setInviteSentAt(uid, email);
 
     // Re-check after resend
     final isRegistered = await FirestoreService.isEmailRegistered(email);
     if (!mounted) return;
     if (isRegistered) {
-      state = state.map((i) => i.email == email
-          ? i.copyWith(status: ShareInviteStatus.active)
-          : i).toList();
+      state = state
+          .map(
+            (i) => i.email == email
+                ? i.copyWith(status: ShareInviteStatus.active)
+                : i,
+          )
+          .toList();
     }
   }
 
@@ -95,9 +108,9 @@ class SharedEmailsNotifier extends StateNotifier<List<ShareInvite>> {
 
 final sharedEmailsProvider =
     StateNotifierProvider<SharedEmailsNotifier, List<ShareInvite>>((ref) {
-  final uid = ref.watch(authStateProvider).value?.uid ?? '';
-  return SharedEmailsNotifier(uid);
-});
+      final uid = ref.watch(authStateProvider).value?.uid ?? '';
+      return SharedEmailsNotifier(uid);
+    });
 
 /// Number of users currently sharing their memories with the signed-in user.
 final sharedSendersCountProvider = FutureProvider<int>((ref) async {

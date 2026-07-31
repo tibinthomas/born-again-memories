@@ -10,12 +10,17 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:my_app/main.dart';
 
 void main() {
-  testWidgets('Baby Milestones app launches and shows profile', (WidgetTester tester) async {
+  testWidgets('Baby Milestones app launches and shows profile', (
+    WidgetTester tester,
+  ) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const BabyMilestonesApp());
 
     // Verify that the app shows a kid profile
     expect(find.text('Emma'), findsOneWidget);
-    expect(find.text('Baby Milestones'), findsNothing); // Title no longer appears
+    expect(
+      find.text('Baby Milestones'),
+      findsNothing,
+    ); // Title no longer appears
   });
 }

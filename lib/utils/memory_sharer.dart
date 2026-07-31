@@ -68,9 +68,10 @@ class _ShareSheetState extends State<_ShareSheet>
       vsync: this,
       duration: const Duration(milliseconds: 1800),
     )..repeat(reverse: true);
-    _scaleAnim = Tween<double>(begin: 1.0, end: 1.03).animate(
-      CurvedAnimation(parent: _pulse, curve: Curves.easeInOut),
-    );
+    _scaleAnim = Tween<double>(
+      begin: 1.0,
+      end: 1.03,
+    ).animate(CurvedAnimation(parent: _pulse, curve: Curves.easeInOut));
   }
 
   @override
@@ -82,14 +83,16 @@ class _ShareSheetState extends State<_ShareSheet>
   Future<String?> _captureCard() async {
     try {
       await Future.delayed(const Duration(milliseconds: 80));
-      final boundary = widget.cardKey.currentContext!.findRenderObject()
-          as RenderRepaintBoundary;
+      final boundary =
+          widget.cardKey.currentContext!.findRenderObject()
+              as RenderRepaintBoundary;
       final image = await boundary.toImage(pixelRatio: 3.0);
       final data = await image.toByteData(format: ui.ImageByteFormat.png);
       if (data == null) return null;
       final dir = await getTemporaryDirectory();
       final file = File(
-          '${dir.path}/memory_${DateTime.now().millisecondsSinceEpoch}.png');
+        '${dir.path}/memory_${DateTime.now().millisecondsSinceEpoch}.png',
+      );
       await file.writeAsBytes(data.buffer.asUint8List());
       return file.path;
     } catch (_) {
@@ -133,11 +136,7 @@ class _ShareSheetState extends State<_ShareSheet>
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            theme.soft,
-            Colors.white,
-            theme.cardBg,
-          ],
+          colors: [theme.soft, Colors.white, theme.cardBg],
         ),
       ),
       child: Column(
@@ -184,10 +183,7 @@ class _ShareSheetState extends State<_ShareSheet>
                     ),
                     Text(
                       'Your moment, beautifully packaged',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade500,
-                      ),
+                      style: TextStyle(fontSize: 12, color: Color(0xFF616161)),
                     ),
                   ],
                 ),
@@ -277,7 +273,11 @@ class _ShareSheetState extends State<_ShareSheet>
                     label: 'Instagram',
                     emoji: '📸',
                     gradient: const LinearGradient(
-                      colors: [Color(0xFFF58529), Color(0xFFE1306C), Color(0xFF833AB4)],
+                      colors: [
+                        Color(0xFFF58529),
+                        Color(0xFFE1306C),
+                        Color(0xFF833AB4),
+                      ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -315,15 +315,10 @@ class _ShareSheetState extends State<_ShareSheet>
           // Hint text
           Text(
             'Tap any option to share your memory card',
-            style: TextStyle(
-              fontSize: 11,
-              color: Colors.grey.shade400,
-            ),
+            style: TextStyle(fontSize: 11, color: Color(0xFF616161)),
           ),
 
-          SizedBox(
-            height: MediaQuery.paddingOf(context).bottom + 16,
-          ),
+          SizedBox(height: MediaQuery.paddingOf(context).bottom + 16),
         ],
       ),
     );
@@ -363,9 +358,10 @@ class _ShareBtnState extends State<_ShareBtn>
       lowerBound: 0.0,
       upperBound: 0.08,
     );
-    _scale = Tween<double>(begin: 1.0, end: 0.92).animate(
-      CurvedAnimation(parent: _ctrl, curve: Curves.easeOut),
-    );
+    _scale = Tween<double>(
+      begin: 1.0,
+      end: 0.92,
+    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOut));
   }
 
   @override
@@ -396,9 +392,7 @@ class _ShareBtnState extends State<_ShareBtn>
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: (widget.gradient as LinearGradient)
-                        .colors
-                        .first
+                    color: (widget.gradient as LinearGradient).colors.first
                         .withAlpha(80),
                     blurRadius: 14,
                     offset: const Offset(0, 6),
@@ -406,10 +400,7 @@ class _ShareBtnState extends State<_ShareBtn>
                 ],
               ),
               child: Center(
-                child: Text(
-                  widget.emoji,
-                  style: const TextStyle(fontSize: 24),
-                ),
+                child: Text(widget.emoji, style: const TextStyle(fontSize: 24)),
               ),
             ),
             const SizedBox(height: 7),

@@ -103,14 +103,17 @@ class _SavedLinksScreenState extends ConsumerState<SavedLinksScreen> {
     final profile = profiles[widget.profileIndex];
     final theme = ProfileTheme.forProfile(profile);
     final allLinks = profile.links;
-    final allTags = ({for (final link in allLinks) ...link.tags}).toList()..sort();
+    final allTags = ({for (final link in allLinks) ...link.tags}).toList()
+      ..sort();
 
     final filtered = allLinks.where((link) {
       final query = _searchQuery.toLowerCase();
-      final matchesSearch = query.isEmpty ||
+      final matchesSearch =
+          query.isEmpty ||
           link.title.toLowerCase().contains(query) ||
           link.description?.toLowerCase().contains(query) == true;
-      final matchesTag = _selectedTag == null || link.tags.contains(_selectedTag);
+      final matchesTag =
+          _selectedTag == null || link.tags.contains(_selectedTag);
       final matchesFavorite = !_showFavoritesOnly || link.isFavorite;
       return matchesSearch && matchesTag && matchesFavorite;
     }).toList();
@@ -144,8 +147,10 @@ class _SavedLinksScreenState extends ConsumerState<SavedLinksScreen> {
                       _searchFocus.unfocus();
                       _resetPagination();
                     } else {
-                      Future.delayed(const Duration(milliseconds: 180),
-                          () => _searchFocus.requestFocus());
+                      Future.delayed(
+                        const Duration(milliseconds: 180),
+                        () => _searchFocus.requestFocus(),
+                      );
                     }
                   });
                 },
@@ -158,7 +163,10 @@ class _SavedLinksScreenState extends ConsumerState<SavedLinksScreen> {
             ),
             title: Row(
               children: [
-                Text('${theme.decalEmoji} ', style: const TextStyle(fontSize: 18)),
+                Text(
+                  '${theme.decalEmoji} ',
+                  style: const TextStyle(fontSize: 18),
+                ),
                 Expanded(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -176,7 +184,10 @@ class _SavedLinksScreenState extends ConsumerState<SavedLinksScreen> {
                       ),
                       Text(
                         '${profile.links.length} link${profile.links.length == 1 ? '' : 's'}',
-                        style: const TextStyle(fontSize: 10, color: Colors.white70),
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: Colors.white70,
+                        ),
                       ),
                     ],
                   ),
@@ -213,9 +224,14 @@ class _SavedLinksScreenState extends ConsumerState<SavedLinksScreen> {
                                     decoration: InputDecoration(
                                       hintText: 'Search title or note…',
                                       hintStyle: TextStyle(
-                                          color: Colors.grey.shade400, fontSize: 13),
-                                      prefixIcon: Icon(Icons.search_rounded,
-                                          color: Colors.grey.shade400, size: 18),
+                                        color: Color(0xFF616161),
+                                        fontSize: 13,
+                                      ),
+                                      prefixIcon: Icon(
+                                        Icons.search_rounded,
+                                        color: Color(0xFF616161),
+                                        size: 18,
+                                      ),
                                       suffixIcon: _searchQuery.isNotEmpty
                                           ? GestureDetector(
                                               onTap: () {
@@ -225,8 +241,11 @@ class _SavedLinksScreenState extends ConsumerState<SavedLinksScreen> {
                                                   _resetPagination();
                                                 });
                                               },
-                                              child: Icon(Icons.cancel_rounded,
-                                                  color: Colors.grey.shade400, size: 16),
+                                              child: Icon(
+                                                Icons.cancel_rounded,
+                                                color: Color(0xFF616161),
+                                                size: 16,
+                                              ),
                                             )
                                           : null,
                                       filled: true,
@@ -243,7 +262,9 @@ class _SavedLinksScreenState extends ConsumerState<SavedLinksScreen> {
                                       focusedBorder: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(12),
                                         borderSide: BorderSide(
-                                            color: theme.accent, width: 1.5),
+                                          color: theme.accent,
+                                          width: 1.5,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -261,25 +282,32 @@ class _SavedLinksScreenState extends ConsumerState<SavedLinksScreen> {
                                           selected: _showFavoritesOnly,
                                           color: const Color(0xFFF59E0B),
                                           onTap: () => setState(() {
-                                            _showFavoritesOnly = !_showFavoritesOnly;
+                                            _showFavoritesOnly =
+                                                !_showFavoritesOnly;
                                             _resetPagination();
                                           }),
                                         ),
                                         if (allTags.isNotEmpty) ...[
                                           const _FilterDivider(),
-                                          ...allTags.map((tag) => Padding(
-                                                padding:
-                                                    const EdgeInsets.only(right: 8),
-                                                child: _TagChip(
-                                                  label: '#$tag',
-                                                  selected: _selectedTag == tag,
-                                                  color: theme.accent,
-                                                  onTap: () => setState(() {
-                                                    _selectedTag = _selectedTag == tag ? null : tag;
-                                                    _resetPagination();
-                                                  }),
-                                                ),
-                                              )),
+                                          ...allTags.map(
+                                            (tag) => Padding(
+                                              padding: const EdgeInsets.only(
+                                                right: 8,
+                                              ),
+                                              child: _TagChip(
+                                                label: '#$tag',
+                                                selected: _selectedTag == tag,
+                                                color: theme.accent,
+                                                onTap: () => setState(() {
+                                                  _selectedTag =
+                                                      _selectedTag == tag
+                                                      ? null
+                                                      : tag;
+                                                  _resetPagination();
+                                                }),
+                                              ),
+                                            ),
+                                          ),
                                         ],
                                       ],
                                     ),
@@ -300,11 +328,18 @@ class _SavedLinksScreenState extends ConsumerState<SavedLinksScreen> {
                             padding: const EdgeInsets.only(top: 10, bottom: 4),
                             child: Row(
                               children: [
-                                Icon(Icons.filter_list_rounded, size: 14, color: Colors.grey.shade500),
+                                Icon(
+                                  Icons.filter_list_rounded,
+                                  size: 14,
+                                  color: Color(0xFF616161),
+                                ),
                                 const SizedBox(width: 6),
                                 Text(
                                   '${filtered.length} result${filtered.length == 1 ? '' : 's'}',
-                                  style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Color(0xFF616161),
+                                  ),
                                 ),
                                 const Spacer(),
                                 GestureDetector(
@@ -320,7 +355,11 @@ class _SavedLinksScreenState extends ConsumerState<SavedLinksScreen> {
                                         ),
                                       ),
                                       const SizedBox(width: 3),
-                                      Icon(Icons.close_rounded, size: 13, color: theme.accent),
+                                      Icon(
+                                        Icons.close_rounded,
+                                        size: 13,
+                                        color: theme.accent,
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -343,9 +382,12 @@ class _SavedLinksScreenState extends ConsumerState<SavedLinksScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.search_off, size: 48, color: Colors.grey.shade400),
+                    Icon(Icons.search_off, size: 48, color: Color(0xFF616161)),
                     const SizedBox(height: 12),
-                    Text('No saved links found', style: TextStyle(color: Colors.grey.shade600)),
+                    Text(
+                      'No saved links found',
+                      style: TextStyle(color: Colors.grey.shade600),
+                    ),
                     if (_hasActiveFilters)
                       TextButton(
                         onPressed: _clearAllFilters,
@@ -359,8 +401,11 @@ class _SavedLinksScreenState extends ConsumerState<SavedLinksScreen> {
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
               sliver: SliverList.separated(
-                itemCount: visibleLinks.length + (visibleLinks.length < filtered.length ? 1 : 0),
-                separatorBuilder: (context, index) => const SizedBox(height: 10),
+                itemCount:
+                    visibleLinks.length +
+                    (visibleLinks.length < filtered.length ? 1 : 0),
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: 10),
                 itemBuilder: (context, index) {
                   if (index >= visibleLinks.length) {
                     return const Center(
@@ -375,9 +420,18 @@ class _SavedLinksScreenState extends ConsumerState<SavedLinksScreen> {
                     link: link,
                     theme: theme,
                     profileIndex: widget.profileIndex,
-                    onDelete: () => ref.read(profilesProvider.notifier).deleteLink(widget.profileIndex, link.id),
-                    onEdit: () => _showAddEditSheet(context, theme, widget.profileIndex, initial: link),
-                    onFavorite: () => ref.read(profilesProvider.notifier).toggleLinkFavorite(widget.profileIndex, link.id),
+                    onDelete: () => ref
+                        .read(profilesProvider.notifier)
+                        .deleteLink(widget.profileIndex, link.id),
+                    onEdit: () => _showAddEditSheet(
+                      context,
+                      theme,
+                      widget.profileIndex,
+                      initial: link,
+                    ),
+                    onFavorite: () => ref
+                        .read(profilesProvider.notifier)
+                        .toggleLinkFavorite(widget.profileIndex, link.id),
                   );
                 },
               ),
@@ -445,9 +499,7 @@ class _TagChip extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: selected
-                  ? color.withAlpha(50)
-                  : Colors.black.withAlpha(8),
+              color: selected ? color.withAlpha(50) : Colors.black.withAlpha(8),
               blurRadius: selected ? 8 : 3,
               offset: const Offset(0, 2),
             ),
@@ -457,8 +509,11 @@ class _TagChip extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (icon != null) ...[
-              Icon(icon, size: 12,
-                  color: selected ? Colors.white : color.withAlpha(180)),
+              Icon(
+                icon,
+                size: 12,
+                color: selected ? Colors.white : color.withAlpha(180),
+              ),
               const SizedBox(width: 4),
             ],
             Text(
@@ -484,11 +539,7 @@ class _FilterDivider extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10),
       child: Center(
-        child: Container(
-          width: 1,
-          height: 16,
-          color: Colors.grey.shade300,
-        ),
+        child: Container(width: 1, height: 16, color: Colors.grey.shade300),
       ),
     );
   }
@@ -548,24 +599,27 @@ class _LinkCard extends ConsumerWidget {
   Future<void> _openLink(BuildContext context, {bool external = false}) async {
     final uri = Uri.tryParse(link.url);
     if (uri == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Invalid URL.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Invalid URL.')));
       return;
     }
 
-    final mode = external ? LaunchMode.externalApplication : LaunchMode.inAppBrowserView;
+    final mode = external
+        ? LaunchMode.externalApplication
+        : LaunchMode.inAppBrowserView;
     final launched = await launchUrl(uri, mode: mode);
     if (!launched && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Unable to open link.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Unable to open link.')));
     }
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final hasImage = link.previewImageUrl != null && link.previewImageUrl!.isNotEmpty;
+    final hasImage =
+        link.previewImageUrl != null && link.previewImageUrl!.isNotEmpty;
 
     return Container(
       decoration: BoxDecoration(
@@ -590,187 +644,215 @@ class _LinkCard extends ConsumerWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(20),
           onTap: () => _openLink(context),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // ── Preview image ─────────────────────────────────────────
-            if (hasImage)
-              ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                child: Image.network(
-                  link.previewImageUrl!,
-                  height: 150,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // ── Preview image ─────────────────────────────────────────
+              if (hasImage)
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(16),
+                  ),
+                  child: Image.network(
+                    link.previewImageUrl!,
+                    height: 150,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                  ),
                 ),
-              ),
 
-            Padding(
-              padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // ── Top row: domain + star + menu ─────────────────────
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      // Favicon-style domain pill
-                      Expanded(
-                        child: Text(
-                          link.domain,
-                          style: TextStyle(
-                            color: theme.accent,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ── Top row: domain + star + menu ─────────────────────
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        // Favicon-style domain pill
+                        Expanded(
+                          child: Text(
+                            link.domain,
+                            style: TextStyle(
+                              color: theme.accent,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                      _FavButton(
-                        isFavorite: link.isFavorite,
-                        accent: theme.accent,
-                        onTap: onFavorite,
-                      ),
-                      const SizedBox(width: 2),
-                      PopupMenuButton<String>(
-                        icon: Icon(Icons.more_horiz_rounded,
-                            size: 20, color: Colors.grey.shade400),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                        itemBuilder: (_) => [
-                          const PopupMenuItem(
-                            value: 'open_external',
-                            child: Row(children: [
-                              Icon(Icons.open_in_browser_outlined, size: 16),
-                              SizedBox(width: 10),
-                              Text('Open in browser'),
-                            ]),
+                        _FavButton(
+                          isFavorite: link.isFavorite,
+                          accent: theme.accent,
+                          onTap: onFavorite,
+                        ),
+                        const SizedBox(width: 2),
+                        PopupMenuButton<String>(
+                          icon: Icon(
+                            Icons.more_horiz_rounded,
+                            size: 20,
+                            color: Color(0xFF616161),
                           ),
-                          const PopupMenuItem(
-                            value: 'edit',
-                            child: Row(children: [
-                              Icon(Icons.edit_outlined, size: 16),
-                              SizedBox(width: 10),
-                              Text('Edit'),
-                            ]),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          const PopupMenuItem(
-                            value: 'delete',
-                            child: Row(children: [
-                              Icon(Icons.delete_outline,
-                                  size: 16, color: Colors.red),
-                              SizedBox(width: 10),
-                              Text('Delete',
-                                  style: TextStyle(color: Colors.red)),
-                            ]),
-                          ),
-                        ],
-                        onSelected: (value) {
-                          if (value == 'open_external') {
-                            _openLink(context, external: true);
-                          } else if (value == 'edit') {
-                            onEdit();
-                          } else if (value == 'delete') {
-                            showDialog<bool>(
-                              context: context,
-                              builder: (ctx) => AlertDialog(
-                                title: const Text('Delete link?'),
-                                content: Text(
-                                    'Remove "${link.title}" from saved links?'),
-                                actions: [
-                                  TextButton(
-                                      onPressed: () =>
-                                          Navigator.pop(ctx, false),
-                                      child: const Text('Cancel')),
-                                  FilledButton(
-                                    style: FilledButton.styleFrom(
-                                        backgroundColor: Colors.red),
-                                    onPressed: () =>
-                                        Navigator.pop(ctx, true),
-                                    child: const Text('Delete'),
+                          itemBuilder: (_) => [
+                            const PopupMenuItem(
+                              value: 'open_external',
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.open_in_browser_outlined,
+                                    size: 16,
+                                  ),
+                                  SizedBox(width: 10),
+                                  Text('Open in browser'),
+                                ],
+                              ),
+                            ),
+                            const PopupMenuItem(
+                              value: 'edit',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.edit_outlined, size: 16),
+                                  SizedBox(width: 10),
+                                  Text('Edit'),
+                                ],
+                              ),
+                            ),
+                            const PopupMenuItem(
+                              value: 'delete',
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.delete_outline,
+                                    size: 16,
+                                    color: Colors.red,
+                                  ),
+                                  SizedBox(width: 10),
+                                  Text(
+                                    'Delete',
+                                    style: TextStyle(color: Colors.red),
                                   ),
                                 ],
                               ),
-                            ).then((confirmed) {
-                              if (confirmed == true) onDelete();
-                            });
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 6),
-
-                  // ── Title ─────────────────────────────────────────────
-                  Text(
-                    link.title,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF1A1A1A),
-                      height: 1.3,
+                            ),
+                          ],
+                          onSelected: (value) {
+                            if (value == 'open_external') {
+                              _openLink(context, external: true);
+                            } else if (value == 'edit') {
+                              onEdit();
+                            } else if (value == 'delete') {
+                              showDialog<bool>(
+                                context: context,
+                                builder: (ctx) => AlertDialog(
+                                  title: const Text('Delete link?'),
+                                  content: Text(
+                                    'Remove "${link.title}" from saved links?',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.pop(ctx, false),
+                                      child: const Text('Cancel'),
+                                    ),
+                                    FilledButton(
+                                      style: FilledButton.styleFrom(
+                                        backgroundColor: Colors.red,
+                                      ),
+                                      onPressed: () => Navigator.pop(ctx, true),
+                                      child: const Text('Delete'),
+                                    ),
+                                  ],
+                                ),
+                              ).then((confirmed) {
+                                if (confirmed == true) onDelete();
+                              });
+                            }
+                          },
+                        ),
+                      ],
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
 
-                  // ── Description ───────────────────────────────────────
-                  if ((link.previewDescription ?? link.description) != null) ...[
                     const SizedBox(height: 6),
+
+                    // ── Title ─────────────────────────────────────────────
                     Text(
-                      link.previewDescription ?? link.description!,
+                      link.title,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1A1A1A),
+                        height: 1.3,
+                      ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
+                    ),
+
+                    // ── Description ───────────────────────────────────────
+                    if ((link.previewDescription ?? link.description) !=
+                        null) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        link.previewDescription ?? link.description!,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
                           fontSize: 13,
                           color: Colors.grey.shade600,
-                          height: 1.4),
-                    ),
-                  ],
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
 
-                  // ── Footer: tags + date ───────────────────────────────
-                  const SizedBox(height: 10),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      if (link.tags.isNotEmpty) ...[
-                        Expanded(
-                          child: Wrap(
-                            spacing: 6,
-                            runSpacing: 0,
-                            children: link.tags
-                                .take(3)
-                                .map((tag) => Text(
+                    // ── Footer: tags + date ───────────────────────────────
+                    const SizedBox(height: 10),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        if (link.tags.isNotEmpty) ...[
+                          Expanded(
+                            child: Wrap(
+                              spacing: 6,
+                              runSpacing: 0,
+                              children: link.tags
+                                  .take(3)
+                                  .map(
+                                    (tag) => Text(
                                       '#$tag',
                                       style: TextStyle(
                                         fontSize: 11,
                                         color: theme.accent.withAlpha(180),
                                         fontWeight: FontWeight.w500,
                                       ),
-                                    ))
-                                .toList(),
+                                    ),
+                                  )
+                                  .toList(),
+                            ),
+                          ),
+                        ] else
+                          const Spacer(),
+                        Text(
+                          formatDate(link.dateAdded),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Color(0xFF616161),
                           ),
                         ),
-                      ] else
-                        const Spacer(),
-                      Text(
-                        formatDate(link.dateAdded),
-                        style: TextStyle(
-                            fontSize: 11, color: Colors.grey.shade400),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    ),
-  );
+    );
   }
 }
 
@@ -802,7 +884,7 @@ class _FavButton extends StatelessWidget {
         child: Icon(
           isFavorite ? Icons.star_rounded : Icons.star_outline_rounded,
           size: 18,
-          color: isFavorite ? const Color(0xFFFBBF24) : Colors.grey.shade400,
+          color: isFavorite ? const Color(0xFFFBBF24) : Color(0xFF616161),
         ),
       ),
     );
@@ -844,10 +926,14 @@ class _LinkFormSheetState extends ConsumerState<_LinkFormSheet> {
     super.initState();
     _urlController = TextEditingController(text: widget.initial?.url ?? '');
     _titleController = TextEditingController(text: widget.initial?.title ?? '');
-    _descriptionController = TextEditingController(text: widget.initial?.description ?? '');
+    _descriptionController = TextEditingController(
+      text: widget.initial?.description ?? '',
+    );
     _tagController = TextEditingController();
     _tags = widget.initial?.tags.toList() ?? [];
-    _selectedProfileIndices = [widget.profileIndex]; // Default to current profile
+    _selectedProfileIndices = [
+      widget.profileIndex,
+    ]; // Default to current profile
     if (_urlController.text.isNotEmpty) {
       _schedulePreviewFetch(_urlController.text);
     }
@@ -896,7 +982,8 @@ class _LinkFormSheetState extends ConsumerState<_LinkFormSheet> {
         _previewLoading = false;
         _previewData = null;
         _previewError = true;
-        _previewErrorText = 'Enter a valid web link starting with http:// or https://';
+        _previewErrorText =
+            'Enter a valid web link starting with http:// or https://';
       });
       return;
     }
@@ -912,14 +999,16 @@ class _LinkFormSheetState extends ConsumerState<_LinkFormSheet> {
       final metadata = await AnyLinkPreview.getMetadata(
         link: trimmed,
         cache: const Duration(hours: 4),
-        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        userAgent:
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
       );
       if (!mounted) return;
       if (metadata == null || !metadata.hasData) {
         setState(() {
           _previewLoading = false;
           _previewError = true;
-          _previewErrorText = 'Unable to fetch preview for this link. Please verify the URL.';
+          _previewErrorText =
+              'Unable to fetch preview for this link. Please verify the URL.';
           _previewData = null;
         });
         return;
@@ -930,10 +1019,12 @@ class _LinkFormSheetState extends ConsumerState<_LinkFormSheet> {
         _previewErrorText = '';
         _previewData = metadata;
         if (!_autoFilled && widget.initial == null) {
-          if (_titleController.text.trim().isEmpty && metadata.title?.isNotEmpty == true) {
+          if (_titleController.text.trim().isEmpty &&
+              metadata.title?.isNotEmpty == true) {
             _titleController.text = metadata.title!;
           }
-          if (_descriptionController.text.trim().isEmpty && metadata.desc?.isNotEmpty == true) {
+          if (_descriptionController.text.trim().isEmpty &&
+              metadata.desc?.isNotEmpty == true) {
             _descriptionController.text = metadata.desc!;
           }
           _autoFilled = true;
@@ -944,7 +1035,8 @@ class _LinkFormSheetState extends ConsumerState<_LinkFormSheet> {
       setState(() {
         _previewLoading = false;
         _previewError = true;
-        _previewErrorText = 'Unable to fetch preview for this link. Please try a different URL.';
+        _previewErrorText =
+            'Unable to fetch preview for this link. Please try a different URL.';
       });
     }
   }
@@ -964,7 +1056,12 @@ class _LinkFormSheetState extends ConsumerState<_LinkFormSheet> {
           children: [
             const CircularProgressIndicator(strokeWidth: 2.4),
             const SizedBox(width: 14),
-            Expanded(child: Text('Fetching preview...', style: TextStyle(color: Colors.grey.shade700))),
+            Expanded(
+              child: Text(
+                'Fetching preview...',
+                style: TextStyle(color: Colors.grey.shade700),
+              ),
+            ),
           ],
         ),
       );
@@ -984,7 +1081,12 @@ class _LinkFormSheetState extends ConsumerState<_LinkFormSheet> {
           children: [
             const Icon(Icons.error_outline, color: Colors.red),
             const SizedBox(width: 12),
-            Expanded(child: Text(_previewErrorText, style: const TextStyle(color: Colors.red))),
+            Expanded(
+              child: Text(
+                _previewErrorText,
+                style: const TextStyle(color: Colors.red),
+              ),
+            ),
           ],
         ),
       );
@@ -1007,7 +1109,9 @@ class _LinkFormSheetState extends ConsumerState<_LinkFormSheet> {
         children: [
           if (_previewData!.image != null && _previewData!.image!.isNotEmpty)
             ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(14),
+              ),
               child: Image.network(
                 _previewData!.image!,
                 width: double.infinity,
@@ -1021,12 +1125,17 @@ class _LinkFormSheetState extends ConsumerState<_LinkFormSheet> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (_previewData!.title != null && _previewData!.title!.isNotEmpty)
+                if (_previewData!.title != null &&
+                    _previewData!.title!.isNotEmpty)
                   Text(
                     _previewData!.title!,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                if (_previewData!.desc != null && _previewData!.desc!.isNotEmpty) ...[
+                if (_previewData!.desc != null &&
+                    _previewData!.desc!.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   Text(
                     _previewData!.desc!,
@@ -1037,8 +1146,11 @@ class _LinkFormSheetState extends ConsumerState<_LinkFormSheet> {
                 ],
                 const SizedBox(height: 10),
                 Text(
-                  Uri.tryParse(_urlController.text.trim())?.host.replaceFirst('www.', '') ?? '',
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                  Uri.tryParse(
+                        _urlController.text.trim(),
+                      )?.host.replaceFirst('www.', '') ??
+                      '',
+                  style: TextStyle(fontSize: 12, color: Color(0xFF616161)),
                 ),
               ],
             ),
@@ -1068,7 +1180,8 @@ class _LinkFormSheetState extends ConsumerState<_LinkFormSheet> {
         borderSide: BorderSide(color: theme.colorScheme.primary, width: 1.5),
       ),
     );
-    final canSave = _urlController.text.trim().isNotEmpty &&
+    final canSave =
+        _urlController.text.trim().isNotEmpty &&
         _titleController.text.trim().isNotEmpty &&
         !_previewLoading &&
         !_previewError &&
@@ -1081,7 +1194,12 @@ class _LinkFormSheetState extends ConsumerState<_LinkFormSheet> {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Padding(
-        padding: EdgeInsets.only(left: 20, right: 20, top: 16, bottom: MediaQuery.viewInsetsOf(context).bottom + 16),
+        padding: EdgeInsets.only(
+          left: 20,
+          right: 20,
+          top: 16,
+          bottom: MediaQuery.viewInsetsOf(context).bottom + 16,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -1115,7 +1233,8 @@ class _LinkFormSheetState extends ConsumerState<_LinkFormSheet> {
             if (!isEditing) ...[
               _ProfileSelector(
                 selectedIndices: _selectedProfileIndices,
-                onSelectionChanged: (indices) => setState(() => _selectedProfileIndices = indices),
+                onSelectionChanged: (indices) =>
+                    setState(() => _selectedProfileIndices = indices),
                 theme: widget.theme,
               ),
               const SizedBox(height: 12),
@@ -1176,16 +1295,27 @@ class _LinkFormSheetState extends ConsumerState<_LinkFormSheet> {
                     spacing: 8,
                     runSpacing: 8,
                     children: _tags
-                        .map((tag) => Chip(
-                              label: Text('#$tag'),
-                              onDeleted: () => setState(() => _tags = _tags.where((value) => value != tag).toList()),
-                              backgroundColor: widget.theme.accent.withAlpha(20),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                            ))
+                        .map(
+                          (tag) => Chip(
+                            label: Text('#$tag'),
+                            onDeleted: () => setState(
+                              () => _tags = _tags
+                                  .where((value) => value != tag)
+                                  .toList(),
+                            ),
+                            backgroundColor: widget.theme.accent.withAlpha(20),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                        )
                         .toList(),
                   ),
                   const SizedBox(height: 16),
-                  const Text('Saved link tags are separate from memory tags.', style: TextStyle(color: Colors.grey)),
+                  const Text(
+                    'Saved link tags are separate from memory tags.',
+                    style: TextStyle(color: Colors.grey),
+                  ),
                 ],
               ),
             ),
@@ -1199,7 +1329,9 @@ class _LinkFormSheetState extends ConsumerState<_LinkFormSheet> {
                       final url = _urlController.text.trim();
                       final title = _titleController.text.trim();
                       final item = SavedLink(
-                        id: widget.initial?.id ?? 'link_${DateTime.now().microsecondsSinceEpoch}',
+                        id:
+                            widget.initial?.id ??
+                            'link_${DateTime.now().microsecondsSinceEpoch}',
                         url: url,
                         title: title,
                         description: _descriptionController.text.trim().isEmpty
@@ -1213,12 +1345,18 @@ class _LinkFormSheetState extends ConsumerState<_LinkFormSheet> {
                       );
                       if (widget.initial == null) {
                         if (_selectedProfileIndices.length == 1) {
-                          ref.read(profilesProvider.notifier).addLink(_selectedProfileIndices.first, item);
+                          ref
+                              .read(profilesProvider.notifier)
+                              .addLink(_selectedProfileIndices.first, item);
                         } else {
-                          ref.read(profilesProvider.notifier).addLinkToProfiles(_selectedProfileIndices, item);
+                          ref
+                              .read(profilesProvider.notifier)
+                              .addLinkToProfiles(_selectedProfileIndices, item);
                         }
                       } else {
-                        ref.read(profilesProvider.notifier).updateLink(widget.profileIndex, item);
+                        ref
+                            .read(profilesProvider.notifier)
+                            .updateLink(widget.profileIndex, item);
                       }
                       Navigator.pop(context);
                     }
@@ -1260,10 +1398,14 @@ class _ProfileSelector extends ConsumerWidget {
             duration: const Duration(milliseconds: 160),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: selectedIndices.length == profiles.length ? theme.accent : Colors.grey.shade100,
+              color: selectedIndices.length == profiles.length
+                  ? theme.accent
+                  : Colors.grey.shade100,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: selectedIndices.length == profiles.length ? theme.accent : Colors.grey.shade200,
+                color: selectedIndices.length == profiles.length
+                    ? theme.accent
+                    : Colors.grey.shade200,
               ),
             ),
             child: Text(
@@ -1271,7 +1413,9 @@ class _ProfileSelector extends ConsumerWidget {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: selectedIndices.length == profiles.length ? Colors.white : Colors.grey.shade700,
+                color: selectedIndices.length == profiles.length
+                    ? Colors.white
+                    : Colors.grey.shade700,
               ),
             ),
           ),
@@ -1295,10 +1439,14 @@ class _ProfileSelector extends ConsumerWidget {
               duration: const Duration(milliseconds: 160),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: selected ? ProfileTheme.forProfile(profile).accent : Colors.grey.shade100,
+                color: selected
+                    ? ProfileTheme.forProfile(profile).accent
+                    : Colors.grey.shade100,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: selected ? ProfileTheme.forProfile(profile).accent : Colors.grey.shade200,
+                  color: selected
+                      ? ProfileTheme.forProfile(profile).accent
+                      : Colors.grey.shade200,
                 ),
               ),
               child: Row(

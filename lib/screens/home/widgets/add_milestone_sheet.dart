@@ -697,7 +697,7 @@ class _TemplatePicker extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           'Pick a common one or write your own. Checked milestones are already used.',
-          style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
+          style: TextStyle(fontSize: 13, color: Color(0xFF616161)),
         ),
         const SizedBox(height: 16),
         SizedBox(
@@ -1082,7 +1082,7 @@ class _AttachmentItem extends StatelessWidget {
                                   ? Icons.image_not_supported_outlined
                                   : Icons.mic,
                               size: 28,
-                              color: Colors.grey.shade500,
+                              color: Color(0xFF616161),
                             ),
                             const SizedBox(height: 4),
                             Padding(
@@ -1130,7 +1130,7 @@ class _AttachmentItem extends StatelessWidget {
             style: const TextStyle(fontSize: 11),
             decoration: InputDecoration(
               hintText: 'Add label…',
-              hintStyle: TextStyle(fontSize: 11, color: Colors.grey.shade400),
+              hintStyle: TextStyle(fontSize: 11, color: Color(0xFF616161)),
               isDense: true,
               counterText: '',
               contentPadding: const EdgeInsets.symmetric(
@@ -1305,7 +1305,7 @@ Widget _sectionLabel(String text) => Text(
   style: TextStyle(
     fontSize: 11,
     fontWeight: FontWeight.w700,
-    color: Colors.grey.shade500,
+    color: Color(0xFF616161),
     letterSpacing: 0.9,
   ),
 );

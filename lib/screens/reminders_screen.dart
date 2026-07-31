@@ -59,7 +59,10 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
             ),
             title: Row(
               children: [
-                Text('${theme.decalEmoji} ', style: const TextStyle(fontSize: 18)),
+                Text(
+                  '${theme.decalEmoji} ',
+                  style: const TextStyle(fontSize: 18),
+                ),
                 Expanded(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -67,13 +70,20 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                     children: [
                       Text(
                         '${profile.name}\'s Reminders',
-                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white),
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
                         '${reminders.length} reminder${reminders.length == 1 ? '' : 's'}',
-                        style: const TextStyle(fontSize: 10, color: Colors.white70),
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: Colors.white70,
+                        ),
                       ),
                     ],
                   ),
@@ -93,21 +103,24 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                       label: 'All (${reminders.length})',
                       selected: _filter == _ReminderFilter.all,
                       accent: theme.accent,
-                      onTap: () => setState(() => _filter = _ReminderFilter.all),
+                      onTap: () =>
+                          setState(() => _filter = _ReminderFilter.all),
                     ),
                     const SizedBox(width: 8),
                     _ReminderChip(
                       label: 'Upcoming (${upcoming.length})',
                       selected: _filter == _ReminderFilter.upcoming,
                       accent: theme.accent,
-                      onTap: () => setState(() => _filter = _ReminderFilter.upcoming),
+                      onTap: () =>
+                          setState(() => _filter = _ReminderFilter.upcoming),
                     ),
                     const SizedBox(width: 8),
                     _ReminderChip(
                       label: 'Completed (${done.length})',
                       selected: _filter == _ReminderFilter.done,
-                      accent: Colors.grey.shade500,
-                      onTap: () => setState(() => _filter = _ReminderFilter.done),
+                      accent: Color(0xFF616161),
+                      onTap: () =>
+                          setState(() => _filter = _ReminderFilter.done),
                     ),
                   ],
                 ),
@@ -133,7 +146,8 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
               sliver: SliverList.separated(
                 itemCount: filtered.length,
-                separatorBuilder: (context, index) => const SizedBox(height: 10),
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: 10),
                 itemBuilder: (ctx, i) => _ReminderCard(
                   reminder: filtered[i],
                   theme: theme,
@@ -151,7 +165,8 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
         accent: theme.accent,
         icon: Icons.add_alarm_outlined,
         label: 'Add reminder',
-        onTap: () => _showAddSheet(context, profile, theme, widget.profileIndex),
+        onTap: () =>
+            _showAddSheet(context, profile, theme, widget.profileIndex),
       ),
     );
   }
@@ -183,7 +198,12 @@ class _ReminderChip extends StatelessWidget {
   final bool selected;
   final Color accent;
   final VoidCallback onTap;
-  const _ReminderChip({required this.label, required this.selected, required this.accent, required this.onTap});
+  const _ReminderChip({
+    required this.label,
+    required this.selected,
+    required this.accent,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -195,10 +215,15 @@ class _ReminderChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected ? accent : Colors.white,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: selected ? accent : accent.withAlpha(50), width: 1),
+          border: Border.all(
+            color: selected ? accent : accent.withAlpha(50),
+            width: 1,
+          ),
           boxShadow: [
             BoxShadow(
-              color: selected ? accent.withAlpha(50) : Colors.black.withAlpha(8),
+              color: selected
+                  ? accent.withAlpha(50)
+                  : Colors.black.withAlpha(8),
               blurRadius: selected ? 8 : 3,
               offset: const Offset(0, 2),
             ),
@@ -206,7 +231,11 @@ class _ReminderChip extends StatelessWidget {
         ),
         child: Text(
           label,
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: selected ? Colors.white : accent),
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: selected ? Colors.white : accent,
+          ),
         ),
       ),
     );
@@ -229,12 +258,12 @@ class _ReminderCard extends ConsumerWidget {
   });
 
   Color get _typeColor => switch (reminder.type) {
-        ReminderType.vaccination => const Color(0xFF2E9E6E),
-        ReminderType.appointment => const Color(0xFF3B82F6),
-        ReminderType.birthday => const Color(0xFFEC4899),
-        ReminderType.swimClass => const Color(0xFF06B6D4),
-        ReminderType.other => const Color(0xFFF59E0B),
-      };
+    ReminderType.vaccination => const Color(0xFF2E9E6E),
+    ReminderType.appointment => const Color(0xFF3B82F6),
+    ReminderType.birthday => const Color(0xFFEC4899),
+    ReminderType.swimClass => const Color(0xFF06B6D4),
+    ReminderType.other => const Color(0xFFF59E0B),
+  };
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -262,7 +291,10 @@ class _ReminderCard extends ConsumerWidget {
             title: const Text('Delete reminder?'),
             content: Text('Remove "${reminder.title}"?'),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Cancel'),
+              ),
               FilledButton(
                 style: FilledButton.styleFrom(backgroundColor: Colors.red),
                 onPressed: () => Navigator.pop(ctx, true),
@@ -273,10 +305,14 @@ class _ReminderCard extends ConsumerWidget {
         );
       },
       onDismissed: (_) {
-        ref.read(profilesProvider.notifier).deleteReminder(profileIndex, reminder.id);
+        ref
+            .read(profilesProvider.notifier)
+            .deleteReminder(profileIndex, reminder.id);
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(content: Text('"${reminder.title}" deleted')));
+          ..showSnackBar(
+            SnackBar(content: Text('"${reminder.title}" deleted')),
+          );
       },
       child: Container(
         decoration: BoxDecoration(
@@ -303,7 +339,9 @@ class _ReminderCard extends ConsumerWidget {
                   topLeft: Radius.circular(20),
                   bottomLeft: Radius.circular(20),
                 ),
-                child: ColoredBox(color: isDone ? Colors.grey.shade300 : _typeColor),
+                child: ColoredBox(
+                  color: isDone ? Colors.grey.shade300 : _typeColor,
+                ),
               ),
             ),
             // Content
@@ -341,18 +379,24 @@ class _ReminderCard extends ConsumerWidget {
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
                             color: isDone
-                                ? Colors.grey.shade400
+                                ? Color(0xFF616161)
                                 : const Color(0xFF1A1A2E),
-                            decoration: isDone ? TextDecoration.lineThrough : null,
+                            decoration: isDone
+                                ? TextDecoration.lineThrough
+                                : null,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Row(
                           children: [
                             Icon(
-                              isOverdue ? Icons.warning_amber_rounded : Icons.access_time_outlined,
+                              isOverdue
+                                  ? Icons.warning_amber_rounded
+                                  : Icons.access_time_outlined,
                               size: 13,
-                              color: isOverdue ? Colors.orange.shade700 : Colors.grey.shade500,
+                              color: isOverdue
+                                  ? Colors.orange.shade700
+                                  : Color(0xFF616161),
                             ),
                             const SizedBox(width: 4),
                             Flexible(
@@ -360,8 +404,12 @@ class _ReminderCard extends ConsumerWidget {
                                 dateLabel,
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: isOverdue ? Colors.orange.shade700 : Colors.grey.shade500,
-                                  fontWeight: isOverdue ? FontWeight.w600 : FontWeight.w400,
+                                  color: isOverdue
+                                      ? Colors.orange.shade700
+                                      : Color(0xFF616161),
+                                  fontWeight: isOverdue
+                                      ? FontWeight.w600
+                                      : FontWeight.w400,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -369,21 +417,31 @@ class _ReminderCard extends ConsumerWidget {
                             if (reminder.repeat != ReminderRepeat.none) ...[
                               const SizedBox(width: 6),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
                                 decoration: BoxDecoration(
                                   color: _typeColor.withAlpha(20),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
                                   reminder.repeat.fullLabel,
-                                  style: TextStyle(fontSize: 10, color: _typeColor, fontWeight: FontWeight.w600),
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: _typeColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
                             ],
                             if (isMuted) ...[
                               const SizedBox(width: 6),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.orange.shade50,
                                   borderRadius: BorderRadius.circular(8),
@@ -391,11 +449,19 @@ class _ReminderCard extends ConsumerWidget {
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Icon(Icons.notifications_off_outlined, size: 10, color: Colors.orange.shade600),
+                                    Icon(
+                                      Icons.notifications_off_outlined,
+                                      size: 10,
+                                      color: Colors.orange.shade600,
+                                    ),
                                     const SizedBox(width: 2),
                                     Text(
                                       'Muted',
-                                      style: TextStyle(fontSize: 10, color: Colors.orange.shade600, fontWeight: FontWeight.w600),
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: Colors.orange.shade600,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -403,11 +469,16 @@ class _ReminderCard extends ConsumerWidget {
                             ],
                           ],
                         ),
-                        if (reminder.notes != null && reminder.notes!.isNotEmpty) ...[
+                        if (reminder.notes != null &&
+                            reminder.notes!.isNotEmpty) ...[
                           const SizedBox(height: 6),
                           Text(
                             reminder.notes!,
-                            style: TextStyle(fontSize: 13, color: Colors.grey.shade500, height: 1.4),
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Color(0xFF616161),
+                              height: 1.4,
+                            ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -428,7 +499,11 @@ class _ReminderCard extends ConsumerWidget {
                           activeColor: _typeColor,
                           onChanged: (v) => ref
                               .read(profilesProvider.notifier)
-                              .markReminderDone(profileIndex, reminder.id, v ?? false),
+                              .markReminderDone(
+                                profileIndex,
+                                reminder.id,
+                                v ?? false,
+                              ),
                         ),
                       ),
                       // Edit button
@@ -441,28 +516,42 @@ class _ReminderCard extends ConsumerWidget {
                             backgroundColor: Colors.transparent,
                             builder: (_) => _ReminderSheet(
                               profileIndex: profileIndex,
-                              profile: ref.read(profilesProvider)![profileIndex],
+                              profile: ref.read(
+                                profilesProvider,
+                              )![profileIndex],
                               theme: theme,
                               existing: reminder,
                             ),
                           ),
                           child: Padding(
                             padding: const EdgeInsets.only(bottom: 4),
-                            child: Icon(Icons.edit_outlined, size: 17, color: Colors.grey.shade400),
+                            child: Icon(
+                              Icons.edit_outlined,
+                              size: 17,
+                              color: Color(0xFF616161),
+                            ),
                           ),
                         ),
                       // Mute / unmute button
                       if (!isDone)
                         GestureDetector(
                           onTap: () => isMuted
-                              ? ref.read(profilesProvider.notifier).unmuteReminder(profileIndex, reminder.id)
-                              : ref.read(profilesProvider.notifier).muteReminder(profileIndex, reminder.id),
+                              ? ref
+                                    .read(profilesProvider.notifier)
+                                    .unmuteReminder(profileIndex, reminder.id)
+                              : ref
+                                    .read(profilesProvider.notifier)
+                                    .muteReminder(profileIndex, reminder.id),
                           child: Padding(
                             padding: const EdgeInsets.only(bottom: 4),
                             child: Icon(
-                              isMuted ? Icons.notifications_active_outlined : Icons.notifications_off_outlined,
+                              isMuted
+                                  ? Icons.notifications_active_outlined
+                                  : Icons.notifications_off_outlined,
                               size: 17,
-                              color: isMuted ? Colors.orange.shade400 : Colors.grey.shade400,
+                              color: isMuted
+                                  ? Colors.orange.shade400
+                                  : Color(0xFF616161),
                             ),
                           ),
                         ),
@@ -499,7 +588,20 @@ class _ReminderCard extends ConsumerWidget {
     final hour = dt.hour > 12 ? dt.hour - 12 : (dt.hour == 0 ? 12 : dt.hour);
     final min = dt.minute.toString().padLeft(2, '0');
     final ampm = dt.hour >= 12 ? 'PM' : 'AM';
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
     return '${months[dt.month - 1]} ${dt.day} · $hour:$min $ampm  ($relative)';
   }
 }
@@ -526,20 +628,36 @@ class _EmptyState extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: theme.soft,
-                boxShadow: [BoxShadow(color: theme.accent.withAlpha(40), blurRadius: 24, spreadRadius: 4)],
+                boxShadow: [
+                  BoxShadow(
+                    color: theme.accent.withAlpha(40),
+                    blurRadius: 24,
+                    spreadRadius: 4,
+                  ),
+                ],
               ),
-              child: const Center(child: Text('🔔', style: TextStyle(fontSize: 42))),
+              child: const Center(
+                child: Text('🔔', style: TextStyle(fontSize: 42)),
+              ),
             ),
             const SizedBox(height: 24),
             Text(
               'No reminders yet',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.grey.shade800),
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: Colors.grey.shade800,
+              ),
             ),
             const SizedBox(height: 10),
             Text(
               'Add vaccinations, appointments, birthdays\nor any event for ${kidName.split(' ').first}.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade500, height: 1.5),
+              style: TextStyle(
+                fontSize: 14,
+                color: Color(0xFF616161),
+                height: 1.5,
+              ),
             ),
           ],
         ),
@@ -586,9 +704,12 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
     _titleCtrl = TextEditingController(text: e?.title ?? '');
     _notesCtrl = TextEditingController(text: e?.notes ?? '');
     _type = e?.type ?? ReminderType.other;
-    _dateTime = e?.dateTime ?? DateTime.now().add(const Duration(days: 1, hours: 1));
+    _dateTime =
+        e?.dateTime ?? DateTime.now().add(const Duration(days: 1, hours: 1));
     _repeat = e?.repeat ?? ReminderRepeat.none;
-    _selectedProfileIndices = [widget.profileIndex]; // Default to current profile
+    _selectedProfileIndices = [
+      widget.profileIndex,
+    ]; // Default to current profile
   }
 
   @override
@@ -618,7 +739,13 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
     );
     if (time == null || !mounted) return;
     setState(() {
-      _dateTime = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+      _dateTime = DateTime(
+        date.year,
+        date.month,
+        date.day,
+        time.hour,
+        time.minute,
+      );
     });
   }
 
@@ -644,7 +771,9 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
         repeat: _repeat,
         clearNotes: _notesCtrl.text.trim().isEmpty,
       );
-      await ref.read(profilesProvider.notifier).updateReminder(widget.profileIndex, reminder);
+      await ref
+          .read(profilesProvider.notifier)
+          .updateReminder(widget.profileIndex, reminder);
     } else {
       final reminder = Reminder(
         id: 'rem_${DateTime.now().microsecondsSinceEpoch}',
@@ -655,9 +784,13 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
         repeat: _repeat,
       );
       if (_selectedProfileIndices.length == 1) {
-        await ref.read(profilesProvider.notifier).addReminder(_selectedProfileIndices.first, reminder);
+        await ref
+            .read(profilesProvider.notifier)
+            .addReminder(_selectedProfileIndices.first, reminder);
       } else {
-        await ref.read(profilesProvider.notifier).addReminderToProfiles(_selectedProfileIndices, reminder);
+        await ref
+            .read(profilesProvider.notifier)
+            .addReminderToProfiles(_selectedProfileIndices, reminder);
       }
       unawaited(triggerFeedback(ref));
     }
@@ -668,20 +801,46 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
   @override
   Widget build(BuildContext context) {
     final pTheme = widget.theme;
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
     final dt = _dateTime;
     final hour = dt.hour > 12 ? dt.hour - 12 : (dt.hour == 0 ? 12 : dt.hour);
     final min = dt.minute.toString().padLeft(2, '0');
     final ampm = dt.hour >= 12 ? 'PM' : 'AM';
-    final dateLabel = '${months[dt.month - 1]} ${dt.day}, ${dt.year}  ·  $hour:$min $ampm';
+    final dateLabel =
+        '${months[dt.month - 1]} ${dt.day}, ${dt.year}  ·  $hour:$min $ampm';
 
     final inputDeco = InputDecoration(
       filled: true,
       fillColor: Colors.grey.shade50,
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.grey.shade200)),
-      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.grey.shade200)),
-      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: pTheme.accent, width: 1.5)),
-      errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Colors.red)),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: Colors.grey.shade200),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: Colors.grey.shade200),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: pTheme.accent, width: 1.5),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: Colors.red),
+      ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     );
 
@@ -691,7 +850,9 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       padding: EdgeInsets.only(
-        left: 20, right: 20, top: 8,
+        left: 20,
+        right: 20,
+        top: 8,
         bottom: MediaQuery.viewInsetsOf(context).bottom + 24,
       ),
       child: SingleChildScrollView(
@@ -705,7 +866,10 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
                 margin: const EdgeInsets.only(top: 8, bottom: 18),
                 width: 40,
                 height: 4,
-                decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(16)),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(16),
+                ),
               ),
             ),
 
@@ -715,13 +879,24 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
                 Container(
                   width: 40,
                   height: 40,
-                  decoration: BoxDecoration(shape: BoxShape.circle, color: pTheme.soft),
-                  child: Icon(Icons.add_alarm_outlined, color: pTheme.accent, size: 22),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: pTheme.soft,
+                  ),
+                  child: Icon(
+                    Icons.add_alarm_outlined,
+                    color: pTheme.accent,
+                    size: 22,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Text(
                   _isEditing ? 'Edit Reminder' : 'New Reminder',
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF1F2937)),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1F2937),
+                  ),
                 ),
               ],
             ),
@@ -733,7 +908,8 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
               const SizedBox(height: 8),
               _ProfileSelector(
                 selectedIndices: _selectedProfileIndices,
-                onSelectionChanged: (indices) => setState(() => _selectedProfileIndices = indices),
+                onSelectionChanged: (indices) =>
+                    setState(() => _selectedProfileIndices = indices),
                 theme: pTheme,
               ),
               const SizedBox(height: 18),
@@ -753,11 +929,20 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
                       onTap: () => setState(() => _type = t),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 180),
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
-                          color: selected ? pTheme.accent : Colors.grey.shade100,
+                          color: selected
+                              ? pTheme.accent
+                              : Colors.grey.shade100,
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: selected ? pTheme.accent : Colors.grey.shade200),
+                          border: Border.all(
+                            color: selected
+                                ? pTheme.accent
+                                : Colors.grey.shade200,
+                          ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -769,7 +954,9 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
-                                color: selected ? Colors.white : Colors.grey.shade700,
+                                color: selected
+                                    ? Colors.white
+                                    : Colors.grey.shade700,
                               ),
                             ),
                           ],
@@ -787,7 +974,9 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
             const SizedBox(height: 8),
             TextField(
               controller: _titleCtrl,
-              onChanged: (_) { if (_titleError != null) setState(() => _titleError = null); },
+              onChanged: (_) {
+                if (_titleError != null) setState(() => _titleError = null);
+              },
               decoration: inputDeco.copyWith(
                 hintText: 'e.g. 6-month vaccination',
                 errorText: _titleError,
@@ -801,7 +990,10 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
             GestureDetector(
               onTap: _pickDateTime,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
                 decoration: BoxDecoration(
                   color: pTheme.soft,
                   borderRadius: BorderRadius.circular(14),
@@ -813,10 +1005,18 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
                     const SizedBox(width: 10),
                     Text(
                       dateLabel,
-                      style: TextStyle(fontSize: 14, color: pTheme.accent, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: pTheme.accent,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const Spacer(),
-                    Icon(Icons.edit_calendar_outlined, size: 16, color: pTheme.accent.withAlpha(150)),
+                    Icon(
+                      Icons.edit_calendar_outlined,
+                      size: 16,
+                      color: pTheme.accent.withAlpha(150),
+                    ),
                   ],
                 ),
               ),
@@ -834,10 +1034,9 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
                 side: BorderSide(color: Colors.grey.shade200),
                 textStyle: const TextStyle(fontSize: 12),
               ),
-              segments: ReminderRepeat.values.map((r) => ButtonSegment(
-                value: r,
-                label: Text(r.label),
-              )).toList(),
+              segments: ReminderRepeat.values
+                  .map((r) => ButtonSegment(value: r, label: Text(r.label)))
+                  .toList(),
               selected: {_repeat},
               onSelectionChanged: (s) => setState(() => _repeat = s.first),
             ),
@@ -849,7 +1048,9 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
             TextField(
               controller: _notesCtrl,
               maxLines: 3,
-              decoration: inputDeco.copyWith(hintText: 'e.g. Bring the vaccination card'),
+              decoration: inputDeco.copyWith(
+                hintText: 'e.g. Bring the vaccination card',
+              ),
             ),
             const SizedBox(height: 28),
 
@@ -859,13 +1060,25 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
               style: FilledButton.styleFrom(
                 backgroundColor: pTheme.accent,
                 minimumSize: const Size.fromHeight(52),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
               ),
               child: _saving
-                  ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  ? const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
                   : Text(
                       _isEditing ? 'Save Changes' : 'Set Reminder',
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
             ),
           ],
@@ -875,9 +1088,13 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
   }
 
   Widget _label(String text) => Text(
-        text,
-        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey.shade700),
-      );
+    text,
+    style: TextStyle(
+      fontSize: 13,
+      fontWeight: FontWeight.w600,
+      color: Colors.grey.shade700,
+    ),
+  );
 }
 
 // ── Profile selector ──────────────────────────────────────────────────────────
@@ -911,10 +1128,14 @@ class _ProfileSelector extends ConsumerWidget {
             duration: const Duration(milliseconds: 160),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: selectedIndices.length == profiles.length ? theme.accent : Colors.grey.shade100,
+              color: selectedIndices.length == profiles.length
+                  ? theme.accent
+                  : Colors.grey.shade100,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: selectedIndices.length == profiles.length ? theme.accent : Colors.grey.shade200,
+                color: selectedIndices.length == profiles.length
+                    ? theme.accent
+                    : Colors.grey.shade200,
               ),
             ),
             child: Text(
@@ -922,7 +1143,9 @@ class _ProfileSelector extends ConsumerWidget {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: selectedIndices.length == profiles.length ? Colors.white : Colors.grey.shade700,
+                color: selectedIndices.length == profiles.length
+                    ? Colors.white
+                    : Colors.grey.shade700,
               ),
             ),
           ),
@@ -937,7 +1160,8 @@ class _ProfileSelector extends ConsumerWidget {
               final newSelection = List<int>.from(selectedIndices);
               if (selected) {
                 newSelection.remove(index);
-                if (newSelection.isEmpty) newSelection.add(index); // Keep at least one
+                if (newSelection.isEmpty)
+                  newSelection.add(index); // Keep at least one
               } else {
                 newSelection.add(index);
               }
@@ -947,10 +1171,14 @@ class _ProfileSelector extends ConsumerWidget {
               duration: const Duration(milliseconds: 160),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: selected ? ProfileTheme.forProfile(profile).accent : Colors.grey.shade100,
+                color: selected
+                    ? ProfileTheme.forProfile(profile).accent
+                    : Colors.grey.shade100,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: selected ? ProfileTheme.forProfile(profile).accent : Colors.grey.shade200,
+                  color: selected
+                      ? ProfileTheme.forProfile(profile).accent
+                      : Colors.grey.shade200,
                 ),
               ),
               child: Row(

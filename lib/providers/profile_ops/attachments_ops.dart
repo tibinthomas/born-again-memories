@@ -15,7 +15,10 @@ mixin AttachmentsOps on StateNotifier<List<KidProfile>?>, ProfileMutations {
         if (ms.attachments.any((a) => a.id == attachmentId)) {
           final updatedMs = ms.copyWith(
             attachments: ms.attachments
-                .map((a) => a.id == attachmentId ? a.copyWith(localPath: newPath) : a)
+                .map(
+                  (a) =>
+                      a.id == attachmentId ? a.copyWith(localPath: newPath) : a,
+                )
                 .toList(),
           );
           unawaited(FirestoreService.saveMilestone(uid, profile.id, updatedMs));
@@ -24,16 +27,23 @@ mixin AttachmentsOps on StateNotifier<List<KidProfile>?>, ProfileMutations {
       }
     }
     state = (state ?? <KidProfile>[])
-        .map((profile) => profile.copyWith(
-              milestones: profile.milestones
-                  .map((ms) => ms.copyWith(
-                        attachments: ms.attachments
-                            .map((a) =>
-                                a.id == attachmentId ? a.copyWith(localPath: newPath) : a)
-                            .toList(),
-                      ))
-                  .toList(),
-            ))
+        .map(
+          (profile) => profile.copyWith(
+            milestones: profile.milestones
+                .map(
+                  (ms) => ms.copyWith(
+                    attachments: ms.attachments
+                        .map(
+                          (a) => a.id == attachmentId
+                              ? a.copyWith(localPath: newPath)
+                              : a,
+                        )
+                        .toList(),
+                  ),
+                )
+                .toList(),
+          ),
+        )
         .toList();
   }
 

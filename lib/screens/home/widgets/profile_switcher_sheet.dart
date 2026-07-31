@@ -34,8 +34,10 @@ class ProfileSwitcherSheet extends StatelessWidget {
           ),
           Row(
             children: [
-              const Text('Switch profile',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Text(
+                'Switch profile',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
               const Spacer(),
               TextButton.icon(
                 onPressed: onAddProfile,
@@ -65,8 +67,18 @@ class ProfileSwitcherSheet extends StatelessWidget {
                       width: isSelected ? 2 : 1,
                     ),
                     boxShadow: isSelected
-                        ? [BoxShadow(color: pTheme.accent.withAlpha(40), blurRadius: 10)]
-                        : [BoxShadow(color: Colors.black.withAlpha(10), blurRadius: 6)],
+                        ? [
+                            BoxShadow(
+                              color: pTheme.accent.withAlpha(40),
+                              blurRadius: 10,
+                            ),
+                          ]
+                        : [
+                            BoxShadow(
+                              color: Colors.black.withAlpha(10),
+                              blurRadius: 6,
+                            ),
+                          ],
                   ),
                   child: Row(
                     children: [
@@ -78,8 +90,10 @@ class ProfileSwitcherSheet extends StatelessWidget {
                           color: isSelected ? pTheme.accent : pTheme.soft,
                         ),
                         child: Center(
-                          child: Text(pTheme.decalEmoji,
-                              style: const TextStyle(fontSize: 22)),
+                          child: Text(
+                            pTheme.decalEmoji,
+                            style: const TextStyle(fontSize: 22),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 14),
@@ -87,24 +101,41 @@ class ProfileSwitcherSheet extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(profile.nickname ?? profile.name,
+                            Text(
+                              profile.nickname ?? profile.name,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: isSelected
+                                    ? pTheme.accent
+                                    : const Color(0xFF2D2D2D),
+                              ),
+                            ),
+                            if (profile.nickname != null &&
+                                profile.nickname!.isNotEmpty)
+                              Text(
+                                profile.name,
                                 style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                  color: isSelected ? pTheme.accent : const Color(0xFF2D2D2D),
-                                )),
-                            if (profile.nickname != null && profile.nickname!.isNotEmpty)
-                              Text(profile.name,
-                                  style: TextStyle(
-                                      fontSize: 12, color: Colors.grey.shade500)),
-                            Text(profile.ageText,
-                                style: TextStyle(
-                                    fontSize: 13, color: Colors.grey.shade500)),
+                                  fontSize: 12,
+                                  color: Color(0xFF616161),
+                                ),
+                              ),
+                            Text(
+                              profile.ageText,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Color(0xFF616161),
+                              ),
+                            ),
                           ],
                         ),
                       ),
                       if (isSelected)
-                        Icon(Icons.check_circle, color: pTheme.accent, size: 22),
+                        Icon(
+                          Icons.check_circle,
+                          color: pTheme.accent,
+                          size: 22,
+                        ),
                     ],
                   ),
                 ),

@@ -34,42 +34,41 @@ class BlogPost {
     String? content,
     List<String>? tags,
     List<String>? likedByUids,
-  }) =>
-      BlogPost(
-        id: id,
-        title: title ?? this.title,
-        content: content ?? this.content,
-        authorId: authorId,
-        authorName: authorName,
-        authorPhotoUrl: authorPhotoUrl,
-        createdAt: createdAt,
-        tags: tags ?? this.tags,
-        likedByUids: likedByUids ?? this.likedByUids,
-      );
+  }) => BlogPost(
+    id: id,
+    title: title ?? this.title,
+    content: content ?? this.content,
+    authorId: authorId,
+    authorName: authorName,
+    authorPhotoUrl: authorPhotoUrl,
+    createdAt: createdAt,
+    tags: tags ?? this.tags,
+    likedByUids: likedByUids ?? this.likedByUids,
+  );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'title': title,
-        'content': content,
-        'authorId': authorId,
-        'authorName': authorName,
-        if (authorPhotoUrl != null) 'authorPhotoUrl': authorPhotoUrl,
-        'createdAt': createdAt.millisecondsSinceEpoch,
-        if (tags.isNotEmpty) 'tags': tags,
-        if (likedByUids.isNotEmpty) 'likedByUids': likedByUids,
-      };
+    'id': id,
+    'title': title,
+    'content': content,
+    'authorId': authorId,
+    'authorName': authorName,
+    if (authorPhotoUrl != null) 'authorPhotoUrl': authorPhotoUrl,
+    'createdAt': createdAt.millisecondsSinceEpoch,
+    if (tags.isNotEmpty) 'tags': tags,
+    if (likedByUids.isNotEmpty) 'likedByUids': likedByUids,
+  };
 
   factory BlogPost.fromJson(Map<String, dynamic> j) => BlogPost(
-        id: j['id'] as String,
-        title: j['title'] as String? ?? '',
-        content: j['content'] as String? ?? '',
-        authorId: j['authorId'] as String? ?? '',
-        authorName: j['authorName'] as String? ?? 'Anonymous',
-        authorPhotoUrl: j['authorPhotoUrl'] as String?,
-        createdAt: DateTime.fromMillisecondsSinceEpoch(
-            (j['createdAt'] as num).toInt()),
-        tags: (j['tags'] as List<dynamic>?)?.cast<String>() ?? [],
-        likedByUids:
-            (j['likedByUids'] as List<dynamic>?)?.cast<String>() ?? [],
-      );
+    id: j['id'] as String,
+    title: j['title'] as String? ?? '',
+    content: j['content'] as String? ?? '',
+    authorId: j['authorId'] as String? ?? '',
+    authorName: j['authorName'] as String? ?? 'Anonymous',
+    authorPhotoUrl: j['authorPhotoUrl'] as String?,
+    createdAt: DateTime.fromMillisecondsSinceEpoch(
+      (j['createdAt'] as num).toInt(),
+    ),
+    tags: (j['tags'] as List<dynamic>?)?.cast<String>() ?? [],
+    likedByUids: (j['likedByUids'] as List<dynamic>?)?.cast<String>() ?? [],
+  );
 }

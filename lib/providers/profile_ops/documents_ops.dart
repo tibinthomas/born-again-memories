@@ -8,26 +8,35 @@ import 'profile_mutations.dart';
 mixin DocumentsOps on StateNotifier<List<KidProfile>?>, ProfileMutations {
   Future<void> addDocument(int profileIndex, BabyDocument doc) async {
     final profile = (state ?? <KidProfile>[])[profileIndex];
-    setProfile(profileIndex,
-        profile.copyWith(documents: [...profile.documents, doc]));
+    setProfile(
+      profileIndex,
+      profile.copyWith(documents: [...profile.documents, doc]),
+    );
     await FirestoreService.saveDocument(uid, profile.id, doc);
   }
 
-  Future<void> addDocumentToProfiles(List<int> profileIndices, BabyDocument doc) async {
+  Future<void> addDocumentToProfiles(
+    List<int> profileIndices,
+    BabyDocument doc,
+  ) async {
     for (final profileIndex in profileIndices) {
       final profile = (state ?? <KidProfile>[])[profileIndex];
-      setProfile(profileIndex,
-          profile.copyWith(documents: [...profile.documents, doc]));
+      setProfile(
+        profileIndex,
+        profile.copyWith(documents: [...profile.documents, doc]),
+      );
       await FirestoreService.saveDocument(uid, profile.id, doc);
     }
   }
 
   Future<void> deleteDocument(int profileIndex, String docId) async {
     final profile = (state ?? <KidProfile>[])[profileIndex];
-    setProfile(profileIndex,
-        profile.copyWith(
-          documents: profile.documents.where((d) => d.id != docId).toList(),
-        ));
+    setProfile(
+      profileIndex,
+      profile.copyWith(
+        documents: profile.documents.where((d) => d.id != docId).toList(),
+      ),
+    );
     await FirestoreService.deleteDocument(uid, profile.id, docId);
   }
 

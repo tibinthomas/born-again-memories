@@ -145,7 +145,7 @@ class _StoryDetailScreenState extends State<StoryDetailScreen> {
                           ? Icons.favorite_rounded
                           : Icons.favorite_border_rounded,
                       key: ValueKey(liked),
-                      color: liked ? Colors.red.shade400 : Colors.grey.shade400,
+                      color: liked ? Colors.red.shade400 : Color(0xFF616161),
                       size: 22,
                     ),
                   ),
@@ -185,7 +185,7 @@ class _StoryDetailScreenState extends State<StoryDetailScreen> {
                             _formatDate(_post.createdAt),
                             style: TextStyle(
                               fontSize: 12,
-                              color: Colors.grey.shade500,
+                              color: Color(0xFF616161),
                             ),
                           ),
                         ],
@@ -279,7 +279,7 @@ class _StoryDetailScreenState extends State<StoryDetailScreen> {
                                 key: ValueKey(liked),
                                 color: liked
                                     ? Colors.red.shade400
-                                    : Colors.grey.shade500,
+                                    : Color(0xFF616161),
                                 size: 20,
                               ),
                             ),

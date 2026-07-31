@@ -5,27 +5,20 @@ class AddMilestoneFormState {
   final DateTime date;
   final List<Attachment> attachments;
 
-  const AddMilestoneFormState({
-    required this.date,
-    required this.attachments,
-  });
+  const AddMilestoneFormState({required this.date, required this.attachments});
 
   AddMilestoneFormState copyWith({
     DateTime? date,
     List<Attachment>? attachments,
-  }) =>
-      AddMilestoneFormState(
-        date: date ?? this.date,
-        attachments: attachments ?? this.attachments,
-      );
+  }) => AddMilestoneFormState(
+    date: date ?? this.date,
+    attachments: attachments ?? this.attachments,
+  );
 }
 
 class AddMilestoneFormNotifier extends StateNotifier<AddMilestoneFormState> {
   AddMilestoneFormNotifier()
-      : super(AddMilestoneFormState(
-          date: DateTime.now(),
-          attachments: [],
-        ));
+    : super(AddMilestoneFormState(date: DateTime.now(), attachments: []));
 
   void initialize(DateTime date, List<Attachment> attachments) =>
       state = AddMilestoneFormState(date: date, attachments: attachments);
@@ -41,7 +34,8 @@ class AddMilestoneFormNotifier extends StateNotifier<AddMilestoneFormState> {
   }
 }
 
-final addMilestoneFormProvider = StateNotifierProvider.autoDispose<
-    AddMilestoneFormNotifier, AddMilestoneFormState>(
-  (ref) => AddMilestoneFormNotifier(),
-);
+final addMilestoneFormProvider =
+    StateNotifierProvider.autoDispose<
+      AddMilestoneFormNotifier,
+      AddMilestoneFormState
+    >((ref) => AddMilestoneFormNotifier());

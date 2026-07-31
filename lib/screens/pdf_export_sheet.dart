@@ -15,22 +15,28 @@ enum _Range { allTime, last3, last6, thisYear }
 
 extension _RangeLabel on _Range {
   String get label => switch (this) {
-        _Range.allTime => 'All time',
-        _Range.last3 => 'Last 3 months',
-        _Range.last6 => 'Last 6 months',
-        _Range.thisYear => 'This year',
-      };
+    _Range.allTime => 'All time',
+    _Range.last3 => 'Last 3 months',
+    _Range.last6 => 'Last 6 months',
+    _Range.thisYear => 'This year',
+  };
 
   DateTimeRange? dateRange() {
     final now = DateTime.now();
     return switch (this) {
       _Range.allTime => null,
-      _Range.last3 =>
-        DateTimeRange(start: DateTime(now.year, now.month - 3, now.day), end: now),
-      _Range.last6 =>
-        DateTimeRange(start: DateTime(now.year, now.month - 6, now.day), end: now),
-      _Range.thisYear =>
-        DateTimeRange(start: DateTime(now.year, 1, 1), end: now),
+      _Range.last3 => DateTimeRange(
+        start: DateTime(now.year, now.month - 3, now.day),
+        end: now,
+      ),
+      _Range.last6 => DateTimeRange(
+        start: DateTime(now.year, now.month - 6, now.day),
+        end: now,
+      ),
+      _Range.thisYear => DateTimeRange(
+        start: DateTime(now.year, 1, 1),
+        end: now,
+      ),
     };
   }
 }
@@ -61,8 +67,9 @@ class _PdfExportSheetState extends ConsumerState<PdfExportSheet> {
     final range = _range.dateRange();
     if (range != null) {
       list = list
-          .where((m) =>
-              !m.date.isBefore(range.start) && !m.date.isAfter(range.end))
+          .where(
+            (m) => !m.date.isBefore(range.start) && !m.date.isAfter(range.end),
+          )
           .toList();
     }
     if (_favoritesOnly) list = list.where((m) => m.isFavorite).toList();
@@ -87,9 +94,9 @@ class _PdfExportSheetState extends ConsumerState<PdfExportSheet> {
       await Printing.sharePdf(bytes: bytes, filename: name);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Export failed: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Export failed: $e')));
     } finally {
       if (mounted) setState(() => _exporting = false);
     }
@@ -107,7 +114,11 @@ class _PdfExportSheetState extends ConsumerState<PdfExportSheet> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       padding: EdgeInsets.fromLTRB(
-          20, 16, 20, MediaQuery.viewInsetsOf(context).bottom + 32),
+        20,
+        16,
+        20,
+        MediaQuery.viewInsetsOf(context).bottom + 32,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -119,8 +130,9 @@ class _PdfExportSheetState extends ConsumerState<PdfExportSheet> {
               height: 4,
               margin: const EdgeInsets.only(bottom: 20),
               decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2)),
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
           ),
 
@@ -134,8 +146,11 @@ class _PdfExportSheetState extends ConsumerState<PdfExportSheet> {
                   color: Color.lerp(Colors.white, accent, 0.14),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(Icons.picture_as_pdf_outlined,
-                    size: 20, color: accent),
+                child: Icon(
+                  Icons.picture_as_pdf_outlined,
+                  size: 20,
+                  color: accent,
+                ),
               ),
               const SizedBox(width: 12),
               Column(
@@ -144,14 +159,14 @@ class _PdfExportSheetState extends ConsumerState<PdfExportSheet> {
                   const Text(
                     'Export Memory Book',
                     style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF1A1A2E)),
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1A1A2E),
+                    ),
                   ),
                   Text(
                     '$count memories selected',
-                    style:
-                        TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                    style: TextStyle(fontSize: 12, color: Color(0xFF616161)),
                   ),
                 ],
               ),
@@ -166,9 +181,10 @@ class _PdfExportSheetState extends ConsumerState<PdfExportSheet> {
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                    color: Colors.black.withAlpha(6),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2)),
+                  color: Colors.black.withAlpha(6),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
               ],
             ),
             clipBehavior: Clip.antiAlias,
@@ -180,15 +196,19 @@ class _PdfExportSheetState extends ConsumerState<PdfExportSheet> {
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
                   child: Row(
                     children: [
-                      Icon(Icons.date_range_outlined,
-                          size: 16, color: Colors.grey.shade500),
+                      Icon(
+                        Icons.date_range_outlined,
+                        size: 16,
+                        color: Color(0xFF616161),
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         'Date range',
                         style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey.shade700),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade700,
+                        ),
                       ),
                     ],
                   ),
@@ -205,7 +225,9 @@ class _PdfExportSheetState extends ConsumerState<PdfExportSheet> {
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 150),
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 6),
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
                             color: selected
                                 ? Color.lerp(Colors.white, accent, 0.15)
@@ -232,11 +254,12 @@ class _PdfExportSheetState extends ConsumerState<PdfExportSheet> {
                 ),
 
                 Divider(
-                    height: 1,
-                    thickness: 1,
-                    indent: 16,
-                    endIndent: 16,
-                    color: Colors.grey.shade100),
+                  height: 1,
+                  thickness: 1,
+                  indent: 16,
+                  endIndent: 16,
+                  color: Colors.grey.shade100,
+                ),
 
                 // Favorites only
                 _OptionRow(
@@ -248,11 +271,12 @@ class _PdfExportSheetState extends ConsumerState<PdfExportSheet> {
                 ),
 
                 Divider(
-                    height: 1,
-                    thickness: 1,
-                    indent: 16,
-                    endIndent: 16,
-                    color: Colors.grey.shade100),
+                  height: 1,
+                  thickness: 1,
+                  indent: 16,
+                  endIndent: 16,
+                  color: Colors.grey.shade100,
+                ),
 
                 // Include photos
                 _OptionRow(
@@ -276,7 +300,8 @@ class _PdfExportSheetState extends ConsumerState<PdfExportSheet> {
                 backgroundColor: count == 0 ? Colors.grey.shade300 : accent,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14)),
+                  borderRadius: BorderRadius.circular(14),
+                ),
               ),
               onPressed: (count == 0 || _exporting) ? null : _export,
               icon: _exporting
@@ -284,19 +309,26 @@ class _PdfExportSheetState extends ConsumerState<PdfExportSheet> {
                       width: 18,
                       height: 18,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white))
-                  : const Icon(Icons.picture_as_pdf_outlined,
-                      size: 18, color: Colors.white),
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Icon(
+                      Icons.picture_as_pdf_outlined,
+                      size: 18,
+                      color: Colors.white,
+                    ),
               label: Text(
                 _exporting
                     ? 'Generating PDF…'
                     : count == 0
-                        ? 'No memories in range'
-                        : 'Export $count memories',
+                    ? 'No memories in range'
+                    : 'Export $count memories',
                 style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white),
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
               ),
             ),
           ),
@@ -327,12 +359,13 @@ class _OptionRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: Colors.grey.shade500),
+          Icon(icon, size: 18, color: Color(0xFF616161)),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(label,
-                style: const TextStyle(
-                    fontSize: 14, color: Color(0xFF1A1A2E))),
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 14, color: Color(0xFF1A1A2E)),
+            ),
           ),
           Switch.adaptive(
             value: value,

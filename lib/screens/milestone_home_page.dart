@@ -320,7 +320,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                                 : Icons.star_outline_rounded,
                             color: _showFavoritesOnly
                                 ? const Color(0xFFFBBF24)
-                                : Colors.grey.shade400,
+                                : Color(0xFF616161),
                             size: 22,
                           ),
                           onPressed: () => setState(
@@ -335,7 +335,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                             _showSearch ? Icons.search_off : Icons.search,
                             color: _showSearch
                                 ? profileTheme.accent
-                                : Colors.grey.shade500,
+                                : Color(0xFF616161),
                             size: 22,
                           ),
                           onPressed: () {
@@ -356,7 +356,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                         IconButton(
                           icon: Icon(
                             Icons.picture_as_pdf_outlined,
-                            color: Colors.grey.shade500,
+                            color: Color(0xFF616161),
                             size: 22,
                           ),
                           onPressed: allMilestones.isEmpty
@@ -399,12 +399,12 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                                   decoration: InputDecoration(
                                     hintText: 'Search memories…',
                                     hintStyle: TextStyle(
-                                      color: Colors.grey.shade400,
+                                      color: Color(0xFF616161),
                                       fontSize: 13,
                                     ),
                                     prefixIcon: Icon(
                                       Icons.search,
-                                      color: Colors.grey.shade400,
+                                      color: Color(0xFF616161),
                                       size: 18,
                                     ),
                                     suffixIcon: _searchQuery.isNotEmpty
@@ -580,7 +580,7 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                                           ? 'No favourite memories yet.'
                                           : 'No milestones match your filter.',
                                       style: TextStyle(
-                                        color: Colors.grey.shade500,
+                                        color: Color(0xFF616161),
                                       ),
                                     ),
                                     TextButton(

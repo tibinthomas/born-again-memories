@@ -13,8 +13,8 @@ Future<DateTime?> showAppDatePicker({
   final clamped = initialDate.isBefore(firstDate)
       ? firstDate
       : initialDate.isAfter(lastDate)
-          ? lastDate
-          : initialDate;
+      ? lastDate
+      : initialDate;
 
   DateTime selected = clamped;
   bool confirmed = false;
