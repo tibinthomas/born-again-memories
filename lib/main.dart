@@ -44,7 +44,7 @@ class BabyMilestonesApp extends ConsumerWidget {
       // remaining above the new auth-controlled home screen.
       key: ValueKey('app-$authIdentity'),
       debugShowCheckedModeBanner: false,
-      title: 'First Moments',
+      title: 'Growing Memories',
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,

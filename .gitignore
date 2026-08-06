@@ -78,9 +78,9 @@ pubspec.lock
 **/android/*.iml
 **/android/*.apk
 **/android/*.zip
-**/android/*.jks
-**/android/*.keystore
-**/android/key.properties
+android/key.properties
+*.jks
+*.keystore
 
 # ============================================================================
 # iOS/macOS

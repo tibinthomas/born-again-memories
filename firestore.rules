@@ -2,6 +2,28 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isModerator() {
+      return signedIn() && request.auth.token.moderator == true;
+    }
+
+    function acceptedUgcTerms() {
+      return signedIn()
+          && exists(/databases/$(database)/documents/users/$(request.auth.uid)/ugc/terms)
+          && get(/databases/$(database)/documents/users/$(request.auth.uid)/ugc/terms).data.version
+               == '2026-07-31';
+    }
+
+    function isVisibleUgc() {
+      return !('moderationStatus' in resource.data)
+          || resource.data.moderationStatus == 'active'
+          || isModerator()
+          || resource.data.authorId == request.auth.uid;
+    }
+
     // True when the signed-in user's email appears in the owner's sharedWithEmails list.
     function isSharedWith(uid) {
       return request.auth != null
@@ -57,46 +79,78 @@ service cloud.firestore {
     // posts; other users may only toggle likes (likedByUids is the sole
     // field they can touch, and authorId can never change after creation).
     match /blogs/{blogId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null
-                    && request.resource.data.authorId == request.auth.uid;
-      allow update: if request.auth != null
+      allow read: if signedIn() && isVisibleUgc();
+      allow create: if acceptedUgcTerms()
+                    && request.resource.data.authorId == request.auth.uid
+                    && request.resource.data.moderationStatus == 'active';
+      allow update: if isModerator()
+                    || (signedIn()
                     && request.resource.data.authorId == resource.data.authorId
-                    && (request.auth.uid == resource.data.authorId
+                    && ((request.auth.uid == resource.data.authorId
+                         && request.resource.data.diff(resource.data)
+                              .affectedKeys().hasOnly(['title', 'content', 'tags']))
                         || request.resource.data.diff(resource.data)
-                             .affectedKeys().hasOnly(['likedByUids']));
-      allow delete: if request.auth != null
-                    && request.auth.uid == resource.data.authorId;
+                             .affectedKeys().hasOnly(['likedByUids'])));
+      allow delete: if isModerator()
+                    || (signedIn() && request.auth.uid == resource.data.authorId);
     }
 
     // Community Q&A forum. Authors own their questions; other users may only
     // bump the denormalized answerCount when posting/removing answers.
     match /forum/{questionId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null
-                    && request.resource.data.authorId == request.auth.uid;
-      allow update: if request.auth != null
+      allow read: if signedIn() && isVisibleUgc();
+      allow create: if acceptedUgcTerms()
+                    && request.resource.data.authorId == request.auth.uid
+                    && request.resource.data.moderationStatus == 'active';
+      allow update: if isModerator()
+                    || (signedIn()
                     && request.resource.data.authorId == resource.data.authorId
-                    && (request.auth.uid == resource.data.authorId
+                    && ((request.auth.uid == resource.data.authorId
+                         && request.resource.data.diff(resource.data)
+                              .affectedKeys().hasOnly(['content', 'tags', 'edited']))
                         || request.resource.data.diff(resource.data)
-                             .affectedKeys().hasOnly(['answerCount']));
-      allow delete: if request.auth != null
-                    && request.auth.uid == resource.data.authorId;
+                             .affectedKeys().hasOnly(['answerCount'])));
+      allow delete: if isModerator()
+                    || (signedIn() && request.auth.uid == resource.data.authorId);
 
       // Answers: author-owned; the question's author may also delete answers
       // (needed when deleting a whole question).
       match /answers/{answerId} {
-        allow read: if request.auth != null;
-        allow create: if request.auth != null
-                      && request.resource.data.authorId == request.auth.uid;
-        allow update: if request.auth != null
+        allow read: if signedIn() && isVisibleUgc();
+        allow create: if acceptedUgcTerms()
+                      && request.resource.data.authorId == request.auth.uid
+                      && request.resource.data.moderationStatus == 'active';
+        allow update: if isModerator()
+                      || (signedIn()
                       && request.auth.uid == resource.data.authorId
-                      && request.resource.data.authorId == resource.data.authorId;
-        allow delete: if request.auth != null
+                      && request.resource.data.authorId == resource.data.authorId
+                      && request.resource.data.diff(resource.data)
+                           .affectedKeys().hasOnly(['content', 'edited']));
+        allow delete: if isModerator()
+                      || (signedIn()
                       && (request.auth.uid == resource.data.authorId
                           || request.auth.uid ==
-                               get(/databases/$(database)/documents/forum/$(questionId)).data.authorId);
+                               get(/databases/$(database)/documents/forum/$(questionId)).data.authorId));
       }
+    }
+
+    // Reports are private moderation records. Users can submit or refresh only
+    // their own pending report; moderators can review and resolve all reports.
+    match /ugcReports/{reportId} {
+      allow create: if signedIn()
+                    && request.resource.data.reporterId == request.auth.uid
+                    && request.resource.data.authorId != request.auth.uid
+                    && request.resource.data.status == 'pending';
+      allow update: if isModerator()
+                    || (signedIn()
+                        && resource.data.reporterId == request.auth.uid
+                        && request.resource.data.reporterId == resource.data.reporterId
+                        && request.resource.data.targetPath == resource.data.targetPath
+                        && request.resource.data.targetType == resource.data.targetType
+                        && request.resource.data.targetId == resource.data.targetId
+                        && request.resource.data.authorId == resource.data.authorId
+                        && request.resource.data.status == 'pending');
+      allow read, delete: if isModerator();
     }
   }
 }

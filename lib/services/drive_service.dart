@@ -33,7 +33,10 @@ bool _isDriveAuthError(Object e) {
 }
 
 class DriveService {
-  static const _appFolderName = '⚠️ First Moments — App Data (Do Not Delete)';
+  static const _appFolderName =
+      '⚠️ Growing Memories — App Data (Do Not Delete)';
+  static const _firstMomentsFolderName =
+      '⚠️ First Moments — App Data (Do Not Delete)';
   static const _legacyAppFolderName =
       '⚠️ Born Again Memories — App Data (Do Not Delete)';
 
@@ -68,7 +71,11 @@ class DriveService {
   }
 
   static Future<String> _ensureAppFolder(drive.DriveApi api) async {
-    for (final name in [_appFolderName, _legacyAppFolderName]) {
+    for (final name in [
+      _appFolderName,
+      _firstMomentsFolderName,
+      _legacyAppFolderName,
+    ]) {
       final q =
           "name='$name' and mimeType='application/vnd.google-apps.folder' and trashed=false";
       final list = await api.files.list(

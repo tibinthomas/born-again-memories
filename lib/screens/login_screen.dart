@@ -227,7 +227,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                     child: FadeTransition(
                       opacity: _titleFade,
                       child: const Text(
-                        'First Moments',
+                        'Growing Memories',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 32,

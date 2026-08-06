@@ -1,6 +1,6 @@
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 const { initializeApp } = require("firebase-admin/app");
-const { getFirestore } = require("firebase-admin/firestore");
+const { FieldValue, getFirestore } = require("firebase-admin/firestore");
 const { getMessaging } = require("firebase-admin/messaging");
 
 initializeApp();
@@ -74,5 +74,64 @@ exports.onMilestoneCreated = onDocumentCreated(
         },
       },
     });
+  }
+);
+
+/**
+ * Applies a conservative automatic hold after three distinct users report the
+ * same story, question, or answer. The content remains available to its author
+ * and moderators through Firestore rules, while regular community feeds hide it.
+ * A moderator can restore or remove it by changing moderationStatus.
+ */
+exports.onUgcReportCreated = onDocumentCreated(
+  "ugcReports/{reportId}",
+  async (event) => {
+    const report = event.data?.data();
+    if (!report || report.status !== "pending") return;
+
+    const targetPath = report.targetPath;
+    if (typeof targetPath !== "string") return;
+
+    const segments = targetPath.split("/");
+    const isStory = segments.length === 2 && segments[0] === "blogs";
+    const isQuestion = segments.length === 2 && segments[0] === "forum";
+    const isAnswer =
+      segments.length === 4 &&
+      segments[0] === "forum" &&
+      segments[2] === "answers";
+    if (!isStory && !isQuestion && !isAnswer) return;
+
+    const db = getFirestore();
+    const reports = await db
+      .collection("ugcReports")
+      .where("targetPath", "==", targetPath)
+      .get();
+    const reporterIds = new Set(
+      reports.docs
+        .filter((doc) => doc.get("status") === "pending")
+        .map((doc) => doc.get("reporterId"))
+        .filter(Boolean)
+    );
+    if (reporterIds.size < 3) return;
+
+    const targetRef = db.doc(targetPath);
+    const target = await targetRef.get();
+    if (!target.exists || target.get("moderationStatus") === "hidden") return;
+
+    const batch = db.batch();
+    batch.update(targetRef, {
+      moderationStatus: "hidden",
+      moderationReason: "Automatically held after multiple user reports",
+      moderatedAt: FieldValue.serverTimestamp(),
+    });
+    for (const reportDoc of reports.docs.filter(
+      (doc) => doc.get("status") === "pending"
+    )) {
+      batch.update(reportDoc.ref, {
+        autoActionTaken: true,
+        reviewedAt: FieldValue.serverTimestamp(),
+      });
+    }
+    await batch.commit();
   }
 );

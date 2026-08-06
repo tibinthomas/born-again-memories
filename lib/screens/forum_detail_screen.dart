@@ -4,7 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
 
 import '../models/forum_question.dart';
+import '../providers/ugc_safety_provider.dart';
 import '../services/firestore_service.dart';
+import '../widgets/ugc_safety.dart';
 
 final _answersProvider = StreamProviderFamily<List<ForumAnswer>, String>(
   (_, questionId) => FirestoreService.streamForumAnswers(questionId),
@@ -50,6 +52,10 @@ class _ForumDetailScreenState extends ConsumerState<ForumDetailScreen> {
   Future<void> _submitAnswer() async {
     final text = _answerCtrl.text.trim();
     if (text.isEmpty || text.length > _maxAnswerCharacters) return;
+    if (_editingAnswer == null && !await ensureUgcTermsAccepted(context)) {
+      return;
+    }
+    if (!mounted) return;
     setState(() => _submitting = true);
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -129,6 +135,8 @@ class _ForumDetailScreenState extends ConsumerState<ForumDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final answers = ref.watch(_answersProvider(_question.id));
+    final blockedIds =
+        ref.watch(blockedUserIdsProvider).valueOrNull ?? const {};
     final accent = widget.accent;
     final q = _question;
     final isQuestionOwner = q.authorId == widget.currentUid;
@@ -167,6 +175,14 @@ class _ForumDetailScreenState extends ConsumerState<ForumDetailScreen> {
                       _OwnerMenu(
                         onEdit: () => _showEditQuestionSheet(context),
                         onDelete: () => _confirmDeleteQuestion(context),
+                      )
+                    else
+                      UgcSafetyMenu(
+                        authorId: q.authorId,
+                        authorName: q.authorName,
+                        targetType: 'forumQuestion',
+                        targetId: q.id,
+                        targetPath: 'forum/${q.id}',
                       ),
                   ],
                 ),
@@ -285,16 +301,21 @@ class _ForumDetailScreenState extends ConsumerState<ForumDetailScreen> {
                     child: answers.when(
                       loading: () => const SizedBox.shrink(),
                       error: (_, _) => const SizedBox.shrink(),
-                      data: (list) => Text(
-                        list.isEmpty
-                            ? 'No answers yet — be the first!'
-                            : '${list.length} ${list.length == 1 ? 'Answer' : 'Answers'}',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF616161),
-                        ),
-                      ),
+                      data: (list) {
+                        final visible = list
+                            .where((a) => !blockedIds.contains(a.authorId))
+                            .toList();
+                        return Text(
+                          visible.isEmpty
+                              ? 'No answers yet — be the first!'
+                              : '${visible.length} ${visible.length == 1 ? 'Answer' : 'Answers'}',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF616161),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ),
@@ -317,22 +338,28 @@ class _ForumDetailScreenState extends ConsumerState<ForumDetailScreen> {
                       ),
                     ),
                   ),
-                  data: (list) => SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (_, i) => Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-                        child: _AnswerCard(
-                          answer: list[i],
-                          accent: accent,
-                          currentUid: widget.currentUid,
-                          isEditing: _editingAnswer?.id == list[i].id,
-                          onEdit: () => _startEditAnswer(list[i]),
-                          onDelete: () => _confirmDeleteAnswer(list[i].id),
+                  data: (list) {
+                    final visible = list
+                        .where((a) => !blockedIds.contains(a.authorId))
+                        .toList();
+                    return SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (_, i) => Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+                          child: _AnswerCard(
+                            questionId: _question.id,
+                            answer: visible[i],
+                            accent: accent,
+                            currentUid: widget.currentUid,
+                            isEditing: _editingAnswer?.id == visible[i].id,
+                            onEdit: () => _startEditAnswer(visible[i]),
+                            onDelete: () => _confirmDeleteAnswer(visible[i].id),
+                          ),
                         ),
+                        childCount: visible.length,
                       ),
-                      childCount: list.length,
-                    ),
-                  ),
+                    );
+                  },
                 ),
 
                 const SliverToBoxAdapter(child: SizedBox(height: 120)),
@@ -417,6 +444,7 @@ class _ForumDetailScreenState extends ConsumerState<ForumDetailScreen> {
 // ── Answer card ───────────────────────────────────────────────────────────────
 
 class _AnswerCard extends StatelessWidget {
+  final String questionId;
   final ForumAnswer answer;
   final Color accent;
   final String currentUid;
@@ -425,6 +453,7 @@ class _AnswerCard extends StatelessWidget {
   final VoidCallback onDelete;
 
   const _AnswerCard({
+    required this.questionId,
     required this.answer,
     required this.accent,
     required this.currentUid,
@@ -480,7 +509,16 @@ class _AnswerCard extends StatelessWidget {
                   ],
                 ),
               ),
-              if (isOwner) _OwnerMenu(onEdit: onEdit, onDelete: onDelete),
+              if (isOwner)
+                _OwnerMenu(onEdit: onEdit, onDelete: onDelete)
+              else
+                UgcSafetyMenu(
+                  authorId: answer.authorId,
+                  authorName: answer.authorName,
+                  targetType: 'forumAnswer',
+                  targetId: answer.id,
+                  targetPath: 'forum/$questionId/answers/${answer.id}',
+                ),
             ],
           ),
           const SizedBox(height: 8),

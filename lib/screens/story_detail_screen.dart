@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/blog_post.dart';
 import '../services/firestore_service.dart';
+import '../widgets/ugc_safety.dart';
 import 'write_story_screen.dart';
 
 class StoryDetailScreen extends StatefulWidget {
@@ -134,7 +135,14 @@ class _StoryDetailScreenState extends State<StoryDetailScreen> {
                   color: Colors.red.shade400,
                   onPressed: _deleteStory,
                 ),
-              ],
+              ] else
+                UgcSafetyMenu(
+                  authorId: _post.authorId,
+                  authorName: _post.authorName,
+                  targetType: 'story',
+                  targetId: _post.id,
+                  targetPath: 'blogs/${_post.id}',
+                ),
               Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: IconButton(

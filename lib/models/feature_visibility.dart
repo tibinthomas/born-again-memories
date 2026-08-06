@@ -11,6 +11,8 @@ enum AppModule {
   savedLinks('savedLinks'),
   futurePlans('futurePlans'),
   familySharing('familySharing'),
+  googlePhotosImport('googlePhotosImport'),
+  pdfExport('pdfExport'),
   backupAndSync('backupAndSync'),
   accountsAndPrivacy('accountsAndPrivacy'),
   personalizationAndAccessibility('personalizationAndAccessibility');

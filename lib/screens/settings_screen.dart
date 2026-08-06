@@ -575,7 +575,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${pendingEmail!} hasn\'t joined First Moments yet.',
+                    '${pendingEmail!} hasn\'t joined Growing Memories yet.',
                     style: const TextStyle(fontSize: 13),
                   ),
                   const SizedBox(height: 8),
@@ -692,7 +692,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     const appStore =
         'https://apps.apple.com/app/born-again-memories/id000000000';
     final text =
-        'Hey! I\'m using First Moments to capture our little one\'s milestones. 📸👶\n\n'
+        'Hey! I\'m using Growing Memories to capture our little one\'s milestones. 📸👶\n\n'
         'Download the app and I\'ll share our memories with you!\n\n'
         '📱 iOS: $appStore\n'
         '🤖 Android: $playStore';
@@ -1672,7 +1672,7 @@ class _BackupCard extends StatelessWidget {
                       child: Text(
                         isAppleUser
                             ? 'Files are stored in your iCloud account under the "BornAgainMemories" app folder. Disabling iCloud or removing the app from iCloud will break backup.'
-                            : 'Files are stored in the First Moments app data folder in your Google Drive. Do not rename or delete this folder — doing so will break backup and may cause data loss.',
+                            : 'Files are stored in the Growing Memories app data folder in your Google Drive. Do not rename or delete this folder — doing so will break backup and may cause data loss.',
                         style: TextStyle(
                           fontSize: 11,
                           color: Colors.amber.shade800,
@@ -2464,7 +2464,7 @@ class _About extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           const Text(
-            'First Moments',
+            'Growing Memories',
             style: TextStyle(
               fontWeight: FontWeight.w700,
               fontSize: 14,
@@ -2543,19 +2543,6 @@ class _BackupPermissionTipsState extends State<_BackupPermissionTips> {
               _check();
             },
           ),
-        if (!kIsWeb && Platform.isAndroid && !s.batteryExempt) ...[
-          if (!s.notifications) const SizedBox(height: 6),
-          _PermTipRow(
-            icon: Icons.battery_saver_outlined,
-            label: 'Exempt app from battery optimization',
-            actionLabel: 'Exempt',
-            accent: widget.accent,
-            onAction: () async {
-              await BackupPermissionsService.requestBatteryExemption();
-              _check();
-            },
-          ),
-        ],
         if (!kIsWeb && Platform.isIOS && !s.backgroundRefresh) ...[
           if (!s.notifications) const SizedBox(height: 6),
           _PermTipRow(
@@ -2664,22 +2651,6 @@ class _BackupPermissionsSheetState extends State<_BackupPermissionsSheet> {
                 _check();
               },
             ),
-            if (!kIsWeb && Platform.isAndroid) ...[
-              const SizedBox(height: 12),
-              _PermSheetRow(
-                icon: Icons.battery_saver_outlined,
-                title: 'Battery optimization',
-                subtitle:
-                    'Prevent the system from pausing uploads in the background.',
-                granted: s.batteryExempt,
-                actionLabel: 'Exempt',
-                accent: accent,
-                onAction: () async {
-                  await BackupPermissionsService.requestBatteryExemption();
-                  _check();
-                },
-              ),
-            ],
             if (!kIsWeb && Platform.isIOS) ...[
               const SizedBox(height: 12),
               _PermSheetRow(

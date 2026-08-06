@@ -435,7 +435,7 @@ class _BrandingPill extends StatelessWidget {
             Text(theme.decalEmoji, style: const TextStyle(fontSize: 13)),
             const SizedBox(width: 6),
             const Text(
-              'First Moments',
+              'Growing Memories',
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w700,

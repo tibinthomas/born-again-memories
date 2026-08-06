@@ -156,7 +156,7 @@ class BackupCard extends StatelessWidget {
                     const SizedBox(width: 5),
                     Expanded(
                       child: Text(
-                        'Files are stored in the First Moments app data folder in your Google Drive. Do not rename or delete this folder — doing so will break backup and may cause data loss.',
+                        'Files are stored in the Growing Memories app data folder in your Google Drive. Do not rename or delete this folder — doing so will break backup and may cause data loss.',
                         style: TextStyle(
                           fontSize: 11,
                           color: Colors.amber.shade800,

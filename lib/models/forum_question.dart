@@ -6,6 +6,7 @@ class ForumAnswer {
   final String? authorPhotoUrl;
   final DateTime createdAt;
   final bool edited;
+  final String moderationStatus;
 
   const ForumAnswer({
     required this.id,
@@ -15,9 +16,14 @@ class ForumAnswer {
     this.authorPhotoUrl,
     required this.createdAt,
     this.edited = false,
+    this.moderationStatus = 'active',
   });
 
-  ForumAnswer copyWith({String? content, bool? edited}) => ForumAnswer(
+  ForumAnswer copyWith({
+    String? content,
+    bool? edited,
+    String? moderationStatus,
+  }) => ForumAnswer(
     id: id,
     content: content ?? this.content,
     authorId: authorId,
@@ -25,6 +31,7 @@ class ForumAnswer {
     authorPhotoUrl: authorPhotoUrl,
     createdAt: createdAt,
     edited: edited ?? this.edited,
+    moderationStatus: moderationStatus ?? this.moderationStatus,
   );
 
   Map<String, dynamic> toJson() => {
@@ -35,6 +42,7 @@ class ForumAnswer {
     if (authorPhotoUrl != null) 'authorPhotoUrl': authorPhotoUrl,
     'createdAt': createdAt.millisecondsSinceEpoch,
     if (edited) 'edited': true,
+    'moderationStatus': moderationStatus,
   };
 
   factory ForumAnswer.fromJson(Map<String, dynamic> j) => ForumAnswer(
@@ -47,6 +55,7 @@ class ForumAnswer {
       (j['createdAt'] as num).toInt(),
     ),
     edited: j['edited'] as bool? ?? false,
+    moderationStatus: j['moderationStatus'] as String? ?? 'active',
   );
 }
 
@@ -60,6 +69,7 @@ class ForumQuestion {
   final List<String> tags;
   final int answerCount;
   final bool edited;
+  final String moderationStatus;
 
   const ForumQuestion({
     required this.id,
@@ -71,6 +81,7 @@ class ForumQuestion {
     this.tags = const [],
     this.answerCount = 0,
     this.edited = false,
+    this.moderationStatus = 'active',
   });
 
   ForumQuestion copyWith({
@@ -78,6 +89,7 @@ class ForumQuestion {
     List<String>? tags,
     int? answerCount,
     bool? edited,
+    String? moderationStatus,
   }) => ForumQuestion(
     id: id,
     content: content ?? this.content,
@@ -88,6 +100,7 @@ class ForumQuestion {
     tags: tags ?? this.tags,
     answerCount: answerCount ?? this.answerCount,
     edited: edited ?? this.edited,
+    moderationStatus: moderationStatus ?? this.moderationStatus,
   );
 
   Map<String, dynamic> toJson() => {
@@ -100,6 +113,7 @@ class ForumQuestion {
     if (tags.isNotEmpty) 'tags': tags,
     'answerCount': answerCount,
     if (edited) 'edited': true,
+    'moderationStatus': moderationStatus,
   };
 
   factory ForumQuestion.fromJson(Map<String, dynamic> j) => ForumQuestion(
@@ -114,5 +128,6 @@ class ForumQuestion {
     tags: (j['tags'] as List<dynamic>?)?.cast<String>() ?? [],
     answerCount: (j['answerCount'] as num?)?.toInt() ?? 0,
     edited: j['edited'] as bool? ?? false,
+    moderationStatus: j['moderationStatus'] as String? ?? 'active',
   );
 }

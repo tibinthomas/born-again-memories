@@ -465,8 +465,11 @@ class FirestoreService {
 
   // ── Community blogs ───────────────────────────────────────────────────────
 
-  static Stream<List<BlogPost>> streamBlogs({int limit = 50}) =>
-      _db.collection('blogs').snapshots().map((s) {
+  static Stream<List<BlogPost>> streamBlogs({int limit = 50}) => _db
+      .collection('blogs')
+      .where('moderationStatus', isEqualTo: 'active')
+      .snapshots()
+      .map((s) {
         final posts = s.docs
             .map((d) {
               try {
@@ -477,6 +480,7 @@ class FirestoreService {
               }
             })
             .whereType<BlogPost>()
+            .where((post) => post.moderationStatus == 'active')
             .toList();
         posts.sort((a, b) => b.createdAt.compareTo(a.createdAt));
         return posts.take(limit).toList();
@@ -510,8 +514,11 @@ class FirestoreService {
 
   // ── Community Q&A forum ───────────────────────────────────────────────────
 
-  static Stream<List<ForumQuestion>> streamForumQuestions() =>
-      _db.collection('forum').snapshots().map((s) {
+  static Stream<List<ForumQuestion>> streamForumQuestions() => _db
+      .collection('forum')
+      .where('moderationStatus', isEqualTo: 'active')
+      .snapshots()
+      .map((s) {
         final list =
             s.docs
                 .map((d) {
@@ -523,6 +530,7 @@ class FirestoreService {
                   }
                 })
                 .whereType<ForumQuestion>()
+                .where((question) => question.moderationStatus == 'active')
                 .toList()
               ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
         return list;
@@ -545,8 +553,11 @@ class FirestoreService {
     await batch.commit();
   }
 
-  static Stream<List<ForumAnswer>> streamForumAnswers(String questionId) =>
-      _db.collection('forum/$questionId/answers').snapshots().map((s) {
+  static Stream<List<ForumAnswer>> streamForumAnswers(String questionId) => _db
+      .collection('forum/$questionId/answers')
+      .where('moderationStatus', isEqualTo: 'active')
+      .snapshots()
+      .map((s) {
         final list =
             s.docs
                 .map((d) {
@@ -558,6 +569,7 @@ class FirestoreService {
                   }
                 })
                 .whereType<ForumAnswer>()
+                .where((answer) => answer.moderationStatus == 'active')
                 .toList()
               ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
         return list;

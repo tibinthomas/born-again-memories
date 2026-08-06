@@ -5,9 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/blog_post.dart';
 import '../models/kid_profile.dart';
 import '../providers/profiles_provider.dart';
+import '../providers/ugc_safety_provider.dart';
 import '../services/firestore_service.dart';
 import '../utils/device_performance.dart';
 import '../widgets/gradient_fab.dart';
+import '../widgets/ugc_safety.dart';
 import '../utils/profile_theme.dart';
 import 'story_detail_screen.dart';
 import 'write_story_screen.dart';
@@ -23,6 +25,8 @@ class StoriesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final blogs = ref.watch(blogsProvider);
+    final blockedIds =
+        ref.watch(blockedUserIdsProvider).valueOrNull ?? const {};
     final profiles = ref.watch(profilesProvider) ?? [];
     final theme = profiles.isNotEmpty
         ? ProfileTheme.forProfile(
@@ -92,7 +96,10 @@ class StoriesScreen extends ConsumerWidget {
                   ),
                 ),
                 data: (list) {
-                  if (list.isEmpty) {
+                  final visible = list
+                      .where((post) => !blockedIds.contains(post.authorId))
+                      .toList();
+                  if (visible.isEmpty) {
                     return _EmptyState(
                       accent: accent,
                       onWrite: () => _openWrite(context),
@@ -100,32 +107,32 @@ class StoriesScreen extends ConsumerWidget {
                   }
                   return ListView.builder(
                     padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
-                    itemCount: list.length,
+                    itemCount: visible.length,
                     itemBuilder: (_, i) => _AnimatedCard(
                       index: i,
                       child: Padding(
                         padding: const EdgeInsets.only(bottom: 12),
                         child: _StoryCard(
-                          post: list[i],
+                          post: visible[i],
                           currentUid: uid,
                           accent: accent,
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (_) => StoryDetailScreen(
-                                post: list[i],
+                                post: visible[i],
                                 currentUid: uid,
                                 accent: accent,
                               ),
                             ),
                           ),
                           onLike: () =>
-                              FirestoreService.toggleLike(list[i].id, uid),
-                          onEdit: list[i].authorId == uid
-                              ? () => _openWrite(context, list[i])
+                              FirestoreService.toggleLike(visible[i].id, uid),
+                          onEdit: visible[i].authorId == uid
+                              ? () => _openWrite(context, visible[i])
                               : null,
-                          onDelete: list[i].authorId == uid
-                              ? () => _confirmDelete(context, list[i])
+                          onDelete: visible[i].authorId == uid
+                              ? () => _confirmDelete(context, visible[i])
                               : null,
                         ),
                       ),
@@ -147,7 +154,9 @@ class StoriesScreen extends ConsumerWidget {
     );
   }
 
-  void _openWrite(BuildContext context, [BlogPost? editing]) {
+  Future<void> _openWrite(BuildContext context, [BlogPost? editing]) async {
+    if (editing == null && !await ensureUgcTermsAccepted(context)) return;
+    if (!context.mounted) return;
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => WriteStoryScreen(editing: editing)),
@@ -307,6 +316,14 @@ class _StoryCard extends StatelessWidget {
                           ),
                         ),
                       ],
+                    )
+                  else
+                    UgcSafetyMenu(
+                      authorId: post.authorId,
+                      authorName: post.authorName,
+                      targetType: 'story',
+                      targetId: post.id,
+                      targetPath: 'blogs/${post.id}',
                     ),
                 ],
               ),

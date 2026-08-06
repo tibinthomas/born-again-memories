@@ -6,10 +6,12 @@ import 'package:flutter/services.dart';
 import '../models/forum_question.dart';
 import '../models/kid_profile.dart';
 import '../providers/profiles_provider.dart';
+import '../providers/ugc_safety_provider.dart';
 import '../services/firestore_service.dart';
 import '../utils/device_performance.dart';
 import '../utils/profile_theme.dart';
 import '../widgets/gradient_fab.dart';
+import '../widgets/ugc_safety.dart';
 import 'forum_detail_screen.dart';
 
 final forumQuestionsProvider = StreamProvider<List<ForumQuestion>>(
@@ -25,6 +27,8 @@ class ForumScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final questions = ref.watch(forumQuestionsProvider);
+    final blockedIds =
+        ref.watch(blockedUserIdsProvider).valueOrNull ?? const {};
     final profiles = ref.watch(profilesProvider) ?? [];
     final theme = profiles.isNotEmpty
         ? ProfileTheme.forProfile(
@@ -101,7 +105,12 @@ class ForumScreen extends ConsumerWidget {
                   );
                 },
                 data: (list) {
-                  if (list.isEmpty) {
+                  final visible = list
+                      .where(
+                        (question) => !blockedIds.contains(question.authorId),
+                      )
+                      .toList();
+                  if (visible.isEmpty) {
                     return _EmptyState(
                       accent: accent,
                       onAsk: () => _showAskSheet(context, accent, uid),
@@ -109,20 +118,20 @@ class ForumScreen extends ConsumerWidget {
                   }
                   return ListView.builder(
                     padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
-                    itemCount: list.length,
+                    itemCount: visible.length,
                     itemBuilder: (_, i) => _AnimatedCard(
                       index: i,
                       child: Padding(
                         padding: const EdgeInsets.only(bottom: 12),
                         child: _QuestionCard(
-                          question: list[i],
+                          question: visible[i],
                           accent: accent,
                           currentUid: uid,
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (_) => ForumDetailScreen(
-                                question: list[i],
+                                question: visible[i],
                                 currentUid: uid,
                                 accent: accent,
                               ),
@@ -132,9 +141,10 @@ class ForumScreen extends ConsumerWidget {
                             context,
                             accent,
                             uid,
-                            editing: list[i],
+                            editing: visible[i],
                           ),
-                          onDelete: () => _confirmDelete(context, list[i].id),
+                          onDelete: () =>
+                              _confirmDelete(context, visible[i].id),
                         ),
                       ),
                     ),
@@ -155,12 +165,14 @@ class ForumScreen extends ConsumerWidget {
     );
   }
 
-  void _showAskSheet(
+  Future<void> _showAskSheet(
     BuildContext context,
     Color accent,
     String uid, {
     ForumQuestion? editing,
-  }) {
+  }) async {
+    if (editing == null && !await ensureUgcTermsAccepted(context)) return;
+    if (!context.mounted) return;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -272,7 +284,16 @@ class _QuestionCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  if (isOwner) _OwnerMenu(onEdit: onEdit, onDelete: onDelete),
+                  if (isOwner)
+                    _OwnerMenu(onEdit: onEdit, onDelete: onDelete)
+                  else
+                    UgcSafetyMenu(
+                      authorId: question.authorId,
+                      authorName: question.authorName,
+                      targetType: 'forumQuestion',
+                      targetId: question.id,
+                      targetPath: 'forum/${question.id}',
+                    ),
                 ],
               ),
               const SizedBox(height: 10),

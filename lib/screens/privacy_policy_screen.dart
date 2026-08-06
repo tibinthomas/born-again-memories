@@ -7,7 +7,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
     (
       heading: 'Who we are',
       body:
-          'First Moments (“the App”) is a private family memory and '
+          'Growing Memories (“the App”) is a private family memory and '
           'child-development journal. Before publication, replace the '
           'developer and contact placeholders below with the same legal '
           'developer name used in the Google Play listing.',
@@ -149,7 +149,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
           children: [
             Text(
-              'First Moments Privacy Policy',
+              'Growing Memories Privacy Policy',
               style: Theme.of(
                 context,
               ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),

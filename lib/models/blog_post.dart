@@ -8,6 +8,7 @@ class BlogPost {
   final DateTime createdAt;
   final List<String> tags;
   final List<String> likedByUids;
+  final String moderationStatus;
 
   const BlogPost({
     required this.id,
@@ -19,6 +20,7 @@ class BlogPost {
     required this.createdAt,
     this.tags = const [],
     this.likedByUids = const [],
+    this.moderationStatus = 'active',
   });
 
   int get likesCount => likedByUids.length;
@@ -34,6 +36,7 @@ class BlogPost {
     String? content,
     List<String>? tags,
     List<String>? likedByUids,
+    String? moderationStatus,
   }) => BlogPost(
     id: id,
     title: title ?? this.title,
@@ -44,6 +47,7 @@ class BlogPost {
     createdAt: createdAt,
     tags: tags ?? this.tags,
     likedByUids: likedByUids ?? this.likedByUids,
+    moderationStatus: moderationStatus ?? this.moderationStatus,
   );
 
   Map<String, dynamic> toJson() => {
@@ -56,6 +60,7 @@ class BlogPost {
     'createdAt': createdAt.millisecondsSinceEpoch,
     if (tags.isNotEmpty) 'tags': tags,
     if (likedByUids.isNotEmpty) 'likedByUids': likedByUids,
+    'moderationStatus': moderationStatus,
   };
 
   factory BlogPost.fromJson(Map<String, dynamic> j) => BlogPost(
@@ -70,5 +75,6 @@ class BlogPost {
     ),
     tags: (j['tags'] as List<dynamic>?)?.cast<String>() ?? [],
     likedByUids: (j['likedByUids'] as List<dynamic>?)?.cast<String>() ?? [],
+    moderationStatus: j['moderationStatus'] as String? ?? 'active',
   );
 }

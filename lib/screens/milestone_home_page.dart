@@ -194,6 +194,9 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
     final safeIndex = selectedIndex.clamp(0, profiles.length - 1);
     final currentProfile = profiles[safeIndex];
     final profileTheme = ProfileTheme.forProfile(currentProfile);
+    final visibility =
+        ref.watch(featureVisibilityProvider).valueOrNull ??
+        const FeatureVisibility.allVisible();
 
     // Filter milestones
     final allMilestones = milestonesNewestFirst(currentProfile.milestones);
@@ -353,26 +356,28 @@ class _MilestoneHomePageState extends ConsumerState<MilestoneHomePage> {
                           },
                           tooltip: _showSearch ? 'Hide search' : 'Search',
                         ),
-                        IconButton(
-                          icon: Icon(
-                            Icons.picture_as_pdf_outlined,
-                            color: Color(0xFF616161),
-                            size: 22,
+                        if (visibility.isEnabled(AppModule.pdfExport))
+                          IconButton(
+                            icon: Icon(
+                              Icons.picture_as_pdf_outlined,
+                              color: Color(0xFF616161),
+                              size: 22,
+                            ),
+                            onPressed: allMilestones.isEmpty
+                                ? null
+                                : () {
+                                    showModalBottomSheet(
+                                      context: context,
+                                      isScrollControlled: true,
+                                      useSafeArea: true,
+                                      backgroundColor: Colors.transparent,
+                                      builder: (_) => PdfExportSheet(
+                                        profileIndex: safeIndex,
+                                      ),
+                                    );
+                                  },
+                            tooltip: 'Export memory book',
                           ),
-                          onPressed: allMilestones.isEmpty
-                              ? null
-                              : () {
-                                  showModalBottomSheet(
-                                    context: context,
-                                    isScrollControlled: true,
-                                    useSafeArea: true,
-                                    backgroundColor: Colors.transparent,
-                                    builder: (_) =>
-                                        PdfExportSheet(profileIndex: safeIndex),
-                                  );
-                                },
-                          tooltip: 'Export memory book',
-                        ),
                       ],
                     ],
                   ),
@@ -1214,47 +1219,50 @@ class _ProfileHeader extends ConsumerWidget {
                       const SizedBox(height: 10),
 
                       // ── Mini profile switcher (own row, never affects name position) ──
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          for (int i = 0; i < allProfiles.length; i++)
-                            if (i != profileIndex)
-                              Padding(
-                                padding: const EdgeInsets.only(right: 5),
-                                child: _MiniProfileAvatar(
-                                  profile: allProfiles[i],
-                                  onTap: () => onSelectProfile(i),
-                                ),
-                              ),
-                          GestureDetector(
-                            onTap: onAddProfile,
-                            child: ClipOval(
-                              child: BackdropFilter(
-                                filter: ImageFilter.blur(
-                                  sigmaX: 10,
-                                  sigmaY: 10,
-                                ),
-                                child: Container(
-                                  width: 26,
-                                  height: 26,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Colors.white.withAlpha(30),
-                                    border: Border.all(
-                                      color: Colors.white.withAlpha(140),
-                                      width: 1.5,
-                                    ),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            for (int i = 0; i < allProfiles.length; i++)
+                              if (i != profileIndex)
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 5),
+                                  child: _MiniProfileAvatar(
+                                    profile: allProfiles[i],
+                                    onTap: () => onSelectProfile(i),
                                   ),
-                                  child: const Icon(
-                                    Icons.add,
-                                    color: Colors.white,
-                                    size: 14,
+                                ),
+                            GestureDetector(
+                              onTap: onAddProfile,
+                              child: ClipOval(
+                                child: BackdropFilter(
+                                  filter: ImageFilter.blur(
+                                    sigmaX: 10,
+                                    sigmaY: 10,
+                                  ),
+                                  child: Container(
+                                    width: 26,
+                                    height: 26,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Colors.white.withAlpha(30),
+                                      border: Border.all(
+                                        color: Colors.white.withAlpha(140),
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    child: const Icon(
+                                      Icons.add,
+                                      color: Colors.white,
+                                      size: 14,
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 16),
 

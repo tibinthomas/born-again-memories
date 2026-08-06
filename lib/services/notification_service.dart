@@ -51,7 +51,6 @@ class NotificationService {
         >();
     if (android != null) {
       granted = await android.requestNotificationsPermission() ?? false;
-      await android.requestExactAlarmsPermission();
     } else if (darwin != null) {
       granted =
           await darwin.requestPermissions(
@@ -129,7 +128,7 @@ class NotificationService {
         body,
         tzTime,
         details,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
         matchDateTimeComponents: reminder.repeat == ReminderRepeat.monthly
@@ -150,7 +149,7 @@ class NotificationService {
             body,
             tz.TZDateTime.from(followUp, tz.local),
             details,
-            androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+            androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
             uiLocalNotificationDateInterpretation:
                 UILocalNotificationDateInterpretation.absoluteTime,
           );

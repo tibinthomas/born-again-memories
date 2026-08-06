@@ -94,7 +94,6 @@ flutter:
   assets:
     - assets/config/feature_visibility.json
     - assets/images/app_icon.png
-    - assets/images/brand_logo.png
     - assets/images/signin_logo.png
     - assets/music/
 
