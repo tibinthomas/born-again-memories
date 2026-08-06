@@ -1225,14 +1225,14 @@ class _ProfileHeader extends ConsumerWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             for (int i = 0; i < allProfiles.length; i++)
-                              if (i != profileIndex)
-                                Padding(
-                                  padding: const EdgeInsets.only(right: 5),
-                                  child: _MiniProfileAvatar(
-                                    profile: allProfiles[i],
-                                    onTap: () => onSelectProfile(i),
-                                  ),
+                              Padding(
+                                padding: const EdgeInsets.only(right: 7),
+                                child: _MiniProfileAvatar(
+                                  profile: allProfiles[i],
+                                  selected: i == profileIndex,
+                                  onTap: () => onSelectProfile(i),
                                 ),
+                              ),
                             GestureDetector(
                               onTap: onAddProfile,
                               child: ClipOval(
@@ -1705,8 +1705,13 @@ class _QuickPill extends StatelessWidget {
 
 class _MiniProfileAvatar extends StatelessWidget {
   final KidProfile profile;
+  final bool selected;
   final VoidCallback onTap;
-  const _MiniProfileAvatar({required this.profile, required this.onTap});
+  const _MiniProfileAvatar({
+    required this.profile,
+    required this.selected,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1717,36 +1722,54 @@ class _MiniProfileAvatar extends StatelessWidget {
         File(profile.avatarImagePath!).existsSync();
     final pTheme = ProfileTheme.forProfile(profile);
 
-    return GestureDetector(
-      onTap: onTap,
-      child: ClipOval(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            width: 26,
-            height: 26,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withAlpha(35),
-              border: Border.all(
-                color: Colors.white.withAlpha(160),
-                width: 1.5,
-              ),
-              image: hasAvatar
-                  ? DecorationImage(
-                      image: FileImage(File(profile.avatarImagePath!)),
-                      fit: BoxFit.cover,
-                    )
-                  : null,
-            ),
-            child: hasAvatar
-                ? null
-                : Center(
-                    child: Text(
-                      pTheme.decalEmoji,
-                      style: const TextStyle(fontSize: 12),
-                    ),
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: profile.name,
+      child: Tooltip(
+        message: selected ? '${profile.name} (selected)' : profile.name,
+        child: GestureDetector(
+          onTap: onTap,
+          child: ClipOval(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                width: selected ? 34 : 28,
+                height: selected ? 34 : 28,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withAlpha(selected ? 70 : 35),
+                  border: Border.all(
+                    color: Colors.white.withAlpha(selected ? 255 : 160),
+                    width: selected ? 3 : 1.5,
                   ),
+                  boxShadow: selected
+                      ? [
+                          BoxShadow(
+                            color: Colors.white.withAlpha(100),
+                            blurRadius: 8,
+                            spreadRadius: 1,
+                          ),
+                        ]
+                      : null,
+                  image: hasAvatar
+                      ? DecorationImage(
+                          image: FileImage(File(profile.avatarImagePath!)),
+                          fit: BoxFit.cover,
+                        )
+                      : null,
+                ),
+                child: hasAvatar
+                    ? null
+                    : Center(
+                        child: Text(
+                          pTheme.decalEmoji,
+                          style: TextStyle(fontSize: selected ? 15 : 13),
+                        ),
+                      ),
+              ),
+            ),
           ),
         ),
       ),

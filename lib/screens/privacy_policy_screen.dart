@@ -8,9 +8,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
       heading: 'Who we are',
       body:
           'Growing Memories (“the App”) is a private family memory and '
-          'child-development journal. Before publication, replace the '
-          'developer and contact placeholders below with the same legal '
-          'developer name used in the Google Play listing.',
+          'child-development journal operated by Tibin Thomas.',
     ),
     (
       heading: 'Information you provide',
@@ -133,10 +131,12 @@ class PrivacyPolicyScreen extends StatelessWidget {
     (
       heading: 'Contact',
       body:
-          'Developer: [REPLACE WITH PLAY CONSOLE LEGAL DEVELOPER NAME]\n'
-          'Privacy email: [REPLACE WITH PRIVACY CONTACT EMAIL]\n'
-          'Public policy URL: [REPLACE WITH PUBLIC HTTPS URL]\n'
-          'Account deletion URL: [REPLACE WITH PUBLIC HTTPS URL]',
+          'Developer: Tibin Thomas\n'
+          'Privacy email: tibinthomas@outlook.com\n'
+          'Public policy URL: '
+          'https://born-again-memories.web.app/privacy.html\n'
+          'Account deletion URL: '
+          'https://born-again-memories.web.app/delete-account.html',
     ),
   ];
 
@@ -156,7 +156,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              'Effective: July 27, 2026',
+              'Effective: August 6, 2026',
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: 20),
