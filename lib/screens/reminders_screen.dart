@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/reminder.dart';
@@ -679,6 +680,7 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
   late ReminderType _type;
   late DateTime _dateTime;
   late ReminderRepeat _repeat;
+  late bool _useExactAlarm;
   bool _saving = false;
   String? _titleError;
 
@@ -694,6 +696,7 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
     _dateTime =
         e?.dateTime ?? DateTime.now().add(const Duration(days: 1, hours: 1));
     _repeat = e?.repeat ?? ReminderRepeat.none;
+    _useExactAlarm = e?.useExactAlarm ?? false;
   }
 
   @override
@@ -733,6 +736,51 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
     });
   }
 
+  Future<void> _setPreciseTiming(bool enabled) async {
+    if (!enabled) {
+      setState(() => _useExactAlarm = false);
+      return;
+    }
+
+    final approved = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Allow precise reminders?'),
+        content: const Text(
+          'Android requires special “Alarms & reminders” access to deliver '
+          'this reminder at the exact selected time, including while the '
+          'device is idle. This can use more battery. If you decline, the '
+          'reminder will still be scheduled using battery-friendly timing.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Not now'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Open settings'),
+          ),
+        ],
+      ),
+    );
+    if (approved != true || !mounted) return;
+
+    final granted = await NotificationService.requestExactAlarmPermission();
+    if (!mounted) return;
+    setState(() => _useExactAlarm = granted);
+    if (!granted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Precise timing was not enabled. This reminder will use '
+            'battery-friendly timing.',
+          ),
+        ),
+      );
+    }
+  }
+
   Future<void> _save() async {
     final title = _titleCtrl.text.trim();
     if (title.isEmpty) {
@@ -753,6 +801,7 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
         dateTime: _dateTime,
         type: _type,
         repeat: _repeat,
+        useExactAlarm: _useExactAlarm,
         clearNotes: _notesCtrl.text.trim().isEmpty,
       );
       await ref
@@ -766,6 +815,7 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
         dateTime: _dateTime,
         type: _type,
         repeat: _repeat,
+        useExactAlarm: _useExactAlarm,
       );
       await ref
           .read(profilesProvider.notifier)
@@ -1014,6 +1064,25 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
               onSelectionChanged: (s) => setState(() => _repeat = s.first),
             ),
             const SizedBox(height: 18),
+
+            if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) ...[
+              SwitchListTile.adaptive(
+                contentPadding: EdgeInsets.zero,
+                title: const Text(
+                  'Precise timing',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                ),
+                subtitle: const Text(
+                  'Deliver at the exact selected time. Requires Android '
+                  'Alarms & reminders access.',
+                  style: TextStyle(fontSize: 12),
+                ),
+                value: _useExactAlarm,
+                activeThumbColor: pTheme.accent,
+                onChanged: _setPreciseTiming,
+              ),
+              const SizedBox(height: 10),
+            ],
 
             // Notes
             _label('Notes (optional)'),

@@ -71,6 +71,28 @@ class NotificationService {
     return granted;
   }
 
+  static Future<bool> canScheduleExactAlarms() async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return false;
+    await initialize();
+    final android = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+    return await android?.canScheduleExactNotifications() ?? false;
+  }
+
+  static Future<bool> requestExactAlarmPermission() async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return false;
+    await initialize();
+    final android = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+    if (android == null) return false;
+    if (await android.canScheduleExactNotifications() ?? false) return true;
+    return await android.requestExactAlarmsPermission() ?? false;
+  }
+
   static Future<void> scheduleReminder(
     Reminder reminder,
     String kidName,
@@ -104,6 +126,10 @@ class NotificationService {
       iOS: iosDetails,
       macOS: const DarwinNotificationDetails(),
     );
+    final primaryScheduleMode =
+        reminder.useExactAlarm && await canScheduleExactAlarms()
+        ? AndroidScheduleMode.exactAllowWhileIdle
+        : AndroidScheduleMode.inexactAllowWhileIdle;
 
     final RepeatInterval? repeatInterval = switch (reminder.repeat) {
       ReminderRepeat.daily => RepeatInterval.daily,
@@ -120,6 +146,7 @@ class NotificationService {
             ? const Duration(days: 1)
             : const Duration(days: 7),
         details,
+        androidScheduleMode: primaryScheduleMode,
       );
     } else {
       await _plugin.zonedSchedule(
@@ -128,7 +155,7 @@ class NotificationService {
         body,
         tzTime,
         details,
-        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        androidScheduleMode: primaryScheduleMode,
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
         matchDateTimeComponents: reminder.repeat == ReminderRepeat.monthly

@@ -47,6 +47,7 @@ class Reminder {
   final bool isDone;
   final ReminderRepeat repeat;
   final bool isMuted;
+  final bool useExactAlarm;
   // ID of the corresponding event in the device / Google calendar (null = not synced).
   final String? calendarEventId;
 
@@ -59,6 +60,7 @@ class Reminder {
     this.isDone = false,
     this.repeat = ReminderRepeat.none,
     this.isMuted = false,
+    this.useExactAlarm = false,
     this.calendarEventId,
   });
 
@@ -73,6 +75,7 @@ class Reminder {
     bool? isDone,
     ReminderRepeat? repeat,
     bool? isMuted,
+    bool? useExactAlarm,
     String? calendarEventId,
     bool clearNotes = false,
     bool clearCalendarEventId = false,
@@ -85,6 +88,7 @@ class Reminder {
     isDone: isDone ?? this.isDone,
     repeat: repeat ?? this.repeat,
     isMuted: isMuted ?? this.isMuted,
+    useExactAlarm: useExactAlarm ?? this.useExactAlarm,
     calendarEventId: clearCalendarEventId
         ? null
         : calendarEventId ?? this.calendarEventId,
@@ -99,6 +103,7 @@ class Reminder {
     'isDone': isDone,
     'repeat': repeat.name,
     'isMuted': isMuted,
+    'useExactAlarm': useExactAlarm,
     if (calendarEventId != null) 'calendarEventId': calendarEventId,
   };
 
@@ -117,6 +122,7 @@ class Reminder {
       orElse: () => ReminderRepeat.none,
     ),
     isMuted: j['isMuted'] as bool? ?? false,
+    useExactAlarm: j['useExactAlarm'] as bool? ?? false,
     calendarEventId: j['calendarEventId'] as String?,
   );
 }
