@@ -26,7 +26,7 @@ mixin RemindersOps on StateNotifier<List<KidProfile>?>, ProfileMutations {
       profile.copyWith(reminders: [...profile.reminders, r]),
     );
     await FirestoreService.saveReminder(uid, profile.id, r);
-    await NotificationService.scheduleReminder(r, profile.name);
+    await NotificationService.scheduleReminder(r, profile.name, profile.id);
   }
 
   Future<void> addReminderToProfiles(
@@ -50,7 +50,7 @@ mixin RemindersOps on StateNotifier<List<KidProfile>?>, ProfileMutations {
         profile.copyWith(reminders: [...profile.reminders, r]),
       );
       await FirestoreService.saveReminder(uid, profile.id, r);
-      await NotificationService.scheduleReminder(r, profile.name);
+      await NotificationService.scheduleReminder(r, profile.name, profile.id);
     }
   }
 
@@ -81,7 +81,7 @@ mixin RemindersOps on StateNotifier<List<KidProfile>?>, ProfileMutations {
     setProfile(profileIndex, profile.copyWith(reminders: reminders));
     await FirestoreService.saveReminder(uid, profile.id, r);
     await NotificationService.cancelReminder(r.id);
-    await NotificationService.scheduleReminder(r, profile.name);
+    await NotificationService.scheduleReminder(r, profile.name, profile.id);
   }
 
   Future<void> deleteReminder(int profileIndex, String reminderId) async {
@@ -122,7 +122,11 @@ mixin RemindersOps on StateNotifier<List<KidProfile>?>, ProfileMutations {
     if (done) {
       await NotificationService.cancelReminder(reminderId);
     } else {
-      await NotificationService.scheduleReminder(reminder, profile.name);
+      await NotificationService.scheduleReminder(
+        reminder,
+        profile.name,
+        profile.id,
+      );
     }
   }
 
@@ -145,6 +149,10 @@ mixin RemindersOps on StateNotifier<List<KidProfile>?>, ProfileMutations {
     setProfile(profileIndex, profile.copyWith(reminders: reminders));
     final reminder = reminders.firstWhere((r) => r.id == reminderId);
     await FirestoreService.saveReminder(uid, profile.id, reminder);
-    await NotificationService.scheduleReminder(reminder, profile.name);
+    await NotificationService.scheduleReminder(
+      reminder,
+      profile.name,
+      profile.id,
+    );
   }
 }

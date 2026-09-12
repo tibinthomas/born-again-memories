@@ -6,11 +6,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'firebase_options.dart';
+import 'models/kid_profile.dart';
 import 'providers/app_settings_provider.dart';
 import 'providers/auth_provider.dart';
+import 'providers/profiles_provider.dart';
 import 'screens/account_recovery_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/milestone_home_page.dart';
+import 'screens/reminders_screen.dart';
 import 'services/firestore_service.dart';
 import 'services/notification_service.dart';
 import 'utils/wcag_colors.dart';
@@ -120,6 +123,8 @@ class _AuthedRootState extends ConsumerState<_AuthedRoot> {
   DateTime? _scheduledDeletion;
   bool _deleteDriveBackup = false;
   StreamSubscription<QuerySnapshot>? _notifSub;
+  StreamSubscription<ReminderNotificationTarget>? _reminderTapSub;
+  ReminderNotificationTarget? _pendingReminderTarget;
 
   @override
   void initState() {
@@ -127,12 +132,37 @@ class _AuthedRootState extends ConsumerState<_AuthedRoot> {
     _checkDeletion();
     _initFcm();
     _listenForSharedNotifications();
+    _pendingReminderTarget = NotificationService.takePendingReminderTap();
+    _reminderTapSub = NotificationService.reminderTaps.listen((target) {
+      _pendingReminderTarget = target;
+      _openPendingReminder();
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _openPendingReminder());
   }
 
   @override
   void dispose() {
     _notifSub?.cancel();
+    _reminderTapSub?.cancel();
     super.dispose();
+  }
+
+  void _openPendingReminder() {
+    if (!mounted || _pendingDeletion) return;
+    final target = _pendingReminderTarget;
+    final profiles = ref.read(profilesProvider);
+    if (target == null || profiles == null || profiles.isEmpty) return;
+
+    final profileIndex = profiles.indexWhere((p) => p.id == target.profileId);
+    _pendingReminderTarget = null;
+    if (profileIndex < 0) return;
+
+    ref.read(selectedProfileIndexProvider.notifier).state = profileIndex;
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => RemindersScreen(profileIndex: profileIndex),
+      ),
+    );
   }
 
   void _listenForSharedNotifications() {
@@ -212,6 +242,13 @@ class _AuthedRootState extends ConsumerState<_AuthedRoot> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<List<KidProfile>?>(profilesProvider, (_, profiles) {
+      if (profiles != null) {
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) => _openPendingReminder(),
+        );
+      }
+    });
     if (!_checked) {
       return const _AppLoadingScreen();
     }

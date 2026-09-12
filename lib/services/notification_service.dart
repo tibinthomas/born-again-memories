@@ -1,12 +1,68 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import '../models/reminder.dart';
 
+@immutable
+class ReminderNotificationTarget {
+  final String profileId;
+  final String reminderId;
+
+  const ReminderNotificationTarget({
+    required this.profileId,
+    required this.reminderId,
+  });
+
+  String toPayload() => jsonEncode({
+    'type': 'reminder',
+    'profileId': profileId,
+    'reminderId': reminderId,
+  });
+
+  static ReminderNotificationTarget? fromPayload(String? payload) {
+    if (payload == null || payload.isEmpty) return null;
+    try {
+      final json = jsonDecode(payload);
+      if (json is! Map<String, dynamic> || json['type'] != 'reminder') {
+        return null;
+      }
+      final profileId = json['profileId'];
+      final reminderId = json['reminderId'];
+      if (profileId is! String ||
+          profileId.isEmpty ||
+          reminderId is! String ||
+          reminderId.isEmpty) {
+        return null;
+      }
+      return ReminderNotificationTarget(
+        profileId: profileId,
+        reminderId: reminderId,
+      );
+    } on FormatException {
+      return null;
+    }
+  }
+}
+
 class NotificationService {
   static final _plugin = FlutterLocalNotificationsPlugin();
+  static final _reminderTapController =
+      StreamController<ReminderNotificationTarget>.broadcast();
   static bool _initialized = false;
+  static ReminderNotificationTarget? _pendingReminderTap;
+
+  static Stream<ReminderNotificationTarget> get reminderTaps =>
+      _reminderTapController.stream;
+
+  static ReminderNotificationTarget? takePendingReminderTap() {
+    final target = _pendingReminderTap;
+    _pendingReminderTap = null;
+    return target;
+  }
 
   // 25 slots per reminder: initial + 24 follow-ups every 30 min.
   // 85 000 000 * 25 = 2 125 000 000 < Int32 max (2 147 483 647).
@@ -30,8 +86,26 @@ class NotificationService {
 
     await _plugin.initialize(
       const InitializationSettings(android: android, iOS: ios, macOS: macos),
+      onDidReceiveNotificationResponse: _handleNotificationResponse,
     );
     _initialized = true;
+
+    final launchDetails = await _plugin.getNotificationAppLaunchDetails();
+    if (launchDetails?.didNotificationLaunchApp ?? false) {
+      _handleNotificationResponse(launchDetails!.notificationResponse!);
+    }
+  }
+
+  static void _handleNotificationResponse(NotificationResponse response) {
+    final target = ReminderNotificationTarget.fromPayload(response.payload);
+    if (target == null) return;
+    if (_reminderTapController.hasListener) {
+      _reminderTapController.add(target);
+    } else {
+      // Authentication/profile loading may not have built the app shell yet.
+      // Retain a cold-start tap until the authenticated root can consume it.
+      _pendingReminderTap = target;
+    }
   }
 
   static Future<bool> requestPermissions() async {
@@ -96,6 +170,7 @@ class NotificationService {
   static Future<void> scheduleReminder(
     Reminder reminder,
     String kidName,
+    String profileId,
   ) async {
     if (kIsWeb || !_initialized) return;
     if (reminder.isMuted) return;
@@ -107,6 +182,10 @@ class NotificationService {
     final tzTime = tz.TZDateTime.from(reminder.dateTime, tz.local);
     final title = '${reminder.type.emoji} $kidName — ${reminder.title}';
     final body = reminder.notes ?? reminder.type.label;
+    final payload = ReminderNotificationTarget(
+      profileId: profileId,
+      reminderId: reminder.id,
+    ).toPayload();
 
     final androidDetails = AndroidNotificationDetails(
       'reminders',
@@ -146,6 +225,7 @@ class NotificationService {
             ? const Duration(days: 1)
             : const Duration(days: 7),
         details,
+        payload: payload,
         androidScheduleMode: primaryScheduleMode,
       );
     } else {
@@ -155,6 +235,7 @@ class NotificationService {
         body,
         tzTime,
         details,
+        payload: payload,
         androidScheduleMode: primaryScheduleMode,
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
@@ -176,6 +257,7 @@ class NotificationService {
             body,
             tz.TZDateTime.from(followUp, tz.local),
             details,
+            payload: payload,
             androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
             uiLocalNotificationDateInterpretation:
                 UILocalNotificationDateInterpretation.absoluteTime,

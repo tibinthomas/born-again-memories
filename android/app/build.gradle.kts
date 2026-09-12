@@ -9,6 +9,9 @@ plugins {
 
 val keystorePropertiesFile = rootProject.file("key.properties")
 val keystoreProperties = Properties()
+// Keep the installed application ID aligned with the Android OAuth client in
+// google-services.json. The namespace can change independently of this ID.
+val androidApplicationId = "m4memories.surprise.in"
 val isReleaseBuildRequested = gradle.startParameter.taskNames.any {
     it.contains("release", ignoreCase = true)
 }
@@ -26,14 +29,27 @@ if (keystorePropertiesFile.exists()) {
 // resource generator when the project-specific Android config is available,
 // but do not make local builds fail solely because that uncommitted file is
 // absent.
-if (file("google-services.json").exists()) {
+val googleServicesFile = file("google-services.json")
+val googleServicesMatchesApplicationId = googleServicesFile.exists() &&
+    Regex(
+        "\\\"package_name\\\"\\s*:\\s*\\\"${Regex.escape(androidApplicationId)}\\\"",
+    ).containsMatchIn(googleServicesFile.readText())
+
+if (googleServicesMatchesApplicationId) {
     apply(plugin = "com.google.gms.google-services")
 } else {
-    logger.warn("google-services.json not found; native Google services configuration is disabled")
+    logger.warn(
+        if (googleServicesFile.exists()) {
+            "google-services.json has no client for $androidApplicationId; " +
+                "native Google services configuration is disabled"
+        } else {
+            "google-services.json not found; native Google services configuration is disabled"
+        },
+    )
 }
 
 android {
-    namespace = "m4memories.surprise.in"
+    namespace = "app.growingmemories.in"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -48,15 +64,14 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "m4memories.surprise.in"
+        applicationId = androidApplicationId
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-        manifestPlaceholders["appAuthRedirectScheme"] = "m4memories.surprise.in"
+        manifestPlaceholders["appAuthRedirectScheme"] = androidApplicationId
     }
 
     signingConfigs {
