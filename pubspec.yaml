@@ -91,6 +91,11 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
+  # FlutterFire's Swift packages fail to resolve under Xcode 27; keep using
+  # CocoaPods for iOS/macOS plugins until that is fixed upstream.
+  config:
+    enable-swift-package-manager: false
+
   assets:
     - assets/config/feature_visibility.json
     - assets/images/app_icon.png
