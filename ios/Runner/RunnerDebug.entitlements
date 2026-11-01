@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+	Debug-only entitlements. Sign in with Apple and Push Notifications are
+	omitted so Debug builds can be signed with a free personal team.
+	Profile/Release keep using Runner.entitlements.
+	-->
+</dict>
+</plist>
